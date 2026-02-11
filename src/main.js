@@ -197,46 +197,27 @@ async function navigate(tabId) {
 
   const previousTab = currentTab;
   const content = document.getElementById('content');
-  const currentPage = content.querySelector('.page');
-
-  // Determine transition direction
-  const previousIndex = TABS.findIndex(t => t.id === previousTab);
-  const newIndex = TABS.findIndex(t => t.id === tabId);
-  const direction = newIndex > previousIndex ? 'forward' : 'backward';
 
   // Update current tab
   currentTab = tabId;
 
-  // Update nav bar active state with smooth transition
+  // Update nav bar active state
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.toggle('active', item.dataset.tab === tabId);
   });
 
-  // INSTANT page switch - no animations, no delays
-  if (currentPage && previousTab !== tabId) {
-    isNavigating = true;
-    await showNewPage(content, tab, direction);
-    isNavigating = false;
-  } else {
-    // First load or same page
-    await showNewPage(content, tab, 'none');
-  }
+  // Simple immediate page switch
+  isNavigating = true;
+  showNewPage(content, tab);
+  isNavigating = false;
 
-  // Scroll to top instantly
+  // Scroll to top
   content.scrollTo({ top: 0, behavior: 'auto' });
 }
 
-async function showNewPage(content, tab, direction) {
-  // INSTANT page render - don't wait for cloud sync
+function showNewPage(content, tab) {
+  // Render page immediately
   content.innerHTML = `<div class="page active">${tab.render()}</div>`;
-
-  // Sync in background (non-blocking)
-  storage.pullFromCloud().catch(err => console.warn('Background sync failed:', err));
-
-  // Apply stagger animations to list items - DISABLED FOR PERFORMANCE
-  // requestAnimationFrame(() => {
-  //   applyStaggerAnimation();
-  // });
 
   // Run page init if exists
   if (tab.init) {
@@ -244,6 +225,11 @@ async function showNewPage(content, tab, direction) {
       tab.init();
     });
   }
+
+  // Sync in background after page is shown
+  setTimeout(() => {
+    storage.pullFromCloud().catch(err => console.warn('Background sync failed:', err));
+  }, 100);
 }
 
 // Helper: Apply stagger entrance animations to lists
