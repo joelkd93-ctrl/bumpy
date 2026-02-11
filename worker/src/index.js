@@ -144,8 +144,26 @@ async function handleInit(env) {
       meta TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
-    
-    // Add entry_date column to journal_entries if not exists
+
+    // Journal and mood entries tables
+    `CREATE TABLE IF NOT EXISTS journal_entries (
+      id TEXT PRIMARY KEY,
+      week_number INTEGER,
+      photo_blob TEXT,
+      note TEXT,
+      entry_date TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS mood_entries (
+      id TEXT PRIMARY KEY,
+      date TEXT,
+      mood_emoji TEXT,
+      note TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Add entry_date column to journal_entries if not exists (for existing databases)
     `ALTER TABLE journal_entries ADD COLUMN entry_date TEXT`,
 
     // Indexes
@@ -266,19 +284,29 @@ async function handleSyncPost(env, request) {
 
   // 3) Journal
   if (Array.isArray(journal)) {
+    console.log(`💾 Syncing ${journal.length} journal entries`);
     for (const entry of journal) {
-      if (!entry || !entry.id) continue;
-      await client.execute({
-        sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
-              VALUES (?, ?, ?, ?, ?)`,
-        args: [
-          entry.id,
-          entry.week || entry.week_number || 0,
-          entry.photo || entry.photo_blob || null,
-          entry.note || '',
-          entry.date || entry.entry_date || new Date().toISOString().split('T')[0],
-        ],
-      });
+      if (!entry || !entry.id) {
+        console.warn(`⚠️ Skipping invalid entry:`, entry);
+        continue;
+      }
+      console.log(`💾 Inserting journal entry ${entry.id}`);
+      try {
+        await client.execute({
+          sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
+                VALUES (?, ?, ?, ?, ?)`,
+          args: [
+            entry.id,
+            entry.week || entry.week_number || 0,
+            entry.photo || entry.photo_blob || null,
+            entry.note || '',
+            entry.date || entry.entry_date || new Date().toISOString().split('T')[0],
+          ],
+        });
+        console.log(`✅ Successfully inserted ${entry.id}`);
+      } catch (err) {
+        console.error(`❌ Failed to insert ${entry.id}:`, err.message);
+      }
     }
   }
 
