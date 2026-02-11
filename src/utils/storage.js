@@ -85,7 +85,60 @@ export const storage = {
     // Set timestamp BEFORE syncing to block auto-pull during sync
     lastPushSyncTime = Date.now();
     console.log('⏳ Waiting for cloud sync to complete...');
-    await this.syncWithCloud();
+
+    // Post directly to the specific endpoint (journal or mood)
+    const apiUrl = getApiUrl();
+    const endpoint = prefix === 'journal' ? 'journal' : prefix === 'mood_entries' ? 'mood' : null;
+
+    if (endpoint) {
+      try {
+        // Transform data to backend format
+        const backendData = prefix === 'journal' ? {
+          id: id,
+          week_number: entryData.week,
+          photo_blob: entryData.photo,
+          note: entryData.note,
+          entry_date: entryData.date
+        } : {
+          id: id,
+          mood_emoji: entryData.mood,
+          note: entryData.note,
+          date: entryData.date
+        };
+
+        console.log(`☁️ Posting new ${prefix} entry to ${endpoint}:`, backendData);
+
+        const response = await fetch(`${apiUrl}/${endpoint}`, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'omit',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(backendData)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(`✅ Created ${prefix} entry in cloud:`, result);
+          this.updateSyncIndicator('success', 'Lagret');
+          setTimeout(() => this.updateSyncIndicator('hide'), 2000);
+        } else {
+          console.warn(`⚠️ Failed to create ${prefix} entry:`, response.status);
+          // Fall back to full sync
+          await this.syncWithCloud();
+        }
+      } catch (err) {
+        console.warn(`☁️ Failed to post ${prefix} entry, falling back to sync:`, err.message);
+        // Fall back to full sync
+        await this.syncWithCloud();
+      }
+    } else {
+      // For other types (weekly, etc), use full sync
+      await this.syncWithCloud();
+    }
+
     console.log('✅ Cloud sync complete, safe to proceed');
 
     return id;
@@ -188,7 +241,8 @@ export const storage = {
         moodsCount: moods.length,
         api: apiUrl
       });
-      console.log('☁️ Journal entries being sent:', journal);
+      console.log('☁️ Journal entries (original):', journal);
+      console.log('☁️ Journal entries (transformed for backend):', journalForBackend);
 
       const response = await fetch(`${apiUrl}/sync`, {
         method: 'POST',
