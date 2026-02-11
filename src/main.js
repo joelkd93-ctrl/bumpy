@@ -115,10 +115,15 @@ function initApp() {
   // Render app shell
   const app = document.getElementById('app');
   app.innerHTML = `
+    <div id="sync-indicator" class="sync-indicator">
+      <span class="sync-icon">☁️</span>
+      <span class="sync-text">Synced</span>
+    </div>
+
     <main class="app-content" id="content">
       <!-- Page content renders here -->
     </main>
-    
+
     <nav class="nav-bar" id="nav-bar">
       ${TABS.map(tab => `
         <button class="nav-item ${tab.id === currentTab ? 'active' : ''}" data-tab="${tab.id}">

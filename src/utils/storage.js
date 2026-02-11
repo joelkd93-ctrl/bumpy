@@ -20,12 +20,18 @@ export const storage = {
   set(key, value, skipSync = false) {
     try {
       localStorage.setItem(PREFIX + key, JSON.stringify(value));
+      console.log(`💾 Saved locally: ${key}`, skipSync ? '(skipped sync)' : '(will sync)');
+
       // Auto-sync non-transient data
       if (!skipSync && !key.startsWith('daily_')) {
-        this.syncWithCloud();
+        console.log('☁️ Triggering cloud sync for:', key);
+        this.syncWithCloud().then(success => {
+          console.log(success ? '✅ Cloud sync succeeded' : '❌ Cloud sync failed');
+        });
       }
       return true;
-    } catch {
+    } catch (err) {
+      console.error('❌ LocalStorage save failed:', err);
       return false;
     }
   },
@@ -70,6 +76,9 @@ export const storage = {
    * Cloud Sync Logic
    */
   async syncWithCloud() {
+    // Show syncing indicator
+    this.updateSyncIndicator('syncing', 'Syncing...');
+
     try {
       const settings = this.get('settings');
       const journal = this.getCollection('journal');
@@ -96,6 +105,12 @@ export const storage = {
         predictions
       };
 
+      console.log('☁️ Syncing to cloud...', {
+        journalCount: journal.length,
+        moodsCount: moods.length,
+        api: API_URL
+      });
+
       const response = await fetch(`${API_URL}/sync`, {
         method: 'POST',
         mode: 'cors',
@@ -107,20 +122,60 @@ export const storage = {
         body: JSON.stringify(payload)
       });
 
+      console.log('☁️ Cloud sync response:', response.status, response.statusText);
+
       if (!response.ok) {
-        console.warn(`☁️ Cloud sync failed with status ${response.status}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error(`❌ Cloud sync failed: ${response.status}`, errorText);
         return false;
       }
 
       const result = await response.json();
+      console.log('☁️ Cloud sync result:', result);
+
       if (result.success) {
-        console.log('☁️ Cloud synchronization complete');
+        console.log('✅ Cloud synchronization complete');
+        this.updateSyncIndicator('success', 'Synced');
+        setTimeout(() => this.updateSyncIndicator('hide'), 2000);
         return true;
       }
+
+      console.warn('⚠️ Cloud sync returned success=false');
+      this.updateSyncIndicator('error', 'Sync failed');
+      setTimeout(() => this.updateSyncIndicator('hide'), 3000);
+      return false;
     } catch (err) {
       console.warn('☁️ Cloud sync failed (offline or server down)', err.message);
+      this.updateSyncIndicator('error', 'Offline');
+      setTimeout(() => this.updateSyncIndicator('hide'), 3000);
     }
     return false;
+  },
+
+  updateSyncIndicator(state, text) {
+    const indicator = document.getElementById('sync-indicator');
+    if (!indicator) return;
+
+    const iconEl = indicator.querySelector('.sync-icon');
+    const textEl = indicator.querySelector('.sync-text');
+
+    indicator.className = 'sync-indicator';
+
+    if (state === 'hide') {
+      // Do nothing, indicator will fade out
+    } else if (state === 'syncing') {
+      indicator.classList.add('syncing');
+      if (iconEl) iconEl.textContent = '☁️';
+      if (textEl) textEl.textContent = text || 'Syncing...';
+    } else if (state === 'success') {
+      indicator.classList.add('success');
+      if (iconEl) iconEl.textContent = '✅';
+      if (textEl) textEl.textContent = text || 'Synced';
+    } else if (state === 'error') {
+      indicator.classList.add('error');
+      if (iconEl) iconEl.textContent = '❌';
+      if (textEl) textEl.textContent = text || 'Offline';
+    }
   },
 
   async pullFromCloud() {

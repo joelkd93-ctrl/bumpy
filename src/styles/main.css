@@ -2142,6 +2142,59 @@ li + li {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   ☁️ SYNC INDICATOR
+   ═══════════════════════════════════════════════════════════════ */
+
+.sync-indicator {
+  position: fixed;
+  top: max(var(--space-2), env(safe-area-inset-top));
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all var(--duration-normal) var(--ease-out);
+  pointer-events: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.sync-indicator.syncing {
+  opacity: 1;
+  transform: translateY(0);
+  color: var(--pink-600);
+}
+
+.sync-indicator.syncing .sync-icon {
+  animation: syncPulse 1s ease-in-out infinite;
+}
+
+.sync-indicator.success {
+  opacity: 1;
+  transform: translateY(0);
+  color: #10B981;
+}
+
+.sync-indicator.error {
+  opacity: 1;
+  transform: translateY(0);
+  color: #EF4444;
+}
+
+@keyframes syncPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    📳 MOBILE TOUCH ENHANCEMENTS
    ═══════════════════════════════════════════════════════════════ */
 
