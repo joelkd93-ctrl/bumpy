@@ -188,6 +188,7 @@ export const storage = {
       });
       console.log('☁️ Journal entries (original):', journal);
       console.log('☁️ Journal entries (transformed for backend):', journalForBackend);
+      console.log('☁️ FULL PAYLOAD BEING SENT:', JSON.stringify(payload, null, 2));
 
       const response = await fetch(`${apiUrl}/sync`, {
         method: 'POST',
@@ -210,6 +211,13 @@ export const storage = {
 
       const result = await response.json();
       console.log('☁️ Cloud sync result:', result);
+
+      // Immediately check what was actually saved
+      console.log('🔍 Verifying what was saved to cloud...');
+      const verifyResponse = await fetch(`${apiUrl}/sync?t=${Date.now()}`);
+      const verifyData = await verifyResponse.json();
+      console.log('🔍 Cloud now has:', verifyData.data?.journal?.length, 'journal entries');
+      console.log('🔍 Entry IDs in cloud:', verifyData.data?.journal?.map(e => e.id));
 
       if (result.success) {
         console.log('✅ Cloud synchronization complete');
