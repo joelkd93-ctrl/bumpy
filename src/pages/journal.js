@@ -26,9 +26,14 @@ export function renderJournal() {
               <span class="journal-week">Uke ${entry.week}</span>
               <span class="journal-date">${formatDate(entry.date)}</span>
             </div>
-            <button class="btn-icon-small delete-journal-entry" data-id="${entry.id}" aria-label="Slett">
-              🗑️
-            </button>
+            <div>
+              <button class="btn-icon-small edit-journal-entry" data-id="${entry.id}" aria-label="Rediger">
+                ✏️
+              </button>
+              <button class="btn-icon-small delete-journal-entry" data-id="${entry.id}" aria-label="Slett">
+                🗑️
+              </button>
+            </div>
           </div>
           ${entry.photo
         ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
@@ -74,8 +79,8 @@ export function renderJournal() {
         <!-- Photo Upload Options -->
         <div class="journal-photo-placeholder" id="photo-upload">
           <div class="photo-upload-content">
-            <span class="photo-upload-icon">📷</span>
-            <p class="photo-upload-text">Legg til magebilde</p>
+            <span class="photo-upload-icon" id="upload-icon">🤍</span>
+            <p class="photo-upload-text" id="upload-text">Legg til et øyeblikk</p>
             <div class="photo-upload-buttons">
               <button class="btn btn-soft btn-small" id="camera-btn" type="button">
                 📷 Ta bilde
@@ -153,8 +158,24 @@ export function initJournal() {
   const saveBtn = document.getElementById('save-entry');
   const noteInput = document.getElementById('journal-note');
   const dateInput = document.getElementById('entry-date');
+  const uploadIcon = document.getElementById('upload-icon');
+  const uploadText = document.getElementById('upload-text');
 
   let currentPhoto = null;
+  let editingEntryId = null;
+
+  // Function to update upload button state
+  function updateUploadButton(hasPhoto) {
+    if (uploadIcon && uploadText) {
+      if (hasPhoto) {
+        uploadIcon.textContent = '📸';
+        uploadText.textContent = 'Endre øyeblikk';
+      } else {
+        uploadIcon.textContent = '🤍';
+        uploadText.textContent = 'Legg til et øyeblikk';
+      }
+    }
+  }
 
   // Handle camera button
   cameraBtn?.addEventListener('click', (e) => {
@@ -179,6 +200,7 @@ export function initJournal() {
         previewImg.src = currentPhoto;
         photoUpload.style.display = 'none';
         photoPreview.style.display = 'block';
+        updateUploadButton(true);
       });
     }
   });
@@ -192,6 +214,7 @@ export function initJournal() {
         previewImg.src = currentPhoto;
         photoUpload.style.display = 'none';
         photoPreview.style.display = 'block';
+        updateUploadButton(true);
       });
     }
   });
@@ -203,6 +226,7 @@ export function initJournal() {
     photoUpload.style.display = 'flex';
     photoInputCamera.value = '';
     photoInputGallery.value = '';
+    updateUploadButton(false);
   });
 
   // Save entry
@@ -224,24 +248,35 @@ export function initJournal() {
     const progress = getPregnancyProgress(settings.dueDate, entryDate);
 
     // Show saving feedback
-    saveBtn.textContent = 'Lagrer... ☁️';
+    saveBtn.textContent = editingEntryId ? 'Oppdaterer... ☁️' : 'Lagrer... ☁️';
     saveBtn.disabled = true;
 
     try {
-      // Save journal entry - backend now works properly!
-      await storage.addToCollection('journal', {
-        week: progress.weeksPregnant,
-        date: selectedDate || new Date().toISOString().split('T')[0],
-        photo: currentPhoto,
-        note: note
-      });
-
-      // Success feedback
-      saveBtn.textContent = 'Lagret! 💕';
+      if (editingEntryId) {
+        // Update existing entry
+        storage.set(`journal:${editingEntryId}`, {
+          week: progress.weeksPregnant,
+          date: selectedDate || new Date().toISOString().split('T')[0],
+          photo: currentPhoto,
+          note: note
+        });
+        await storage.syncWithCloud();
+        saveBtn.textContent = 'Oppdatert! 💕';
+      } else {
+        // Create new entry
+        await storage.addToCollection('journal', {
+          week: progress.weeksPregnant,
+          date: selectedDate || new Date().toISOString().split('T')[0],
+          photo: currentPhoto,
+          note: note
+        });
+        saveBtn.textContent = 'Lagret! 💕';
+      }
 
       setTimeout(() => {
         // Reset form
         currentPhoto = null;
+        editingEntryId = null;
         noteInput.value = '';
         dateInput.value = new Date().toISOString().split('T')[0];
         photoPreview.style.display = 'none';
@@ -250,6 +285,7 @@ export function initJournal() {
         photoInputGallery.value = '';
         saveBtn.textContent = 'Lagre Minne 💕';
         saveBtn.disabled = false;
+        updateUploadButton(false);
 
         // Refresh entries - now safe because cloud sync completed
         if (window.app?.refreshCurrentPage) {
@@ -311,6 +347,40 @@ export function initJournal() {
     if (emojiPopup && !emojiPopup.contains(e.target) && e.target !== emojiToggle) {
       emojiPopup.style.display = 'none';
     }
+  });
+
+  // Handle edit buttons
+  document.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.edit-journal-entry');
+    if (!editBtn) return;
+
+    const id = editBtn.dataset.id;
+    const entries = storage.getCollection('journal');
+    const entry = entries.find(e => e.id === id);
+
+    if (!entry) return;
+
+    // Populate form with entry data
+    editingEntryId = id;
+    noteInput.value = entry.note || '';
+    dateInput.value = entry.date;
+
+    if (entry.photo) {
+      currentPhoto = entry.photo;
+      previewImg.src = entry.photo;
+      photoUpload.style.display = 'none';
+      photoPreview.style.display = 'block';
+      updateUploadButton(true);
+    }
+
+    // Update button text
+    saveBtn.textContent = 'Oppdater Minne 💕';
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Haptic feedback
+    if (window.haptic) window.haptic.light();
   });
 
   // Handle delete buttons
