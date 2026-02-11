@@ -744,9 +744,9 @@ body {
    📝 FORM ELEMENTS
    ═══════════════════════════════════════════════════════════════ */
 
+.input,
 .textarea {
   width: 100%;
-  min-height: 120px;
   padding: var(--space-4);
   border: 1.5px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -754,23 +754,240 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   color: var(--text-primary);
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.9) 0%, transparent 100%),
+    var(--surface);
   resize: none;
   transition:
-    border-color var(--duration-fast),
-    box-shadow var(--duration-fast);
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    background var(--duration-normal);
   appearance: none;
   -webkit-appearance: none;
 }
 
-.textarea:focus {
-  outline: none;
-  border-color: var(--pink-300);
-  box-shadow: 0 0 0 3px rgba(255, 77, 166, 0.1);
+.textarea {
+  min-height: 120px;
 }
 
+.input:hover,
+.textarea:hover {
+  border-color: var(--pink-200);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--pink-400);
+  box-shadow:
+    0 0 0 3px rgba(255, 77, 166, 0.12),
+    0 4px 12px rgba(255, 77, 166, 0.08);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,245,249,0.5) 100%),
+    var(--surface);
+  transform: translateY(-1px);
+}
+
+.input::placeholder,
 .textarea::placeholder {
   color: var(--text-muted);
+  transition: opacity var(--duration-normal);
+}
+
+.input:focus::placeholder,
+.textarea:focus::placeholder {
+  opacity: 0.6;
+}
+
+/* Validation States */
+.input.error,
+.textarea.error {
+  border-color: #EF4444;
+  animation: shake 0.4s var(--ease-bounce);
+}
+
+.input.error:focus,
+.textarea.error:focus {
+  box-shadow:
+    0 0 0 3px rgba(239, 68, 68, 0.12),
+    0 4px 12px rgba(239, 68, 68, 0.08);
+}
+
+.input.success,
+.textarea.success {
+  border-color: #10B981;
+}
+
+.input.success:focus,
+.textarea.success:focus {
+  box-shadow:
+    0 0 0 3px rgba(16, 185, 129, 0.12),
+    0 4px 12px rgba(16, 185, 129, 0.08);
+}
+
+/* Form Field Wrapper */
+.form-field {
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  transition: color var(--duration-normal);
+}
+
+.form-field:focus-within .form-label {
+  color: var(--pink-600);
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: #EF4444;
+  margin-top: var(--space-2);
+  animation: slideDown 0.3s var(--ease-out);
+}
+
+.form-success {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: #10B981;
+  margin-top: var(--space-2);
+  animation: slideDown 0.3s var(--ease-out);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Character Counter */
+.char-counter {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: var(--space-1);
+  transition: color var(--duration-normal);
+}
+
+.char-counter.warning {
+  color: #F59E0B;
+}
+
+.char-counter.danger {
+  color: #EF4444;
+}
+
+/* Select Elements */
+.select {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.9) 0%, transparent 100%),
+    var(--surface);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%23FF4DA6" d="M1.4 0L6 4.6 10.6 0 12 1.4l-6 6-6-6z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
+}
+
+.select:hover {
+  border-color: var(--pink-200);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--pink-400);
+  box-shadow:
+    0 0 0 3px rgba(255, 77, 166, 0.12),
+    0 4px 12px rgba(255, 77, 166, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Floating Label */
+.form-field.floating {
+  position: relative;
+}
+
+.form-field.floating .floating-label {
+  position: absolute;
+  left: var(--space-4);
+  top: var(--space-4);
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  pointer-events: none;
+  transition:
+    all var(--duration-normal) var(--ease-out);
+  background: var(--surface);
+  padding: 0 4px;
+}
+
+.form-field.floating .input:focus ~ .floating-label,
+.form-field.floating .input:not(:placeholder-shown) ~ .floating-label,
+.form-field.floating .textarea:focus ~ .floating-label,
+.form-field.floating .textarea:not(:placeholder-shown) ~ .floating-label {
+  top: -10px;
+  left: 12px;
+  font-size: var(--text-xs);
+  color: var(--pink-600);
+  font-weight: var(--weight-semibold);
+}
+
+/* Input with Icon */
+.input-group {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  pointer-events: none;
+  transition: color var(--duration-normal);
+}
+
+.input-group .input {
+  padding-left: calc(var(--space-4) * 2 + 24px);
+}
+
+.input-group:focus-within .input-icon {
+  color: var(--pink-500);
 }
 
 /* ═══════════════════════════════════════════════════════════════
