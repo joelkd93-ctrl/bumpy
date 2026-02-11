@@ -52,14 +52,19 @@ export const storage = {
       const key = localStorage.key(i);
       if (key.startsWith(PREFIX + prefix + ':')) {
         try {
-          items.push({
+          const item = {
             id: key.replace(PREFIX + prefix + ':', ''),
             ...JSON.parse(localStorage.getItem(key))
-          });
-        } catch { }
+          };
+          items.push(item);
+        } catch (err) {
+          console.warn(`Failed to parse ${key}:`, err);
+        }
       }
     }
-    return items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sorted = items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    console.log(`📦 getCollection('${prefix}') returning ${sorted.length} items:`, sorted);
+    return sorted;
   },
 
   // Add item to collection
@@ -151,6 +156,7 @@ export const storage = {
         moodsCount: moods.length,
         api: apiUrl
       });
+      console.log('☁️ Journal entries being sent:', journal);
 
       const response = await fetch(`${apiUrl}/sync`, {
         method: 'POST',
