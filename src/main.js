@@ -231,7 +231,10 @@ function navigate(tabId) {
   content.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showNewPage(content, tab, direction) {
+async function showNewPage(content, tab, direction) {
+  // Pull updates from cloud before rendering
+  await storage.pullFromCloud();
+
   // Create new page with appropriate entrance animation
   const animationClass = direction === 'forward' ? 'pageInRight' :
                          direction === 'backward' ? 'pageInLeft' :
