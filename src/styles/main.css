@@ -378,8 +378,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  height: 100%;
-  overflow: hidden;
+  height: auto;
 }
 
 body {
@@ -392,16 +391,14 @@ body {
     radial-gradient(ellipse at bottom, rgba(255, 245, 249, 0.6) 0%, transparent 50%),
     linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 40%, #FFF9FC 60%, #FDF4F8 100%);
   margin: 0;
-  height: 100%;
+  min-height: 100dvh;
   font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
   font-variant-ligatures: common-ligatures;
   font-kerning: normal;
-  overscroll-behavior: none;
-  overflow: hidden;
+  overscroll-behavior-y: none;
   overflow-x: hidden;
   letter-spacing: var(--tracking-normal);
 }
-
 /* Selection styling */
 ::selection {
   background: var(--pink-200);
