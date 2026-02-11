@@ -382,8 +382,9 @@ function renderHeartbeatGame(container, cleanupStack) {
 
       <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
 
-      <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 80px; font-size: 18px;">
-        Send hjertebank 💕
+      <button class="btn btn-primary btn-block" id="tap-heart">
+        <span style="font-size: 20px;">💕</span><br>
+        Send hjertebank
       </button>
     </div>
   `;
