@@ -315,18 +315,12 @@ export function initTogether() {
     // Hide modal
     modal.style.display = 'none';
 
-    // Unlock scroll on main content
+    // Unlock scroll
     const body = document.body;
     const html = document.documentElement;
-    const mainContent = document.getElementById('content');
 
     body.classList.remove('modal-active');
     html.classList.remove('modal-active');
-
-    if (mainContent) {
-      mainContent.style.overflow = '';
-      mainContent.style.overflowY = 'scroll';
-    }
 
     // Show nav bar again
     const navBar = document.getElementById('nav-bar');
@@ -352,14 +346,9 @@ export function initTogether() {
     // Lock scroll on background
     const body = document.body;
     const html = document.documentElement;
-    const mainContent = document.getElementById('content');
 
     body.classList.add('modal-active');
     html.classList.add('modal-active');
-
-    if (mainContent) {
-      mainContent.style.overflow = 'hidden';
-    }
 
     // Show modal
     modal.style.display = 'flex';
