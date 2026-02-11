@@ -191,12 +191,18 @@ function initApp() {
 
 let isNavigating = false;
 
-async function navigate(tabId) {
+function navigate(tabId) {
   const tab = TABS.find(t => t.id === tabId);
-  if (!tab || isNavigating) return;
+  if (!tab) return;
 
-  const previousTab = currentTab;
+  // Force reset navigation lock if stuck
+  if (isNavigating) {
+    console.warn('Navigation was locked, forcing reset');
+    isNavigating = false;
+  }
+
   const content = document.getElementById('content');
+  if (!content) return;
 
   // Update current tab
   currentTab = tabId;
@@ -206,13 +212,22 @@ async function navigate(tabId) {
     item.classList.toggle('active', item.dataset.tab === tabId);
   });
 
-  // Simple immediate page switch
-  isNavigating = true;
-  showNewPage(content, tab);
-  isNavigating = false;
+  // Simple immediate page switch with error handling
+  try {
+    isNavigating = true;
+    showNewPage(content, tab);
+  } catch (err) {
+    console.error('Navigation error:', err);
+  } finally {
+    isNavigating = false;
+  }
 
   // Scroll to top
-  content.scrollTo({ top: 0, behavior: 'auto' });
+  try {
+    content.scrollTo({ top: 0, behavior: 'auto' });
+  } catch (err) {
+    console.warn('Scroll error:', err);
+  }
 }
 
 function showNewPage(content, tab) {
