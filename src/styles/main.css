@@ -1643,6 +1643,7 @@ body.modal-active #content {
   height: 5px;
   background: var(--gray-200);
   border-radius: var(--radius-full);
+  pointer-events: none;
 }
 
 @keyframes sheetSlideUp {
@@ -1703,24 +1704,27 @@ body.modal-active #content {
 }
 
 .game-modal-close {
-  position: sticky;
-  top: max(8px, env(safe-area-inset-top, 0px));
-  margin-left: auto;
-  right: 0;
-  width: 36px;
-  height: 36px;
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top, 8px));
+  right: max(14px, env(safe-area-inset-right, 8px));
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  z-index: 3501;
+  pointer-events: auto;
   color: var(--text-primary);
-  border-radius: var(--radius-full);
-  font-size: 16px;
-  font-weight: bold;
+  border-radius: 999px;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 500;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: transform 0.1s ease, background 0.15s ease;
 }
 
