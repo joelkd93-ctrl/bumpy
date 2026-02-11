@@ -374,17 +374,16 @@ function renderHeartbeatGame(container, cleanupStack) {
   container.innerHTML = `
     <div class="text-center">
       <h2 class="heading-section mb-2">Hjerteslag 💓</h2>
-      <p class="text-warm mb-4">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
-
-      <div class="heartbeat-area mb-4">
+      <p class="text-warm mb-6">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
+      
+      <div class="heartbeat-area mb-6">
         <span id="heart-icon" class="heart-pulse reveal-emoji-big">💗</span>
       </div>
-
-      <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
-
-      <button class="btn btn-primary btn-block" id="tap-heart">
-        <span style="font-size: 20px;">💕</span><br>
-        Send hjertebank
+      
+      <div id="heart-status" class="text-muted mb-6 text-sm">Ser etter partner...</div>
+      
+      <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px; margin-bottom: 24px;">
+        Send hjertebank 💕
       </button>
     </div>
   `;
@@ -411,27 +410,18 @@ function renderHeartbeatGame(container, cleanupStack) {
 
   cleanupStack.push(() => clearInterval(statusInterval));
 
-  // Debug: Check if button exists
-  if (!tapBtn) {
-    console.error('❌ Heart button not found!');
-  } else {
-    console.log('✅ Heart button found, attaching event listener');
-  }
-
   tapBtn?.addEventListener('click', async () => {
-    console.log('💓 Heart button clicked!');
     pulse();
     window.app.triggerHeartbeat();
 
     try {
-      const response = await fetch(`${window.API_BASE}/api/presence`, {
+      await fetch(`${window.API_BASE}/api/presence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role, tap: true })
       });
-      console.log('💓 Heartbeat sent successfully', response.status);
     } catch (err) {
-      console.error('❌ Send tap error:', err);
+      console.error('Send tap error:', err);
     }
   });
 }

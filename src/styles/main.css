@@ -1060,13 +1060,11 @@ body {
   /* Sheet radius */
   padding: var(--space-8);
   padding-top: var(--space-10);
-  padding-bottom: calc(var(--tab-bar-height) + var(--space-8));
+  padding-bottom: calc(var(--tab-bar-height) + var(--space-4));
   width: 100%;
   max-width: var(--content-max-width);
-  max-height: 88vh;
+  max-height: 92vh;
   overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
   position: relative;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
   animation: sheetSlideUp 0.5s var(--ease-out);
@@ -1676,14 +1674,6 @@ body.night-mode::after {
 
 .heart-pulse.beat {
   transform: scale(1.4);
-}
-
-#tap-heart {
-  min-height: var(--tap-comfortable);
-  padding: var(--space-4);
-  font-size: var(--text-md);
-  font-weight: var(--weight-semibold);
-  line-height: 1.4;
 }
 
 /* WEEKLY GAME */

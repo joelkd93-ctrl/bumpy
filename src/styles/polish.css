@@ -47,7 +47,7 @@
   }
 
   .game-modal-content {
-    padding-bottom: calc(var(--tab-bar-height) + max(var(--space-8), env(safe-area-inset-bottom)));
+    padding-bottom: calc(var(--tab-bar-height) + max(var(--space-4), env(safe-area-inset-bottom)));
   }
 }
 
@@ -535,33 +535,32 @@ button:focus-visible,
     --text-3xl: 26px;
     --text-2xl: 22px;
   }
-
+  
   .progress-ring {
     width: 200px;
     height: 200px;
   }
-
+  
   .progress-percent {
     font-size: 36px;
   }
-
+  
   .baby-emoji {
     font-size: 56px;
   }
-
+  
   .stats-grid {
     gap: var(--space-3);
   }
-
+  
   .game-grid {
     gap: var(--space-3);
   }
-
+  
   .game-card {
     min-height: 120px;
     padding: var(--space-3);
   }
-
 }
 
 /* Larger phones / small tablets */
@@ -569,12 +568,12 @@ button:focus-visible,
   .page {
     max-width: 440px;
   }
-
+  
   .progress-ring {
     width: 260px;
     height: 260px;
   }
-
+  
   .progress-percent {
     font-size: 48px;
   }
