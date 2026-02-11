@@ -2767,34 +2767,97 @@ body.night-mode::after {
   position: absolute;
   left: -29px;
   top: 24px;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: var(--radius-full);
   background: var(--surface);
   border: 3px solid var(--pink-300);
-  box-shadow: var(--shadow-xs);
+  box-shadow:
+    var(--shadow-xs),
+    0 0 0 6px rgba(255, 77, 166, 0.08);
   z-index: 2;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.timeline-item:hover::after {
+  transform: scale(1.2);
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 8px rgba(255, 77, 166, 0.12);
 }
 
 .timeline-item.type-journal::after {
   border-color: var(--pink-400);
+  animation: timelinePulse 2s ease-in-out infinite;
 }
 
 .timeline-item.type-mood::after {
   border-color: var(--blue-accent);
+  animation: timelinePulse 2.5s ease-in-out infinite 0.5s;
 }
 
 .timeline-item.type-kick::after {
   border-color: var(--pink-200);
+  animation: timelinePulse 2s ease-in-out infinite 1s;
+}
+
+@keyframes timelinePulse {
+  0%, 100% {
+    box-shadow:
+      var(--shadow-xs),
+      0 0 0 6px rgba(255, 77, 166, 0.08);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-xs),
+      0 0 0 10px rgba(255, 77, 166, 0.15);
+  }
 }
 
 .timeline-card {
-  padding: var(--space-4);
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   background:
     linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,245,249,0.6) 100%);
+  border-left: 3px solid transparent;
+  transition: all var(--duration-normal) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, transparent 0%, var(--pink-400) 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.timeline-item.type-journal .timeline-card::before {
+  background: linear-gradient(180deg, transparent 0%, var(--pink-500) 50%, transparent 100%);
+}
+
+.timeline-item.type-mood .timeline-card::before {
+  background: linear-gradient(180deg, transparent 0%, var(--blue-accent) 50%, transparent 100%);
+}
+
+.timeline-item.type-kick .timeline-card::before {
+  background: linear-gradient(180deg, transparent 0%, var(--pink-300) 50%, transparent 100%);
+}
+
+.timeline-card:hover::before {
+  opacity: 1;
+}
+
+.timeline-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
 }
 
 .timeline-date {
@@ -2844,9 +2907,17 @@ body.night-mode::after {
 
 .timeline-img {
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   object-fit: cover;
   max-height: 400px;
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.timeline-img:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
 }
 
 @keyframes slideIn {
@@ -2862,27 +2933,50 @@ body.night-mode::after {
 }
 
 .timeline-special-icon {
-  font-size: 48px;
-  margin-bottom: var(--space-3);
-  animation: bounce 2s infinite;
+  font-size: 64px;
+  margin-bottom: var(--space-4);
+  animation: bounce 2s ease-in-out infinite;
   display: block;
+  filter: drop-shadow(0 8px 16px rgba(74, 144, 226, 0.25));
 }
 
 .timeline-special-heading {
-  color: #4A90E2;
-  font-size: var(--text-xl);
+  background: linear-gradient(135deg, #4A90E2 0%, #5B7FA5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: var(--text-2xl);
   font-weight: var(--weight-bold);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  letter-spacing: var(--tracking-tight);
 }
 
 .timeline-special-note {
   color: #5B7FA5;
   font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  font-style: italic;
 }
 
 .timeline-mood-icon,
 .timeline-kick-icon {
-  font-size: 32px;
+  font-size: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at center, rgba(255, 237, 245, 0.6) 0%, transparent 70%),
+    var(--pink-25);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+.timeline-mood-icon:hover,
+.timeline-kick-icon:hover {
+  transform: scale(1.1) rotate(-5deg);
 }
 
 /* ═══════════════════════════════════════════════════════════════
