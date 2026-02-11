@@ -47,7 +47,7 @@
   }
 
   .game-modal-content {
-    padding-bottom: max(var(--space-8), calc(env(safe-area-inset-bottom) + 16px));
+    padding-bottom: calc(var(--tab-bar-height) + max(var(--space-4), env(safe-area-inset-bottom)));
   }
 }
 
