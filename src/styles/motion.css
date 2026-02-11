@@ -1,0 +1,510 @@
+/* ═══════════════════════════════════════════════════════════════
+   ✨ BUMPY — COMMERCIAL MOTION DESIGN SYSTEM
+   Premium mobile app polish layer
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────
+   🎬 MOTION DESIGN TOKENS
+   ───────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Premium Easing Functions */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-gentle: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Durations */
+  --motion-instant: 100ms;
+  --motion-quick: 200ms;
+  --motion-smooth: 300ms;
+  --motion-calm: 400ms;
+  --motion-cinematic: 600ms;
+  --motion-breathe: 2000ms;
+
+  /* Page Transition */
+  --page-transition-duration: 350ms;
+  --page-transition-ease: var(--ease-cinematic);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📱 PAGE TRANSITIONS (CRITICAL FOR APP FEEL)
+   Smooth screen-to-screen flow, no "page reload" feel
+   ───────────────────────────────────────────────────────────────── */
+
+/* Page container base */
+.page {
+  animation: pageEnter var(--page-transition-duration) var(--page-transition-ease) forwards;
+  will-change: opacity, transform;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page exit (triggered programmatically) */
+.page-exit {
+  animation: pageExit var(--motion-quick) var(--ease-premium) forwards;
+}
+
+@keyframes pageExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 MICRO-INTERACTIONS (BUTTONS, CARDS, ICONS)
+   Premium touch feedback
+   ───────────────────────────────────────────────────────────────── */
+
+/* Button Press Effect - Premium Scale + Lift */
+.btn,
+button,
+[role="button"] {
+  transition:
+    transform var(--motion-quick) var(--ease-premium),
+    box-shadow var(--motion-quick) var(--ease-premium),
+    opacity var(--motion-quick) var(--ease-premium);
+  will-change: transform, box-shadow;
+}
+
+.btn:active,
+button:active,
+[role="button"]:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Primary Button - Enhanced lift on hover/focus */
+.btn-primary {
+  box-shadow: var(--shadow-md), var(--shadow-pink-sm);
+  transition:
+    transform var(--motion-smooth) var(--ease-premium),
+    box-shadow var(--motion-smooth) var(--ease-premium);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--shadow-pink-md);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-sm), var(--shadow-pink-sm);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   💳 CARD INTERACTIONS
+   Subtle depth changes on touch
+   ───────────────────────────────────────────────────────────────── */
+
+.card,
+.journal-entry,
+.mood-card,
+.weekly-card,
+[class*="card-"] {
+  transition:
+    transform var(--motion-smooth) var(--ease-premium),
+    box-shadow var(--motion-smooth) var(--ease-premium);
+  will-change: transform, box-shadow;
+}
+
+/* Tappable cards */
+.card[onclick],
+.journal-entry[onclick],
+.card.interactive,
+.tappable {
+  cursor: pointer;
+}
+
+.card[onclick]:active,
+.journal-entry[onclick]:active,
+.card.interactive:active,
+.tappable:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 ICON MICRO-INTERACTIONS
+   Soft highlight on touch
+   ───────────────────────────────────────────────────────────────── */
+
+.icon-button,
+.tab-icon,
+[class*="icon-"] {
+  transition:
+    transform var(--motion-quick) var(--ease-premium),
+    opacity var(--motion-quick) var(--ease-premium);
+  will-change: transform;
+}
+
+.icon-button:active,
+.tab-icon:active {
+  transform: scale(0.92);
+  opacity: 0.7;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🌊 ELEMENT ENTRANCE ANIMATIONS
+   Staggered fade-in for dynamic content
+   ───────────────────────────────────────────────────────────────── */
+
+/* Base entrance animation */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply to dynamic lists */
+.animate-in {
+  animation: fadeSlideIn var(--motion-calm) var(--ease-cinematic) backwards;
+}
+
+/* Stagger effect for list items */
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 40ms; }
+.stagger-item:nth-child(3) { animation-delay: 80ms; }
+.stagger-item:nth-child(4) { animation-delay: 120ms; }
+.stagger-item:nth-child(5) { animation-delay: 160ms; }
+.stagger-item:nth-child(6) { animation-delay: 200ms; }
+.stagger-item:nth-child(7) { animation-delay: 240ms; }
+.stagger-item:nth-child(8) { animation-delay: 280ms; }
+.stagger-item:nth-child(9) { animation-delay: 320ms; }
+.stagger-item:nth-child(10) { animation-delay: 360ms; }
+
+/* ─────────────────────────────────────────────────────────────────
+   💫 SUBTLE LIFE-LIKE MOTION
+   Barely noticeable breathing/floating effects
+   Creates "alive UI" premium feel
+   ───────────────────────────────────────────────────────────────── */
+
+/* Gentle breathing animation */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Subtle float */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Apply to emotional elements */
+.breathe {
+  animation: breathe var(--motion-breathe) var(--ease-gentle) infinite;
+}
+
+.float {
+  animation: float 3000ms var(--ease-gentle) infinite;
+}
+
+/* Hero elements with subtle life */
+.hero-icon,
+.feature-icon,
+.emotional-icon {
+  animation: breathe 4000ms var(--ease-gentle) infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎭 MODAL & OVERLAY ANIMATIONS
+   Cinema-quality entrance/exit
+   ───────────────────────────────────────────────────────────────── */
+
+/* Modal backdrop fade */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Modal content slide + scale */
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalExit {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+}
+
+/* Apply to modals */
+.modal-backdrop {
+  animation: backdropFadeIn var(--motion-smooth) var(--ease-premium);
+}
+
+.modal-backdrop.closing {
+  animation: backdropFadeOut var(--motion-quick) var(--ease-premium);
+}
+
+.modal-content {
+  animation: modalEnter var(--motion-calm) var(--ease-cinematic);
+}
+
+.modal-content.closing {
+  animation: modalExit var(--motion-smooth) var(--ease-premium);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📊 LOADING & SKELETON STATES
+   Premium shimmer effect
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton,
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--gray-100) 0%,
+    var(--gray-50) 50%,
+    var(--gray-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2000ms var(--ease-gentle) infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 INPUT INTERACTIONS
+   Smooth focus states
+   ───────────────────────────────────────────────────────────────── */
+
+input,
+textarea,
+select {
+  transition:
+    border-color var(--motion-smooth) var(--ease-premium),
+    box-shadow var(--motion-smooth) var(--ease-premium),
+    transform var(--motion-smooth) var(--ease-premium);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), 0 0 0 4px rgba(255, 77, 166, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ⚡ PERFORMANCE OPTIMIZATIONS
+   GPU-accelerated, smooth on mid-range devices
+   ───────────────────────────────────────────────────────────────── */
+
+/* Enable hardware acceleration for animated elements */
+.page,
+.card,
+.modal-content,
+.btn,
+[class*="animate-"],
+[class*="transition-"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .breathe,
+  .float,
+  .hero-icon {
+    animation: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 TAB BAR MOTION
+   Smooth indicator slide
+   ───────────────────────────────────────────────────────────────── */
+
+.tab-bar {
+  transition: backdrop-filter var(--motion-smooth) var(--ease-premium);
+}
+
+.tab-item {
+  transition:
+    color var(--motion-smooth) var(--ease-premium),
+    transform var(--motion-quick) var(--ease-premium);
+}
+
+.tab-item:active {
+  transform: scale(0.94);
+}
+
+.tab-item.active {
+  transition:
+    color var(--motion-calm) var(--ease-cinematic),
+    transform var(--motion-smooth) var(--ease-premium);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   💕 HEARTBEAT OVERLAY (PREMIUM ENTRANCE)
+   ───────────────────────────────────────────────────────────────── */
+
+.global-heartbeat-overlay,
+.global-kick-overlay {
+  animation: overlayEnter var(--motion-calm) var(--ease-cinematic);
+}
+
+.global-heartbeat-overlay.active,
+.global-kick-overlay.active {
+  animation: overlayEnter var(--motion-calm) var(--ease-cinematic);
+}
+
+@keyframes overlayEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Heart pulse animation */
+.global-heart-icon {
+  animation: heartPulse 1200ms var(--ease-gentle) infinite;
+}
+
+@keyframes heartPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.15);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 TOAST NOTIFICATIONS
+   Smooth slide-in from top
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%) translateX(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%) translateX(-50%);
+  }
+}
+
+.toast,
+.notification {
+  animation: toastSlideIn var(--motion-calm) var(--ease-cinematic);
+}
+
+.toast.closing,
+.notification.closing {
+  animation: toastSlideOut var(--motion-smooth) var(--ease-premium);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🌟 SPECIAL EFFECTS
+   Confetti, celebrations, etc.
+   ───────────────────────────────────────────────────────────────── */
+
+/* Confetti fall with rotation */
+@keyframes confettiFall {
+  from {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+.confetti {
+  animation: confettiFall 3000ms var(--ease-gentle) forwards;
+}

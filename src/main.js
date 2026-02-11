@@ -8,6 +8,8 @@ window.API_BASE = "https://bumpyapi.joelkd93.workers.dev";
 
 import './styles/main.css';
 import './styles/polish.css';
+import './styles/motion.css';
+import './styles/premium-polish.css';
 import { storage, initializeDefaults } from './utils/storage.js';
 import { notifyHeart, notifyKick } from './utils/notifications.js';
 import { renderHome, initHome } from './pages/home.js';
@@ -213,16 +215,14 @@ async function navigate(tabId) {
   if (currentPage && previousTab !== tabId) {
     isNavigating = true;
 
-    // Add exit animation
-    currentPage.style.animation = direction === 'forward'
-      ? 'pageOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards'
-      : 'pageOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    // Add premium exit animation
+    currentPage.classList.add('page-exit');
 
     // Wait for exit animation, then show new page
     setTimeout(async () => {
       await showNewPage(content, tab, direction);
       isNavigating = false;
-    }, 300);
+    }, 200); // Faster, more app-like
   } else {
     // First load or same page - no transition
     await showNewPage(content, tab, 'none');
@@ -236,12 +236,14 @@ async function showNewPage(content, tab, direction) {
   // Pull updates from cloud before rendering
   await storage.pullFromCloud();
 
-  // Create new page with appropriate entrance animation
-  const animationClass = direction === 'forward' ? 'pageInRight' :
-                         direction === 'backward' ? 'pageInLeft' :
-                         'pageIn';
+  // Create new page with premium entrance animation
+  // The 'page' class automatically triggers the smooth fade + slide animation
+  content.innerHTML = `<div class="page active">${tab.render()}</div>`;
 
-  content.innerHTML = `<div class="page active" style="animation: ${animationClass} 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards">${tab.render()}</div>`;
+  // Apply stagger animations to list items
+  requestAnimationFrame(() => {
+    applyStaggerAnimation();
+  });
 
   // Run page init if exists
   if (tab.init) {
@@ -249,6 +251,26 @@ async function showNewPage(content, tab, direction) {
       tab.init();
     });
   }
+}
+
+// Helper: Apply stagger entrance animations to lists
+function applyStaggerAnimation() {
+  const selectors = [
+    '.journal-entry',
+    '.mood-card',
+    '.weekly-card',
+    '.timeline-item',
+    '.name-item',
+    '.list-item'
+  ];
+
+  selectors.forEach(selector => {
+    const items = document.querySelectorAll(selector);
+    items.forEach((item, index) => {
+      item.classList.add('animate-in', 'stagger-item');
+      item.style.animationDelay = `${index * 40}ms`;
+    });
+  });
 }
 
 // Refresh current page (for use after data changes)

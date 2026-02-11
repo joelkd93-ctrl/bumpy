@@ -1,0 +1,533 @@
+/* ═══════════════════════════════════════════════════════════════
+   💎 BUMPY — PREMIUM VISUAL POLISH
+   Commercial-grade component refinement
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 ENHANCED DESIGN TOKENS
+   ───────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Premium Shadows */
+  --shadow-premium-sm:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+
+  --shadow-premium-md:
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+
+  --shadow-premium-lg:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+
+  /* Soft Pink Shadows */
+  --shadow-pink-premium:
+    0 4px 20px rgba(255, 77, 166, 0.12),
+    0 2px 8px rgba(255, 77, 166, 0.08),
+    0 0 0 1px rgba(255, 77, 166, 0.06);
+
+  /* Glass Effect */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-blur: blur(24px);
+  --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📐 LAYOUT REFINEMENT
+   Increased breathing room, calm spacing
+   ───────────────────────────────────────────────────────────────── */
+
+/* Page containers */
+.page {
+  padding: var(--space-6) var(--space-4);
+  padding-bottom: calc(var(--tab-bar-height) + var(--space-8));
+}
+
+/* Section spacing */
+.section {
+  margin-bottom: var(--space-10);
+}
+
+.section + .section {
+  margin-top: var(--space-8);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   💳 CARD SYSTEM — PREMIUM DEPTH
+   ───────────────────────────────────────────────────────────────── */
+
+.card,
+[class*="card-"] {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-premium-md);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  padding: var(--space-5);
+}
+
+/* Elevated cards */
+.card-elevated {
+  box-shadow: var(--shadow-premium-lg);
+  border: none;
+}
+
+/* Glass cards */
+.card-glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-premium-sm);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 BUTTON SYSTEM — APP-QUALITY POLISH
+   ───────────────────────────────────────────────────────────────── */
+
+/* Base button refinement */
+.btn {
+  border-radius: var(--radius-full);
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  min-height: var(--tap-comfortable);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Primary button — hero treatment */
+.btn-primary {
+  background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
+  color: white;
+  box-shadow: var(--shadow-pink-premium);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle gradient overlay on hover */
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity var(--motion-smooth) var(--ease-premium);
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+/* Secondary button */
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-premium-sm);
+  border: 1px solid var(--border-light);
+}
+
+/* Ghost button */
+.btn-ghost {
+  background: rgba(255, 77, 166, 0.08);
+  color: var(--pink-600);
+  box-shadow: none;
+}
+
+/* Icon buttons */
+.btn-icon {
+  min-width: var(--tap-comfortable);
+  min-height: var(--tap-comfortable);
+  padding: 0;
+  border-radius: var(--radius-half);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📝 INPUT SYSTEM — REFINED FORMS
+   ───────────────────────────────────────────────────────────────── */
+
+input,
+textarea,
+select {
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-4);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  min-height: var(--tap-comfortable);
+  font-family: var(--font-sans);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--pink-400);
+  background: white;
+}
+
+/* Textarea specific */
+textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: var(--leading-relaxed);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📱 TAB BAR — NATIVE APP QUALITY
+   ───────────────────────────────────────────────────────────────── */
+
+.tab-bar {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) saturate(180%);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 -2px 16px rgba(0, 0, 0, 0.04),
+    0 -1px 2px rgba(0, 0, 0, 0.02);
+  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom, 0px));
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  min-height: var(--tap-comfortable);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  position: relative;
+}
+
+.tab-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  background: var(--pink-500);
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity var(--motion-smooth) var(--ease-premium);
+}
+
+.tab-item.active::before {
+  opacity: 1;
+}
+
+.tab-item.active {
+  color: var(--pink-600);
+}
+
+.tab-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📊 LIST ITEMS — PREMIUM TOUCH TARGETS
+   ───────────────────────────────────────────────────────────────── */
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  min-height: var(--tap-comfortable);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.list-item + .list-item {
+  margin-top: var(--space-2);
+}
+
+.list-item-interactive {
+  cursor: pointer;
+  transition: all var(--motion-smooth) var(--ease-premium);
+}
+
+.list-item-interactive:hover {
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-premium-sm);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 AVATAR & ICONS — SOFT POLISH
+   ───────────────────────────────────────────────────────────────── */
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-half);
+  background: var(--pink-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xl);
+  box-shadow: var(--shadow-premium-sm);
+  border: 2px solid white;
+}
+
+.avatar-lg {
+  width: 64px;
+  height: 64px;
+  font-size: var(--text-3xl);
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--text-base);
+}
+
+/* Icon containers */
+.icon-container {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pink-50);
+  color: var(--pink-600);
+  font-size: 20px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎭 MODAL REFINEMENT
+   ───────────────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  background: rgba(20, 20, 20, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  background: var(--surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-premium-lg);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-footer {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📊 BADGE & CHIP SYSTEM
+   ───────────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.badge-primary {
+  background: var(--pink-50);
+  color: var(--pink-700);
+}
+
+.badge-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(21, 128, 61);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 TYPOGRAPHY REFINEMENT
+   Enhanced hierarchy & readability
+   ───────────────────────────────────────────────────────────────── */
+
+/* Headlines */
+h1, .h1 {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+h2, .h2 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+h3, .h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+}
+
+/* Body text */
+p {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+/* Small text */
+small, .text-sm {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🌟 SPECIAL EFFECTS — PREMIUM TOUCHES
+   ───────────────────────────────────────────────────────────────── */
+
+/* Subtle gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Soft glow effect */
+.glow {
+  box-shadow:
+    var(--shadow-premium-md),
+    0 0 32px rgba(255, 77, 166, 0.15);
+}
+
+/* Premium divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border-light),
+    transparent
+  );
+  margin: var(--space-6) 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📱 MOBILE-SPECIFIC REFINEMENTS
+   ───────────────────────────────────────────────────────────────── */
+
+/* Better touch targets */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: var(--tap-comfortable);
+  }
+
+  .tab-item {
+    min-height: 56px;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
+/* Safe area handling */
+@supports (padding: max(0px)) {
+  .page {
+    padding-left: max(var(--space-4), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--space-4), env(safe-area-inset-right, 0px));
+    padding-top: max(var(--space-6), env(safe-area-inset-top, 0px));
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 DARK MODE CONSIDERATIONS (FUTURE)
+   ───────────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Placeholder for future dark mode support */
+    /* Currently maintaining light theme as designed */
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ✨ FINAL POLISH — ANTI-ALIASING & RENDERING
+   ───────────────────────────────────────────────────────────────── */
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Optimize rendering for transforms */
+.card,
+.btn,
+.modal-content,
+.tab-bar {
+  will-change: transform;
+  transform: translateZ(0);
+}
