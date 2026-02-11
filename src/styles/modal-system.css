@@ -7,28 +7,8 @@
    🔒 SCROLL LOCK - Prevent background scroll when modal is active
    ───────────────────────────────────────────────────────────────────────────── */
 
-body.modal-active,
-html.modal-active {
-  overflow: hidden !important;
-  height: 100vh;
-  height: 100dvh;
-  position: fixed;
-  width: 100%;
-}
-
-/* Lock the scrollable content container */
-body.modal-active #content {
-  overflow: hidden !important;
-  touch-action: none;
-  -webkit-overflow-scrolling: none;
-  overscroll-behavior: none;
-}
-
-/* iOS-specific scroll prevention */
 body.modal-active {
-  -webkit-overflow-scrolling: none;
-  overscroll-behavior: none;
-  touch-action: none;
+  overflow: hidden !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -151,10 +131,6 @@ body.modal-active {
 
 /* Ensure modals use dynamic viewport height */
 @supports (height: 100dvh) {
-  body.modal-active {
-    height: 100dvh;
-  }
-
   .modal-card {
     max-height: 85dvh;
   }
@@ -176,12 +152,7 @@ body.modal-active {
   outline: none;
 }
 
-/* Prevent background interaction */
-body.modal-active > *:not(.modal-backdrop):not(.modal-container) {
-  pointer-events: none;
-}
-
-/* Re-enable modal interactions */
+/* Keep modal interactions enabled */
 .modal-backdrop,
 .modal-container {
   pointer-events: auto;
