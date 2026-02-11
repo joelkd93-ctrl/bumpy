@@ -15,6 +15,76 @@ import { renderKicks, initKicks } from './pages/kicks.js';
 import { renderSettings, initSettings } from './pages/settings.js';
 
 // ═══════════════════════════════════════════════════════════════
+// 📳 HAPTIC FEEDBACK
+// ═══════════════════════════════════════════════════════════════
+
+const haptic = {
+  light: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+  },
+  medium: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(20);
+    }
+  },
+  heavy: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([30, 10, 30]);
+    }
+  },
+  success: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([10, 5, 10]);
+    }
+  },
+  error: () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate([50, 20, 50]);
+    }
+  }
+};
+
+// Export haptic for use in other modules
+window.haptic = haptic;
+
+// ═══════════════════════════════════════════════════════════════
+// 👆 SWIPE GESTURE DETECTION
+// ═══════════════════════════════════════════════════════════════
+
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+const SWIPE_THRESHOLD = 50;
+const SWIPE_VELOCITY_THRESHOLD = 0.3;
+
+function handleSwipe() {
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+
+  // Only process horizontal swipes (ignore vertical scrolling)
+  if (absDeltaX < SWIPE_THRESHOLD || absDeltaY > absDeltaX) {
+    return;
+  }
+
+  const currentIndex = TABS.findIndex(t => t.id === currentTab);
+
+  if (deltaX > 0 && currentIndex > 0) {
+    // Swipe right - go to previous tab
+    haptic.light();
+    navigate(TABS[currentIndex - 1].id);
+  } else if (deltaX < 0 && currentIndex < TABS.length - 1) {
+    // Swipe left - go to next tab
+    haptic.light();
+    navigate(TABS[currentIndex + 1].id);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // 📱 TAB CONFIGURATION
 // ═══════════════════════════════════════════════════════════════
 
@@ -64,9 +134,31 @@ function initApp() {
   navBar.addEventListener('click', (e) => {
     const navItem = e.target.closest('.nav-item');
     if (navItem) {
+      haptic.light();
       navigate(navItem.dataset.tab);
     }
   });
+
+  // Set up swipe gestures on content area
+  const content = document.getElementById('content');
+  content.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+
+  content.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleSwipe();
+  }, { passive: true });
+
+  // Add haptic feedback to all buttons
+  document.addEventListener('click', (e) => {
+    const button = e.target.closest('button, .btn, .card, .game-card, .mood-btn');
+    if (button && !button.classList.contains('nav-item')) {
+      haptic.light();
+    }
+  }, true);
 
   // Initial render
   navigate(currentTab);

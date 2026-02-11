@@ -1930,6 +1930,75 @@ body {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   📳 MOBILE TOUCH ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Better touch targets */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .nav-item,
+  .mood-btn,
+  .game-card,
+  button {
+    min-height: var(--tap-comfortable);
+  }
+
+  /* Prevent text selection during interactions */
+  .btn,
+  .card,
+  .nav-item,
+  .mood-btn {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Enhance touch feedback */
+  .btn:active,
+  .card:active,
+  .game-card:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+
+  /* Prevent pull-to-refresh on specific elements */
+  .app-content {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Smoother scrolling on iOS */
+  .app-content,
+  .game-modal-content {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Touch ripple effect */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+.ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
 
