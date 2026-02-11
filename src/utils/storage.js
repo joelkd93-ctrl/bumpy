@@ -76,11 +76,14 @@ export const storage = {
     // Use timestamp + random number to ensure uniqueness
     const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const entryData = { ...data, date: data.date || new Date().toISOString() };
-    this.set(`${prefix}:${id}`, entryData);
+
+    // Save locally but skip auto-sync (we'll do manual sync below)
+    this.set(`${prefix}:${id}`, entryData, true); // skipSync = true
     console.log(`💾 Saved to ${prefix}:${id}`, entryData);
     console.log(`📊 Total ${prefix} entries in storage:`, this.getCollection(prefix).length);
 
-    // Wait for cloud sync to complete before returning
+    // Set timestamp BEFORE syncing to block auto-pull during sync
+    lastPushSyncTime = Date.now();
     console.log('⏳ Waiting for cloud sync to complete...');
     await this.syncWithCloud();
     console.log('✅ Cloud sync complete, safe to proceed');
@@ -243,7 +246,7 @@ export const storage = {
 
     // Prevent pulling immediately after pushing to avoid race condition
     const timeSinceLastPush = Date.now() - lastPushSyncTime;
-    if (timeSinceLastPush < 3000) {
+    if (timeSinceLastPush < 5000) {
       console.log(`⏭️ Skipping pull - just pushed ${timeSinceLastPush}ms ago`);
       return false;
     }
