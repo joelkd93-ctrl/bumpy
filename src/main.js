@@ -255,38 +255,33 @@ async function startGlobalHeartbeatPoller() {
  * Visual Effects
  */
 function triggerKickPop() {
-  console.log('🎉 triggerKickPop called - creating floating emojis');
-  const container = document.body;
-  const emojis = ['🦶', '👶', '💕', '💙', '✨', '🤰', '🌟'];
-  const count = 18;
+  console.log('🎉 triggerKickPop called - creating TEST ELEMENT');
 
-  for (let i = 0; i < count; i++) {
-    const el = document.createElement('div');
-    el.className = 'floating-emoji';
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-    el.innerHTML = emoji;
+  // SUPER SIMPLE TEST - Just a bright red box
+  const test = document.createElement('div');
+  test.style.position = 'fixed';
+  test.style.top = '50%';
+  test.style.left = '50%';
+  test.style.transform = 'translate(-50%, -50%)';
+  test.style.width = '200px';
+  test.style.height = '200px';
+  test.style.backgroundColor = 'red';
+  test.style.zIndex = '999999';
+  test.style.border = '5px solid yellow';
+  test.innerText = 'KICK!';
+  test.style.fontSize = '60px';
+  test.style.color = 'white';
+  test.style.display = 'flex';
+  test.style.alignItems = 'center';
+  test.style.justifyContent = 'center';
 
-    // Random position across screen
-    const x = 5 + (Math.random() * 90);
-    const y = 20 + (Math.random() * 60);
-    el.style.left = `${x}%`;
-    el.style.top = `${y}vh`;
-    // Slower duration: 3 to 6 seconds
-    el.style.setProperty('--duration', `${3 + Math.random() * 3}s`);
+  document.body.appendChild(test);
+  console.log('TEST ELEMENT ADDED TO BODY', test);
 
-    // Foot emoji is bigger and prominent
-    if (emoji === '🦶') {
-      el.style.fontSize = `${50 + Math.random() * 40}px`;
-      el.style.zIndex = '10001';
-      el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))';
-    } else {
-      el.style.fontSize = `${24 + Math.random() * 36}px`;
-    }
-
-    console.log(`Creating emoji: ${emoji} at ${x}%, ${y}vh`);
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 6500);
-  }
+  setTimeout(() => {
+    test.remove();
+    console.log('TEST ELEMENT REMOVED');
+  }, 3000);
 }
 
 function showGlobalHeartbeat() {
