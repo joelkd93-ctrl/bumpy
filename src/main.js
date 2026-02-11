@@ -255,43 +255,43 @@ async function startGlobalHeartbeatPoller() {
  * Visual Effects
  */
 function triggerKickPop() {
-  console.log('🎉 triggerKickPop called - creating emojis');
+  console.log('🎉 triggerKickPop called - creating kick celebration');
 
-  const emojis = ['🦶', '👶', '💕', '💙', '✨', '🤰', '🌟'];
-  const count = 12;
+  const emojis = ['🦶', '👶', '💕', '💙', '✨', '🤰', '🌟', '💖', '⭐', '🎈'];
+  const count = 30;
 
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const delay = i * 50; // Stagger the appearance
 
-    // Use same technique that works for the test box
+    // Use same technique that works
     el.style.position = 'fixed';
-    el.style.left = (10 + Math.random() * 80) + '%';
-    el.style.top = (20 + Math.random() * 60) + '%';
-    el.style.fontSize = (emoji === '🦶' ? 80 : 50) + 'px';
+    el.style.left = (5 + Math.random() * 90) + '%';
+    el.style.top = (70 + Math.random() * 20) + '%'; // Start from bottom
+    el.style.fontSize = (emoji === '🦶' ? 70 + Math.random() * 30 : 40 + Math.random() * 30) + 'px';
     el.style.zIndex = '999999';
     el.style.pointerEvents = 'none';
     el.innerText = emoji;
 
-    // Simple fade animation using opacity
+    // Start invisible
     el.style.opacity = '0';
-    el.style.transition = 'all 0.5s ease-out';
+    el.style.transition = 'all 2.5s ease-out';
 
     document.body.appendChild(el);
 
-    // Trigger animation
+    // Trigger animation with delay
     setTimeout(() => {
       el.style.opacity = '1';
-      el.style.transform = 'scale(1.2)';
-    }, 10);
+      el.style.transform = `translateY(-${300 + Math.random() * 400}px) rotate(${-30 + Math.random() * 60}deg) scale(1.2)`;
+    }, delay);
 
     // Fade out and remove
     setTimeout(() => {
       el.style.opacity = '0';
-      el.style.transform = 'scale(0.8)';
-    }, 2000);
+    }, 2000 + delay);
 
-    setTimeout(() => el.remove(), 2500);
+    setTimeout(() => el.remove(), 3000 + delay);
   }
 }
 
@@ -416,23 +416,38 @@ function triggerCelebration(week) {
   }
   overlay.offsetHeight;
   setTimeout(() => overlay.classList.add('active'), 10);
-  for (let i = 0; i < 40; i++) setTimeout(() => spawnFloatingEmoji(), i * 80);
+  // HUGE celebration - 60 emojis!
+  for (let i = 0; i < 60; i++) setTimeout(() => spawnFloatingEmoji(), i * 60);
 }
 
 function spawnFloatingEmoji() {
   const el = document.createElement('div');
-  el.className = 'floating-emoji';
-  const emojis = ['❤️', '💖', '💗', '💓', '✨', '🎈', '🥳', '🎉', '🌟', '⭐', '🍼', '🧸'];
-  el.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+  const emojis = ['❤️', '💖', '💗', '💓', '✨', '🎈', '🥳', '🎉', '🌟', '⭐', '🍼', '🧸', '👶', '💕', '🎊'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
   el.style.position = 'fixed';
-  el.style.left = (Math.random() * 100) + 'vw';
-  el.style.bottom = '-60px';
-  const size = 16 + Math.random() * 48;
-  el.style.fontSize = size + 'px';
-  el.style.zIndex = '20001';
-  el.style.setProperty('--duration', (3 + Math.random() * 4) + 's');
+  el.style.left = (Math.random() * 100) + '%';
+  el.style.bottom = '-100px';
+  el.style.fontSize = (30 + Math.random() * 60) + 'px';
+  el.style.zIndex = '999999';
+  el.style.pointerEvents = 'none';
+  el.innerText = emoji;
+  el.style.opacity = '0';
+  el.style.transition = 'all 4s ease-out';
+
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 8000);
+
+  // Animate up
+  setTimeout(() => {
+    el.style.opacity = '1';
+    el.style.transform = `translateY(-${600 + Math.random() * 400}px) rotate(${-180 + Math.random() * 360}deg)`;
+  }, 50);
+
+  setTimeout(() => {
+    el.style.opacity = '0';
+  }, 3000);
+
+  setTimeout(() => el.remove(), 4500);
 }
 
 // Start app
