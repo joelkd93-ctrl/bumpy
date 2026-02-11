@@ -382,8 +382,15 @@ async function startGlobalHeartbeatPoller() {
 
       // Handle Kick Notification (Yoel only)
       if (role === 'partner' && data.andrineLastKick && data.andrineLastKick !== lastAndrineKickReceived) {
+        const kickTime = new Date(data.andrineLastKick).getTime();
+        const now = Date.now();
+        const timeSinceAppStart = now - appStartTime;
+
+        // Show if this is NOT the first poll (ignore old kicks) OR if kick is very fresh
+        const isVeryFresh = (now - kickTime) < 5000;
+        const shouldShow = (lastAndrineKickReceived !== null) || (isVeryFresh && timeSinceAppStart > 3000);
+
         // Update last received BEFORE showing (prevents duplicates)
-        const shouldShow = lastAndrineKickReceived !== null;
         lastAndrineKickReceived = data.andrineLastKick;
 
         if (shouldShow) {

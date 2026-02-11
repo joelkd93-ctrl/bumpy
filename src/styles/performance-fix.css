@@ -182,14 +182,10 @@ button:active {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: var(--space-3);
-  /* Prevent grid recalculation */
-  contain: layout style;
 }
 
 .journal-entry {
-  /* Fixed aspect ratio prevents jumping */
-  aspect-ratio: 1 / 1.2;
-  contain: layout style paint;
+  /* Remove problematic aspect-ratio and contain that were hiding content */
 }
 
 /* ─────────────────────────────────────────────────────────────────
