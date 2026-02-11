@@ -229,12 +229,16 @@ export function initJournal() {
 
     try {
       // Use timestamp to ensure each entry is unique (allows multiple per week)
-      // Backend has UNIQUE constraint on (week, date), so we use full timestamp
-      const uniqueDate = new Date().toISOString(); // Includes time to ensure uniqueness
+      // Combine selected date with current time for uniqueness
+      const selectedDateOnly = selectedDate || new Date().toISOString().split('T')[0];
+      const currentTime = new Date().toTimeString().split(' ')[0]; // HH:MM:SS
+      const uniqueTimestamp = `${selectedDateOnly} ${currentTime}`; // "2026-02-11 14:30:45"
+
+      console.log(`📅 Creating entry with timestamp: ${uniqueTimestamp}`);
 
       await storage.addToCollection('journal', {
         week: progress.weeksPregnant,
-        date: uniqueDate, // Full timestamp ensures multiple entries per week
+        date: uniqueTimestamp, // Date + current time for uniqueness
         photo: currentPhoto,
         note: note
       });
