@@ -313,7 +313,14 @@ export function initTogether() {
 
   function closeModal() {
     modal.style.display = 'none';
-    document.body.style.overflow = 'auto'; // Unlock scroll
+
+    // Unlock scroll on main content
+    const mainContent = document.getElementById('content');
+    if (mainContent) {
+      mainContent.style.overflow = 'auto';
+      mainContent.style.overflowY = 'scroll';
+    }
+    document.body.classList.remove('modal-open');
 
     // Show nav bar again
     const navBar = document.getElementById('nav-bar');
@@ -331,7 +338,13 @@ export function initTogether() {
 
   function openGame(gameId) {
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Lock scroll
+
+    // Lock scroll on main content to prevent background scrolling
+    const mainContent = document.getElementById('content');
+    if (mainContent) {
+      mainContent.style.overflow = 'hidden';
+    }
+    document.body.classList.add('modal-open');
 
     // Hide nav bar when modal is open
     const navBar = document.getElementById('nav-bar');
