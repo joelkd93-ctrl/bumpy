@@ -601,14 +601,13 @@ document.addEventListener('visibilitychange', async () => {
   }
 });
 
-// Auto-sync every 30 seconds when app is active
+// Auto-sync every 30 seconds (even when minimized!)
 setInterval(async () => {
-  if (!document.hidden) {
-    console.log('⏰ Auto-pull (30s)');
-    const hasUpdates = await storage.pullFromCloud();
-    if (hasUpdates && window.app?.refreshCurrentPage) {
-      window.app.refreshCurrentPage();
-    }
+  console.log('⏰ Auto-pull (30s)', document.hidden ? '[minimized]' : '[visible]');
+  const hasUpdates = await storage.pullFromCloud();
+  // Only refresh UI if app is visible
+  if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage) {
+    window.app.refreshCurrentPage();
   }
 }, 30000);
 
