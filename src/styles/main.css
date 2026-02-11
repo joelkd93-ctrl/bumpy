@@ -1591,7 +1591,6 @@ li + li {
 /* Modal Open State - Prevent Background Scroll */
 body.modal-open,
 body.modal-active {
-  touch-action: none;
   -webkit-overflow-scrolling: none;
   overflow: hidden;
 }
@@ -1599,7 +1598,6 @@ body.modal-active {
 body.modal-open #content,
 body.modal-active #content {
   overflow: hidden !important;
-  touch-action: none;
 }
 
 /* Game Modal (Sheet Transition) */
@@ -1613,6 +1611,7 @@ body.modal-active #content {
   align-items: flex-end;
   justify-content: center;
   z-index: 3000;
+  pointer-events: auto;
 }
 
 .game-modal-content {
@@ -1630,6 +1629,7 @@ body.modal-active #content {
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18);
   animation: sheetSlideUp 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
   -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
 }
 
 /* iOS Modal Handler */

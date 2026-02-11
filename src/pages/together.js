@@ -326,7 +326,6 @@ export function initTogether() {
     if (mainContent) {
       mainContent.style.overflow = '';
       mainContent.style.overflowY = 'scroll';
-      mainContent.style.touchAction = '';
     }
 
     // Show nav bar again
@@ -360,7 +359,6 @@ export function initTogether() {
 
     if (mainContent) {
       mainContent.style.overflow = 'hidden';
-      mainContent.style.touchAction = 'none';
     }
 
     // Show modal
