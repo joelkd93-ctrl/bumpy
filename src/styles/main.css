@@ -370,7 +370,10 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   color: var(--text-primary);
-  background: linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 60%, #FDF4F8 100%);
+  background:
+    radial-gradient(ellipse at top, rgba(255, 237, 245, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(255, 245, 249, 0.6) 0%, transparent 50%),
+    linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 40%, #FFF9FC 60%, #FDF4F8 100%);
   background-attachment: fixed;
   min-height: 100vh;
   min-height: 100dvh;
@@ -696,23 +699,31 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%),
+    linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
   color: white;
   box-shadow: var(--shadow-pink-sm);
 }
 
 .btn-primary:active {
-  background: var(--pink-600);
+  background:
+    linear-gradient(135deg, rgba(0,0,0,0.1) 0%, transparent 50%),
+    linear-gradient(135deg, var(--pink-600) 0%, var(--pink-700) 100%);
 }
 
 .btn-soft {
-  background: var(--pink-50);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.8) 0%, transparent 50%),
+    linear-gradient(180deg, var(--pink-50) 0%, rgba(255, 237, 245, 0.6) 100%);
   color: var(--pink-600);
   border: 0.5px solid var(--pink-100);
 }
 
 .btn-soft:active {
-  background: var(--pink-100);
+  background:
+    linear-gradient(135deg, rgba(0,0,0,0.03) 0%, transparent 50%),
+    linear-gradient(180deg, var(--pink-100) 0%, var(--pink-50) 100%);
 }
 
 .btn-ghost {
@@ -886,6 +897,23 @@ body {
   text-align: center;
   padding: var(--space-8) var(--space-6);
   margin-bottom: var(--space-6);
+  background:
+    radial-gradient(ellipse at center, rgba(255, 237, 245, 0.4) 0%, transparent 70%),
+    var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+
+.baby-size-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 77, 166, 0.05) 0%, transparent 50%);
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .baby-emoji {
@@ -928,6 +956,9 @@ body {
 /* Fun Fact Card */
 .fact-card {
   position: relative;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(ellipse at bottom left, rgba(59, 152, 226, 0.06) 0%, transparent 60%);
 }
 
 .fact-label {
@@ -953,7 +984,9 @@ body {
 }
 
 .stat-card {
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,245,249,0.5) 100%),
+    var(--surface);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   text-align: center;
@@ -970,7 +1003,7 @@ body {
   top: 20%;
   bottom: 20%;
   width: 3px;
-  background: var(--blue-accent);
+  background: linear-gradient(180deg, var(--pink-400) 0%, var(--blue-accent) 100%);
   border-radius: 0 2px 2px 0;
   opacity: 0.6;
 }
@@ -994,6 +1027,9 @@ body {
 .love-note {
   position: relative;
   padding: var(--space-6);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(ellipse at top right, rgba(255, 77, 166, 0.08) 0%, transparent 60%);
 }
 
 .love-note-icon {
@@ -1027,7 +1063,9 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 26px;
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,245,249,0.4) 100%),
+    var(--surface);
   border: 1.5px solid var(--border-light);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -1040,7 +1078,9 @@ body {
 
 .mood-btn:active,
 .mood-btn.selected {
-  background: var(--pink-50);
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
+    linear-gradient(135deg, var(--pink-50) 0%, rgba(255, 237, 245, 0.8) 100%);
   border-color: var(--pink-400);
   transform: scale(1.06);
   box-shadow: var(--shadow-pink-sm);
@@ -1081,7 +1121,10 @@ body {
 }
 
 .game-card {
-  background: var(--surface);
+  background:
+    radial-gradient(circle at top right, rgba(255, 237, 245, 0.5) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,245,249,0.6) 100%),
+    var(--surface);
   border: 0.5px solid var(--border-light);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
@@ -1118,7 +1161,9 @@ body {
 
 .game-chip {
   padding: 3px 10px;
-  background: var(--blue-accent-soft);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 100%),
+    var(--blue-accent-soft);
   color: #3B98E2;
   border-radius: var(--radius-full);
   font-size: 10px;
@@ -1158,7 +1203,9 @@ body {
 }
 
 .game-modal-content {
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,245,249,0.95) 100%),
+    var(--surface);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   /* Sheet radius */
   padding: var(--space-8);
@@ -1220,7 +1267,9 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 
 .journal-entry {
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,245,249,0.7) 100%),
+    var(--surface);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   margin-bottom: var(--space-3);
@@ -2218,7 +2267,7 @@ body.night-mode::after {
   top: 4px;
   bottom: 4px;
   width: 2px;
-  background: var(--pink-50);
+  background: linear-gradient(180deg, var(--pink-100) 0%, var(--pink-50) 50%, var(--pink-100) 100%);
   border-radius: var(--radius-full);
 }
 
@@ -2259,6 +2308,8 @@ body.night-mode::after {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,245,249,0.6) 100%);
 }
 
 .timeline-date {
@@ -2279,22 +2330,30 @@ body.night-mode::after {
 }
 
 .badge-journal {
-  background: var(--pink-25);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.7) 0%, transparent 100%),
+    var(--pink-25);
   color: var(--pink-600);
 }
 
 .badge-mood {
-  background: var(--blue-accent-bg);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 100%),
+    var(--blue-accent-bg);
   color: var(--blue-accent-text);
 }
 
 .badge-kick {
-  background: var(--pink-50);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.7) 0%, transparent 100%),
+    var(--pink-50);
   color: var(--pink-700);
 }
 
 .badge-boy {
-  background: #E3F2FD;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 100%),
+    #E3F2FD;
   color: #1565C0;
 }
 
