@@ -3,6 +3,7 @@
  * Gentle customization options
  */
 import { storage } from '../utils/storage.js';
+import { requestNotificationPermission } from '../utils/notifications.js';
 
 export function renderSettings() {
   const settings = storage.get('settings') || {
@@ -60,6 +61,15 @@ export function renderSettings() {
         </label>
       </div>
       
+      <!-- Notifications Section -->
+      <p class="text-tiny mb-2">VARSLER</p>
+      <div class="settings-list mb-6">
+        <div class="settings-item" id="enable-notifications">
+          <span class="settings-label">Aktiver Push-varsler</span>
+          <span class="settings-icon">🔔</span>
+        </div>
+      </div>
+
       <!-- Data Section -->
       <p class="text-tiny mb-2">DATA</p>
       <div class="settings-list mb-6">
@@ -110,6 +120,7 @@ export function initSettings() {
   const partnerInput = document.getElementById('setting-partner');
   const dueDateInput = document.getElementById('setting-due-date');
   const saveBtn = document.getElementById('save-settings');
+  const notificationsBtn = document.getElementById('enable-notifications');
   const forceSyncBtn = document.getElementById('force-sync');
   const exportBtn = document.getElementById('export-data');
   const clearBtn = document.getElementById('clear-data');
@@ -136,6 +147,37 @@ export function initSettings() {
       // Navigate to home to see changes
       window.app?.navigate('home');
     }, 1500);
+  });
+
+  // Enable notifications
+  notificationsBtn?.addEventListener('click', async () => {
+    const label = notificationsBtn.querySelector('.settings-label');
+    const icon = notificationsBtn.querySelector('.settings-icon');
+    const originalText = label.textContent;
+
+    try {
+      label.textContent = 'Ber om tillatelse...';
+      const granted = await requestNotificationPermission();
+
+      if (granted) {
+        label.textContent = 'Varsler aktivert! ✓';
+        icon.textContent = '✅';
+        setTimeout(() => {
+          label.textContent = originalText;
+          icon.textContent = '🔔';
+        }, 2000);
+      } else {
+        label.textContent = 'Varsler avvist';
+        icon.textContent = '❌';
+        setTimeout(() => {
+          label.textContent = originalText;
+          icon.textContent = '🔔';
+        }, 3000);
+      }
+    } catch (err) {
+      console.error('Notification permission error:', err);
+      label.textContent = originalText;
+    }
   });
 
   // Force sync

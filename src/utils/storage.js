@@ -10,6 +10,7 @@ function getApiUrl() {
 }
 
 import { celebrate } from './confetti.js';
+import { notifyNewEntry, notifyEntryDeleted, notifyKick } from './notifications.js';
 
 export const storage = {
   get(key, defaultValue = null) {
@@ -319,6 +320,7 @@ export const storage = {
           console.log(`🔽 Cloud has ${journal.length} journal entries:`, Array.from(cloudIds));
 
           // Add entries that don't exist locally
+          let newEntriesCount = 0;
           journal.forEach(entry => {
             if (!localIds.has(entry.id)) {
               console.log(`🔽 Adding new entry from cloud: ${entry.id}`);
@@ -329,17 +331,30 @@ export const storage = {
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
               }, true);
               hasChanged = true;
+              newEntriesCount++;
             }
           });
 
+          // Notify about new entries
+          if (newEntriesCount > 0) {
+            notifyNewEntry('journal');
+          }
+
           // Remove local entries that no longer exist in cloud
+          let deletedEntriesCount = 0;
           localJournal.forEach(local => {
             if (!cloudIds.has(local.id)) {
               console.log(`🔽 Removing deleted entry from local: ${local.id}`);
               localStorage.removeItem(PREFIX + `journal:${local.id}`);
               hasChanged = true;
+              deletedEntriesCount++;
             }
           });
+
+          // Notify about deletions
+          if (deletedEntriesCount > 0) {
+            notifyEntryDeleted();
+          }
         }
 
         if (moods !== undefined) {
