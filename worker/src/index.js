@@ -60,6 +60,18 @@ async function handleInit(env) {
   const client = getClient(env);
   
   const migrations = [
+    // Presence/heartbeat tracking table
+    `CREATE TABLE IF NOT EXISTS presence (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      andrine_last_seen TEXT,
+      partner_last_seen TEXT,
+      andrine_tap TEXT,
+      partner_tap TEXT,
+      andrine_kick TEXT,
+      andrine_active_session TEXT,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Kick sessions table
     `CREATE TABLE IF NOT EXISTS kick_sessions (
       id TEXT PRIMARY KEY,
