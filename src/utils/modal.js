@@ -216,6 +216,14 @@ export function createModal({
     onClose?.();
   });
 
+  // Mount in dedicated portal root to avoid scroll-container conflicts
+  const modalRoot = document.getElementById('modal-root');
+  if (modalRoot) {
+    modalRoot.appendChild(modal);
+  } else {
+    document.body.appendChild(modal);
+  }
+
   // Add helper methods
   modal.open = () => window.modal.open(modal);
   modal.close = () => window.modal.close(modal);
