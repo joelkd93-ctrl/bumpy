@@ -63,7 +63,7 @@ function renderEvent(event) {
       typeLabel = 'Milepæl';
     } else {
       content = `
-        ${event.photo ? `<img src="${event.photo}" class="timeline-img" />` : ''}
+        ${event.photo ? `<img src="${event.photo}" class="timeline-img" loading="lazy" decoding="async" />` : ''}
         <p class="font-bold">Uke ${event.week} Magebilde! 📸</p>
         ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
       `;

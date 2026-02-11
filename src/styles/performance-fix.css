@@ -148,13 +148,33 @@ button:active {
 
 /* Timeline/Reise page - prevent image loading shifts */
 .timeline-item {
-  contain: layout;
+  contain: layout style;
+  /* Add margin for spacing without causing reflow */
+  margin-bottom: var(--space-4);
 }
 
-.timeline-item img {
+.timeline-img {
   width: 100%;
-  height: auto;
+  /* Fixed aspect ratio prevents jump when image loads */
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   display: block;
+  /* Reserve background color while loading */
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  /* Prevent cumulative layout shift */
+  min-height: 200px;
+}
+
+.timeline-card {
+  /* Prevent card resize during image load */
+  contain: layout style paint;
+}
+
+/* Smooth momentum scrolling on timeline */
+.page-timeline {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* Journal/Dagbok page - stable grid */
@@ -207,6 +227,13 @@ select {
   right: 0;
   bottom: var(--tab-bar-height);
   overflow-y: scroll;
+  /* GPU accelerate ONLY the scroll container */
+  transform: translateZ(0);
+  will-change: scroll-position;
+  /* Prevent scroll jank */
+  scroll-behavior: auto;
+  /* Smooth native scrolling */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Prevent accidental swipe navigation */
