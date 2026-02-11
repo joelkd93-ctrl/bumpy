@@ -241,10 +241,8 @@ function showNewPage(content, tab) {
     });
   }
 
-  // Sync in background after page is shown
-  setTimeout(() => {
-    storage.pullFromCloud().catch(err => console.warn('Background sync failed:', err));
-  }, 100);
+  // DON'T pull from cloud on every page switch - causes race condition
+  // The auto-pull every 15 seconds will handle syncing
 }
 
 // Helper: Apply stagger entrance animations to lists
