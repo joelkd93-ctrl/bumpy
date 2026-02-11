@@ -520,11 +520,24 @@ body {
   background: var(--surface);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    var(--shadow-md),
+    0 1px 3px rgba(0, 0, 0, 0.02);
   border: 0.5px solid var(--border-light);
   position: relative;
   overflow: hidden;
   transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  opacity: 0.6;
 }
 
 .card:active {
@@ -534,13 +547,18 @@ body {
 .card-soft {
   background: linear-gradient(165deg, var(--pink-25) 0%, #FFFFFF 100%);
   border: 0.5px solid var(--border-pink);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    var(--shadow-md),
+    0 4px 16px rgba(255, 77, 166, 0.06);
 }
 
 .card-love {
   background: linear-gradient(145deg, #FFF5F9 0%, #FFFFFF 100%);
   border: 0.5px solid var(--border-pink);
-  box-shadow: var(--shadow-pink-sm);
+  box-shadow:
+    var(--shadow-md),
+    0 4px 20px rgba(255, 77, 166, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .card-love::after {

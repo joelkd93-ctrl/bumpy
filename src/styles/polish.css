@@ -67,6 +67,36 @@
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 0.5px solid var(--glass-border);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Apply glass morphism to various elements */
+.card-soft,
+.stat-card,
+.game-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Glass morphism for modals */
+.game-modal-content {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Glass overlay backgrounds */
+.celebration-overlay,
+.global-heartbeat-overlay,
+.global-kick-overlay {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
