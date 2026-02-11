@@ -20,8 +20,8 @@ export async function requestNotificationPermission() {
   return false;
 }
 
-export function showNotification(title, options = {}) {
-  console.log('🔔 showNotification called:', title, 'hidden:', document.hidden);
+export async function showNotification(title, options = {}) {
+  console.log('🔔 showNotification called:', title, 'hidden:', document.hidden, 'permission:', Notification.permission);
 
   if (Notification.permission !== 'granted') {
     console.warn('🔔 Notification permission not granted');
@@ -38,38 +38,45 @@ export function showNotification(title, options = {}) {
       return;
     }
 
-    console.log('🔔 App minimized - showing notification');
+    console.log('🔔 App minimized - attempting to show notification');
 
-    // If app is closed/background, show notification
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.showNotification(title, {
+    // Try service worker notification first (more reliable on iOS)
+    if ('serviceWorker' in navigator) {
+      try {
+        // Wait for service worker to be ready
+        const registration = await navigator.serviceWorker.ready;
+        console.log('🔔 Service worker ready, showing notification');
+
+        await registration.showNotification(title, {
           icon: '/icons/icon-192.png',
           badge: '/icons/icon-192.png',
           vibrate: [200, 100, 200],
           tag: 'bumpy-' + Date.now(), // Unique tag so notifications don't replace each other
           renotify: true,
+          requireInteraction: false,
           ...options
-        }).then(() => {
-          console.log('🔔 Notification shown successfully');
-        }).catch(err => {
-          console.error('🔔 Notification failed:', err);
         });
-      }).catch(err => {
-        console.error('🔔 Service worker not ready:', err);
-      });
-    } else {
-      // Fallback to regular notification
-      new Notification(title, {
-        icon: '/icons/icon-192.png',
-        vibrate: [200, 100, 200],
-        tag: 'bumpy-' + Date.now(),
-        ...options
-      });
-      console.log('🔔 Fallback notification shown');
+
+        console.log('✅ Notification shown successfully via service worker');
+        return;
+      } catch (swErr) {
+        console.warn('⚠️ Service worker notification failed, trying fallback:', swErr);
+      }
     }
+
+    // Fallback to regular notification API (for iOS when SW fails)
+    console.log('🔔 Using fallback notification API');
+    new Notification(title, {
+      icon: '/icons/icon-192.png',
+      vibrate: [200, 100, 200],
+      tag: 'bumpy-' + Date.now(),
+      requireInteraction: false,
+      ...options
+    });
+    console.log('✅ Fallback notification shown');
+
   } catch (err) {
-    console.error('🔔 Notification error:', err);
+    console.error('❌ Notification error:', err);
   }
 }
 

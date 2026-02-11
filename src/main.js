@@ -317,7 +317,7 @@ async function startGlobalHeartbeatPoller() {
 
   console.log('💓 Global heartbeat poller started');
 
-  heartbeatPoller = setInterval(async () => {
+  const pollHeartbeat = async () => {
     const role = localStorage.getItem('who_am_i');
     if (!role) return;
 
@@ -345,9 +345,14 @@ async function startGlobalHeartbeatPoller() {
         const isVeryRecent = (Date.now() - tapTime) < 30000;
 
         if (lastPartnerTapReceived !== null || isVeryRecent) {
-          console.log('💓 Heartbeat received from partner');
+          console.log('💓 Heartbeat received from partner at', new Date(data.partnerLastTap).toLocaleTimeString());
+          console.log('💓 App hidden:', document.hidden, 'Permission:', Notification.permission);
           showGlobalHeartbeat();
-          notifyHeart(); // Send notification
+
+          // Call notification asynchronously but don't wait for it
+          notifyHeart().catch(err => {
+            console.error('💓 Heart notification failed:', err);
+          });
         }
         lastPartnerTapReceived = data.partnerLastTap;
       }
@@ -355,9 +360,14 @@ async function startGlobalHeartbeatPoller() {
       // Handle Kick Notification (Yoel only)
       if (role === 'partner' && data.andrineLastKick && data.andrineLastKick !== lastAndrineKickReceived) {
         if (lastAndrineKickReceived !== null) {
-          console.log('🦶 Andrine started a kick session!');
+          console.log('🦶 Andrine started a kick session at', new Date(data.andrineLastKick).toLocaleTimeString());
+          console.log('🦶 App hidden:', document.hidden, 'Permission:', Notification.permission);
           showGlobalKickNotification();
-          notifyKick(); // Send notification
+
+          // Call notification asynchronously but don't wait for it
+          notifyKick().catch(err => {
+            console.error('🦶 Kick notification failed:', err);
+          });
         }
         lastAndrineKickReceived = data.andrineLastKick;
       }
@@ -405,7 +415,13 @@ async function startGlobalHeartbeatPoller() {
       // Quietly log network errors
       if (err.name !== 'TypeError') console.warn('💓 Poller network error:', err.message);
     }
-  }, 2000);
+  };
+
+  // Run immediately on startup
+  pollHeartbeat().catch(err => console.warn('💓 Initial poll failed:', err));
+
+  // Then poll every 2 seconds
+  heartbeatPoller = setInterval(pollHeartbeat, 2000);
 }
 
 /**
@@ -618,14 +634,23 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 // Auto-sync every 15 seconds (even when minimized!)
-setInterval(async () => {
-  console.log('⏰ Auto-pull (15s)', document.hidden ? '[minimized]' : '[visible]');
+const autoPull = async () => {
+  console.log('⏰ Auto-pull', document.hidden ? '[minimized]' : '[visible]');
   const hasUpdates = await storage.pullFromCloud();
   // Only refresh UI if app is visible
   if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage) {
     window.app.refreshCurrentPage();
   }
-}, 15000);
+};
+
+// Run immediately on startup (after a short delay to let service worker initialize)
+setTimeout(() => {
+  console.log('🚀 Running initial sync...');
+  autoPull().catch(err => console.warn('Initial sync failed:', err));
+}, 2000);
+
+// Then poll every 15 seconds
+setInterval(autoPull, 15000);
 
 // Listen for messages from service worker (periodic sync updates)
 if ('serviceWorker' in navigator) {
