@@ -1359,15 +1359,48 @@ body {
 /* Feelings History List */
 .feelings-history-item {
   padding: var(--space-4) !important;
-  transition: transform var(--duration-fast) var(--ease-out);
+  transition: all var(--duration-fast) var(--ease-out);
+  position: relative;
+  border-left: 3px solid transparent;
 }
 
 .feelings-history-item:active {
   transform: scale(0.98);
 }
 
+/* Mood-based border colors for history items */
+.feelings-history-item[data-mood="🥰"] {
+  border-left-color: #FF4DA6;
+}
+
+.feelings-history-item[data-mood="😊"] {
+  border-left-color: #FFD54F;
+}
+
+.feelings-history-item[data-mood="😌"] {
+  border-left-color: #81C784;
+}
+
+.feelings-history-item[data-mood="😄"] {
+  border-left-color: #FF6B9D;
+}
+
+.feelings-history-item[data-mood="😴"] {
+  border-left-color: #9FA8DA;
+}
+
 .history-emoji {
-  font-size: 32px;
+  font-size: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(circle at center, rgba(255, 237, 245, 0.5) 0%, transparent 70%),
+    var(--pink-25);
+  box-shadow: var(--shadow-xs);
 }
 
 .history-note-content {
@@ -2977,6 +3010,110 @@ body.night-mode::after {
 .timeline-mood-icon:hover,
 .timeline-kick-icon:hover {
   transform: scale(1.1) rotate(-5deg);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🎨 MOOD COLOR THEMES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Mood-based color overlays */
+.mood-theme-loved {
+  --mood-color: #FF4DA6;
+  --mood-bg: rgba(255, 77, 166, 0.08);
+  --mood-glow: rgba(255, 77, 166, 0.2);
+}
+
+.mood-theme-happy {
+  --mood-color: #FFD54F;
+  --mood-bg: rgba(255, 213, 79, 0.08);
+  --mood-glow: rgba(255, 213, 79, 0.2);
+}
+
+.mood-theme-calm {
+  --mood-color: #81C784;
+  --mood-bg: rgba(129, 199, 132, 0.08);
+  --mood-glow: rgba(129, 199, 132, 0.2);
+}
+
+.mood-theme-excited {
+  --mood-color: #FF6B9D;
+  --mood-bg: rgba(255, 107, 157, 0.08);
+  --mood-glow: rgba(255, 107, 157, 0.2);
+}
+
+.mood-theme-tired {
+  --mood-color: #9FA8DA;
+  --mood-bg: rgba(159, 168, 218, 0.08);
+  --mood-glow: rgba(159, 168, 218, 0.2);
+}
+
+/* Enhanced mood button with color themes */
+.mood-btn[data-mood="🥰"].selected {
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
+    linear-gradient(135deg, #FFEBF5 0%, #FFD6E8 100%);
+  border-color: #FF4DA6;
+  box-shadow:
+    0 4px 12px rgba(255, 77, 166, 0.25),
+    0 0 0 4px rgba(255, 77, 166, 0.1);
+}
+
+.mood-btn[data-mood="😊"].selected {
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
+    linear-gradient(135deg, #FFF9E6 0%, #FFEAA7 100%);
+  border-color: #FFD54F;
+  box-shadow:
+    0 4px 12px rgba(255, 213, 79, 0.25),
+    0 0 0 4px rgba(255, 213, 79, 0.1);
+}
+
+.mood-btn[data-mood="😌"].selected {
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
+    linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-color: #81C784;
+  box-shadow:
+    0 4px 12px rgba(129, 199, 132, 0.25),
+    0 0 0 4px rgba(129, 199, 132, 0.1);
+}
+
+.mood-btn[data-mood="😄"].selected {
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
+    linear-gradient(135deg, #FFE8F0 0%, #FFD1E3 100%);
+  border-color: #FF6B9D;
+  box-shadow:
+    0 4px 12px rgba(255, 107, 157, 0.25),
+    0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.mood-btn[data-mood="😴"].selected {
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
+    linear-gradient(135deg, #E8EAF6 0%, #C5CAE9 100%);
+  border-color: #9FA8DA;
+  box-shadow:
+    0 4px 12px rgba(159, 168, 218, 0.25),
+    0 0 0 4px rgba(159, 168, 218, 0.1);
+}
+
+/* Mood-specific animations */
+@keyframes moodGlow {
+  0%, 100% {
+    box-shadow:
+      0 4px 12px var(--mood-glow),
+      0 0 0 4px var(--mood-bg);
+  }
+  50% {
+    box-shadow:
+      0 6px 16px var(--mood-glow),
+      0 0 0 6px var(--mood-bg);
+  }
+}
+
+.mood-btn.selected {
+  animation: moodGlow 2s ease-in-out infinite;
 }
 
 /* ═══════════════════════════════════════════════════════════════

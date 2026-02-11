@@ -92,7 +92,7 @@ export function renderFeelings() {
         <p class="heading-section mb-4">Min Reise</p>
         <div class="feelings-history-list">
           ${allEntries.length > 0 ? allEntries.map(entry => `
-            <div class="card mb-4 feelings-history-item">
+            <div class="card mb-4 feelings-history-item" data-mood="${entry.mood}">
               <div class="flex-between">
                 <div class="flex-items-center gap-4">
                   <span class="history-emoji">${entry.mood}</span>
