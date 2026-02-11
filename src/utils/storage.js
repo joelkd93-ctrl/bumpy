@@ -55,7 +55,9 @@ export const storage = {
   // Add item to collection
   addToCollection(prefix, data) {
     const id = Date.now().toString();
-    this.set(`${prefix}:${id}`, { ...data, date: new Date().toISOString() });
+    const entryData = { ...data, date: data.date || new Date().toISOString() };
+    this.set(`${prefix}:${id}`, entryData);
+    console.log(`💾 Saved to ${prefix}:${id}`, entryData);
     return id;
   },
 
@@ -177,35 +179,62 @@ export const storage = {
         }
 
         if (journal) {
+          // Get existing local journal entries
+          const localJournal = this.getCollection('journal');
+          const localIds = new Set(localJournal.map(e => e.id));
+
+          // Only add entries that don't exist locally (don't overwrite)
           journal.forEach(entry => {
-            this.set(`journal:${entry.id}`, {
-              week: entry.week_number,
-              photo: entry.photo_blob,
-              note: entry.note,
-              date: entry.created_at
-            });
+            if (!localIds.has(entry.id)) {
+              this.set(`journal:${entry.id}`, {
+                week: entry.week_number,
+                photo: entry.photo_blob,
+                note: entry.note,
+                date: entry.created_at
+              }, true); // Skip sync to avoid loop
+              hasChanged = true;
+            }
           });
         }
 
         if (moods) {
+          // Get existing local mood entries
+          const localMoods = this.getCollection('mood_entries');
+          const localMoodIds = new Set(localMoods.map(e => e.id));
+
+          // Only add entries that don't exist locally (don't overwrite)
           moods.forEach(entry => {
-            this.set(`feeling:${entry.date}`, {
-              mood: entry.mood_emoji,
-              note: entry.note,
-              timestamp: entry.created_at
-            });
-            // Also update collection if not exist
-            this.set(`mood_entries:${entry.id}`, {
-              mood: entry.mood_emoji,
-              note: entry.note,
-              date: entry.date
-            });
+            if (!localMoodIds.has(entry.id)) {
+              this.set(`feeling:${entry.date}`, {
+                mood: entry.mood_emoji,
+                note: entry.note,
+                timestamp: entry.created_at
+              }, true);
+              // Also update collection if not exist
+              this.set(`mood_entries:${entry.id}`, {
+                mood: entry.mood_emoji,
+                note: entry.note,
+                date: entry.date
+              }, true);
+              hasChanged = true;
+            }
           });
         }
 
         if (hasChanged) {
           console.log('☁️ Pulled and updated data from cloud');
           celebrate();
+
+          // Trigger a refresh if in standalone mode (PWA)
+          if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('📱 PWA detected - refreshing to show synced data');
+            setTimeout(() => {
+              if (window.app?.refreshCurrentPage) {
+                window.app.refreshCurrentPage();
+              }
+            }, 1000);
+          }
+
           return true;
         }
         return false;

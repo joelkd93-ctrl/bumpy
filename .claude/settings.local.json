@@ -8,7 +8,10 @@
       "Bash(git check-ignore:*)",
       "Bash(npx wrangler deploy:*)",
       "Bash(curl:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }
