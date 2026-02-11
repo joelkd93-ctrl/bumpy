@@ -180,6 +180,30 @@ async function handleInit(env) {
     }
   }
 
+  // FIX: Remove UNIQUE(week_number) constraint to allow multiple entries per week
+  try {
+    console.log('🔧 Migrating journal_entries table to remove UNIQUE constraint...');
+    await client.execute(`ALTER TABLE journal_entries RENAME TO journal_entries_old`);
+    await client.execute(`
+      CREATE TABLE journal_entries (
+        id TEXT PRIMARY KEY,
+        week_number INTEGER,
+        photo_blob TEXT,
+        note TEXT,
+        entry_date TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.execute(`
+      INSERT INTO journal_entries (id, week_number, photo_blob, note, entry_date, created_at)
+      SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries_old
+    `);
+    await client.execute(`DROP TABLE journal_entries_old`);
+    console.log('✅ Migration complete - UNIQUE constraint removed');
+  } catch (e) {
+    console.warn('⚠️ Migration skipped (table already migrated or error):', e.message);
+  }
+
   // Initialize auction profiles
   await client.execute(`INSERT OR IGNORE INTO auction_profiles (role, coins) VALUES ('andrine', 50)`);
   await client.execute(`INSERT OR IGNORE INTO auction_profiles (role, coins) VALUES ('partner', 50)`);
@@ -222,6 +246,14 @@ async function handleSyncGet(env) {
     if (!predictionsMap[row.role]) predictionsMap[row.role] = {};
     predictionsMap[row.role][row.question_id] = row.answer;
   }
+
+  // Debug: Count total rows and check schema
+  const countResult = await client.execute('SELECT COUNT(*) as total FROM journal_entries');
+  const schemaResult = await client.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='journal_entries'");
+  console.log(`🔽 Database has ${countResult.rows[0]?.total || 0} total journal_entries rows`);
+  console.log(`🔽 Table schema:`, schemaResult.rows[0]?.sql);
+  console.log(`🔽 GET /api/sync returning ${journal.rows?.length || 0} journal entries`);
+  console.log(`🔽 Journal IDs:`, journal.rows?.map(r => r.id));
 
   return json({
     success: true,
@@ -292,7 +324,7 @@ async function handleSyncPost(env, request) {
       }
       console.log(`💾 Inserting journal entry ${entry.id}`);
       try {
-        await client.execute({
+        const insertResult = await client.execute({
           sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
                 VALUES (?, ?, ?, ?, ?)`,
           args: [
@@ -303,7 +335,14 @@ async function handleSyncPost(env, request) {
             entry.date || entry.entry_date || new Date().toISOString().split('T')[0],
           ],
         });
-        console.log(`✅ Successfully inserted ${entry.id}`);
+        console.log(`✅ INSERT result for ${entry.id}:`, insertResult);
+
+        // Verify the insert
+        const verify = await client.execute({
+          sql: 'SELECT * FROM journal_entries WHERE id = ?',
+          args: [entry.id]
+        });
+        console.log(`🔍 Verification for ${entry.id}:`, verify.rows.length > 0 ? 'FOUND' : 'NOT FOUND');
       } catch (err) {
         console.error(`❌ Failed to insert ${entry.id}:`, err.message);
       }

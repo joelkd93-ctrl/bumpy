@@ -338,6 +338,12 @@ export function initTogether() {
     if (navBar) navBar.style.display = 'none';
 
     const content = document.getElementById('game-content');
+    const modalContent = document.querySelector('.game-modal-content');
+
+    // Scroll to top when modal opens
+    if (modalContent) {
+      modalContent.scrollTop = 0;
+    }
 
     // Add generic close-on-click for buttons that should explicitly exit
     modalCleanupStack.push(() => {
@@ -381,19 +387,22 @@ function renderHeartbeatGame(container, cleanupStack) {
   const role = localStorage.getItem('who_am_i') || 'andrine';
 
   container.innerHTML = `
-    <div class="text-center">
-      <h2 class="heading-section mb-2">Hjerteslag 💓</h2>
-      <p class="text-warm mb-4">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
+    <div class="text-center" style="display: flex; flex-direction: column; min-height: 100%; padding-top: 20px;">
+      <div style="flex: 0 0 auto;">
+        <h2 class="heading-section mb-2">Hjerteslag 💓</h2>
+        <p class="text-warm mb-4">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
+      </div>
 
-      <div class="heartbeat-area">
+      <div class="heartbeat-area" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 200px;">
         <span id="heart-icon" class="heart-pulse reveal-emoji-big">💗</span>
       </div>
 
-      <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
-
-      <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px; margin-bottom: 64px;">
-        Send hjertebank 💕
-      </button>
+      <div style="flex: 0 0 auto; margin-bottom: 16px;">
+        <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
+        <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px;">
+          Send hjertebank 💕
+        </button>
+      </div>
     </div>
   `;
 
