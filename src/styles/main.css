@@ -1612,6 +1612,7 @@ body.modal-open #content {
   width: 100%;
   max-width: var(--content-max-width);
   max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;

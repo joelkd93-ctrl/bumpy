@@ -93,7 +93,9 @@
   -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid rgba(255, 192, 203, 0.3);
   min-height: 100vh;
+  min-height: 100dvh;
   max-height: 100vh;
+  max-height: 100dvh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

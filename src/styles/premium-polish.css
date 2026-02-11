@@ -341,6 +341,7 @@ textarea {
   border: 1px solid rgba(0, 0, 0, 0.06);
   max-width: 90vw;
   max-height: 85vh;
+  max-height: 85dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
