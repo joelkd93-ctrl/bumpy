@@ -255,33 +255,44 @@ async function startGlobalHeartbeatPoller() {
  * Visual Effects
  */
 function triggerKickPop() {
-  console.log('🎉 triggerKickPop called - creating TEST ELEMENT');
+  console.log('🎉 triggerKickPop called - creating emojis');
 
-  // SUPER SIMPLE TEST - Just a bright red box
-  const test = document.createElement('div');
-  test.style.position = 'fixed';
-  test.style.top = '50%';
-  test.style.left = '50%';
-  test.style.transform = 'translate(-50%, -50%)';
-  test.style.width = '200px';
-  test.style.height = '200px';
-  test.style.backgroundColor = 'red';
-  test.style.zIndex = '999999';
-  test.style.border = '5px solid yellow';
-  test.innerText = 'KICK!';
-  test.style.fontSize = '60px';
-  test.style.color = 'white';
-  test.style.display = 'flex';
-  test.style.alignItems = 'center';
-  test.style.justifyContent = 'center';
+  const emojis = ['🦶', '👶', '💕', '💙', '✨', '🤰', '🌟'];
+  const count = 12;
 
-  document.body.appendChild(test);
-  console.log('TEST ELEMENT ADDED TO BODY', test);
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
 
-  setTimeout(() => {
-    test.remove();
-    console.log('TEST ELEMENT REMOVED');
-  }, 3000);
+    // Use same technique that works for the test box
+    el.style.position = 'fixed';
+    el.style.left = (10 + Math.random() * 80) + '%';
+    el.style.top = (20 + Math.random() * 60) + '%';
+    el.style.fontSize = (emoji === '🦶' ? 80 : 50) + 'px';
+    el.style.zIndex = '999999';
+    el.style.pointerEvents = 'none';
+    el.innerText = emoji;
+
+    // Simple fade animation using opacity
+    el.style.opacity = '0';
+    el.style.transition = 'all 0.5s ease-out';
+
+    document.body.appendChild(el);
+
+    // Trigger animation
+    setTimeout(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'scale(1.2)';
+    }, 10);
+
+    // Fade out and remove
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transform = 'scale(0.8)';
+    }, 2000);
+
+    setTimeout(() => el.remove(), 2500);
+  }
 }
 
 function showGlobalHeartbeat() {
