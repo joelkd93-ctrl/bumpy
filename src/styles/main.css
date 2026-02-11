@@ -266,10 +266,11 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   🌙 DARK MODE — Cozy Night
+   🌙 DARK MODE — DISABLED (ALWAYS LIGHT MODE)
    ───────────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
+/* DARK MODE COMPLETELY DISABLED - APP IS ALWAYS LIGHT PINK THEME */
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #161314;
     --background-subtle: #1C1819;
@@ -299,7 +300,7 @@
     --cream-50: var(--background);
     --cream-100: var(--surface);
   }
-}
+} */
 
 /* ═══════════════════════════════════════════════════════════════
    ✨ PREMIUM UTILITIES (RESTORED ESSENTIALS)

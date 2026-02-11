@@ -506,12 +506,12 @@ small, .text-sm {
    🎨 DARK MODE CONSIDERATIONS (FUTURE)
    ───────────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
+/* DARK MODE DISABLED */
+/* @media (prefers-color-scheme: dark) {
   :root {
-    /* Placeholder for future dark mode support */
-    /* Currently maintaining light theme as designed */
+
   }
-}
+} */
 
 /* ─────────────────────────────────────────────────────────────────
    ✨ FINAL POLISH — ANTI-ALIASING & RENDERING
