@@ -1060,7 +1060,7 @@ body {
   /* Sheet radius */
   padding: var(--space-8);
   padding-top: var(--space-10);
-  padding-bottom: calc(var(--tab-bar-height) + var(--space-4));
+  padding-bottom: calc(var(--tab-bar-height) + var(--space-16));
   width: 100%;
   max-width: var(--content-max-width);
   max-height: 92vh;
