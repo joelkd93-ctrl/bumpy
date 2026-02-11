@@ -365,6 +365,15 @@
     }
   </script>
 
+  <!-- Mobile Console for Debugging (eruda) -->
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    // Only show console in development or when ?debug=1 is in URL
+    if (window.location.search.includes('debug=1') || window.location.hostname === 'localhost') {
+      eruda.init();
+    }
+  </script>
+
   <!-- Main app script -->
   <script type="module" src="/src/main.js"></script>
 </body>
