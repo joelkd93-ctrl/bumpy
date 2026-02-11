@@ -584,6 +584,28 @@ function spawnFloatingEmoji() {
   setTimeout(() => el.remove(), 4500);
 }
 
+// Auto-sync when page becomes visible (user switches back to app)
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden) {
+    console.log('👀 App visible - pulling updates...');
+    const hasUpdates = await storage.pullFromCloud();
+    if (hasUpdates && window.app?.refreshCurrentPage) {
+      window.app.refreshCurrentPage();
+    }
+  }
+});
+
+// Auto-sync every 30 seconds when app is active
+setInterval(async () => {
+  if (!document.hidden) {
+    console.log('⏰ Auto-pull (30s)');
+    const hasUpdates = await storage.pullFromCloud();
+    if (hasUpdates && window.app?.refreshCurrentPage) {
+      window.app.refreshCurrentPage();
+    }
+  }
+}, 30000);
+
 // Start app
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
