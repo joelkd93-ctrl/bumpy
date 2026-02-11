@@ -309,16 +309,17 @@ export const storage = {
           }
         }
 
-        if (journal) {
+        if (journal !== undefined) {
           console.log(`🔽 Processing ${journal.length} journal entries from cloud`);
           // Get existing local journal entries
           const localJournal = this.getCollection('journal');
           const localIds = new Set(localJournal.map(e => e.id));
+          const cloudIds = new Set(journal.map(e => e.id));
           console.log(`🔽 Local has ${localJournal.length} journal entries:`, Array.from(localIds));
+          console.log(`🔽 Cloud has ${journal.length} journal entries:`, Array.from(cloudIds));
 
-          // Only add entries that don't exist locally (don't overwrite)
+          // Add entries that don't exist locally
           journal.forEach(entry => {
-            console.log(`🔽 Checking entry ${entry.id}: exists locally? ${localIds.has(entry.id)}`);
             if (!localIds.has(entry.id)) {
               console.log(`🔽 Adding new entry from cloud: ${entry.id}`);
               this.set(`journal:${entry.id}`, {
@@ -326,20 +327,28 @@ export const storage = {
                 photo: entry.photo_blob,
                 note: entry.note,
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
-              }, true); // Skip sync to avoid loop
+              }, true);
               hasChanged = true;
-            } else {
-              console.log(`🔽 Skipping existing entry: ${entry.id}`);
+            }
+          });
+
+          // Remove local entries that no longer exist in cloud
+          localJournal.forEach(local => {
+            if (!cloudIds.has(local.id)) {
+              console.log(`🔽 Removing deleted entry from local: ${local.id}`);
+              localStorage.removeItem(PREFIX + `journal:${local.id}`);
+              hasChanged = true;
             }
           });
         }
 
-        if (moods) {
+        if (moods !== undefined) {
           // Get existing local mood entries
           const localMoods = this.getCollection('mood_entries');
           const localMoodIds = new Set(localMoods.map(e => e.id));
+          const cloudMoodIds = new Set(moods.map(e => e.id));
 
-          // Only add entries that don't exist locally (don't overwrite)
+          // Add entries that don't exist locally
           moods.forEach(entry => {
             if (!localMoodIds.has(entry.id)) {
               this.set(`feeling:${entry.date}`, {
@@ -347,12 +356,20 @@ export const storage = {
                 note: entry.note,
                 timestamp: entry.created_at
               }, true);
-              // Also update collection if not exist
               this.set(`mood_entries:${entry.id}`, {
                 mood: entry.mood_emoji,
                 note: entry.note,
                 date: entry.date
               }, true);
+              hasChanged = true;
+            }
+          });
+
+          // Remove local entries that no longer exist in cloud
+          localMoods.forEach(local => {
+            if (!cloudMoodIds.has(local.id)) {
+              localStorage.removeItem(PREFIX + `feeling:${local.date}`);
+              localStorage.removeItem(PREFIX + `mood_entries:${local.id}`);
               hasChanged = true;
             }
           });
