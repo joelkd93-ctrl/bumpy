@@ -21,37 +21,55 @@ export async function requestNotificationPermission() {
 }
 
 export function showNotification(title, options = {}) {
+  console.log('🔔 showNotification called:', title, 'hidden:', document.hidden);
+
   if (Notification.permission !== 'granted') {
+    console.warn('🔔 Notification permission not granted');
     return;
   }
 
-  // If app is open, just vibrate
-  if (!document.hidden) {
-    if ('vibrate' in navigator) {
-      navigator.vibrate([200, 100, 200]);
+  try {
+    // If app is open, just vibrate
+    if (!document.hidden) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200]);
+      }
+      console.log('🔔 App visible - vibrate only');
+      return;
     }
-    return;
-  }
 
-  // If app is closed/background, show notification
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.ready.then(registration => {
-      registration.showNotification(title, {
+    console.log('🔔 App minimized - showing notification');
+
+    // If app is closed/background, show notification
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.showNotification(title, {
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
+          vibrate: [200, 100, 200],
+          tag: 'bumpy-' + Date.now(), // Unique tag so notifications don't replace each other
+          renotify: true,
+          ...options
+        }).then(() => {
+          console.log('🔔 Notification shown successfully');
+        }).catch(err => {
+          console.error('🔔 Notification failed:', err);
+        });
+      }).catch(err => {
+        console.error('🔔 Service worker not ready:', err);
+      });
+    } else {
+      // Fallback to regular notification
+      new Notification(title, {
         icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
         vibrate: [200, 100, 200],
-        tag: 'bumpy-update',
-        renotify: true,
+        tag: 'bumpy-' + Date.now(),
         ...options
       });
-    });
-  } else {
-    // Fallback to regular notification
-    new Notification(title, {
-      icon: '/icons/icon-192.png',
-      vibrate: [200, 100, 200],
-      ...options
-    });
+      console.log('🔔 Fallback notification shown');
+    }
+  } catch (err) {
+    console.error('🔔 Notification error:', err);
   }
 }
 
