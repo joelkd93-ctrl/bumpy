@@ -228,29 +228,16 @@ export function initJournal() {
     saveBtn.disabled = true;
 
     try {
-      // Check if entry for this week already exists
-      const existingEntries = storage.getCollection('journal');
-      const existingWeekEntry = existingEntries.find(e => e.week === progress.weeksPregnant);
+      // Use timestamp to ensure each entry is unique (allows multiple per week)
+      // Backend has UNIQUE constraint on (week, date), so we use full timestamp
+      const uniqueDate = new Date().toISOString(); // Includes time to ensure uniqueness
 
-      if (existingWeekEntry) {
-        // Update existing entry for this week
-        console.log(`📝 Updating existing entry for week ${progress.weeksPregnant}`);
-        storage.set(`journal:${existingWeekEntry.id}`, {
-          week: progress.weeksPregnant,
-          date: selectedDate || new Date().toISOString().split('T')[0],
-          photo: currentPhoto || existingWeekEntry.photo, // Keep existing photo if none provided
-          note: note || existingWeekEntry.note // Keep existing note if none provided
-        });
-        await storage.syncWithCloud();
-      } else {
-        // Create new entry
-        await storage.addToCollection('journal', {
-          week: progress.weeksPregnant,
-          date: selectedDate || new Date().toISOString().split('T')[0],
-          photo: currentPhoto,
-          note: note
-        });
-      }
+      await storage.addToCollection('journal', {
+        week: progress.weeksPregnant,
+        date: uniqueDate, // Full timestamp ensures multiple entries per week
+        photo: currentPhoto,
+        note: note
+      });
 
       // Success feedback
       saveBtn.textContent = 'Lagret! 💕';
