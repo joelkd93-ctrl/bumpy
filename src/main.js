@@ -255,6 +255,7 @@ async function startGlobalHeartbeatPoller() {
  * Visual Effects
  */
 function triggerKickPop() {
+  console.log('🎉 triggerKickPop called - creating floating emojis');
   const container = document.body;
   const emojis = ['🦶', '👶', '💕', '💙', '✨', '🤰', '🌟'];
   const count = 18;

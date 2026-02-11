@@ -1582,7 +1582,7 @@ body.night-mode::after {
   position: fixed;
   font-size: 32px;
   animation: floatUp var(--duration, 5s) ease-out forwards;
-  opacity: 0;
+  opacity: 1;
   z-index: 10000;
   pointer-events: none;
 }
