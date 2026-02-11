@@ -65,8 +65,8 @@ export function renderSettings() {
       <p class="text-tiny mb-2">VARSLER</p>
       <div class="settings-list mb-6">
         <div class="settings-item" id="enable-notifications">
-          <span class="settings-label">Aktiver Push-varsler</span>
-          <span class="settings-icon">🔔</span>
+          <span class="settings-label">Push-varsler</span>
+          <span class="settings-icon" id="notification-status">${Notification.permission === 'granted' ? '✅ Aktivert' : '🔔 Aktiver'}</span>
         </div>
       </div>
 
@@ -151,32 +151,55 @@ export function initSettings() {
 
   // Enable notifications
   notificationsBtn?.addEventListener('click', async () => {
-    const label = notificationsBtn.querySelector('.settings-label');
     const icon = notificationsBtn.querySelector('.settings-icon');
-    const originalText = label.textContent;
 
+    // If already granted, just show status
+    if (Notification.permission === 'granted') {
+      icon.textContent = '✅ Aktivert';
+      if (window.haptic) window.haptic.light();
+      return;
+    }
+
+    // If denied, can't do anything
+    if (Notification.permission === 'denied') {
+      icon.textContent = '❌ Blokkert';
+      alert('Varsler er blokkert. Gå til nettleserinnstillinger for å aktivere.');
+      setTimeout(() => {
+        icon.textContent = '🔔 Aktiver';
+      }, 3000);
+      return;
+    }
+
+    // Request permission
     try {
-      label.textContent = 'Ber om tillatelse...';
+      const originalText = icon.textContent;
+      icon.textContent = '⏳ Ber om tillatelse...';
       const granted = await requestNotificationPermission();
 
       if (granted) {
-        label.textContent = 'Varsler aktivert! ✓';
-        icon.textContent = '✅';
+        icon.textContent = '✅ Aktivert';
+        if (window.haptic) window.haptic.medium();
+        // Show test notification
         setTimeout(() => {
-          label.textContent = originalText;
-          icon.textContent = '🔔';
-        }, 2000);
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.showNotification('Varsler aktivert! 💕', {
+                body: 'Du vil nå motta varsler fra Bumpy',
+                icon: '/icons/icon-192.png',
+                vibrate: [200, 100, 200]
+              });
+            });
+          }
+        }, 500);
       } else {
-        label.textContent = 'Varsler avvist';
-        icon.textContent = '❌';
+        icon.textContent = '❌ Avvist';
         setTimeout(() => {
-          label.textContent = originalText;
-          icon.textContent = '🔔';
+          icon.textContent = originalText;
         }, 3000);
       }
     } catch (err) {
       console.error('Notification permission error:', err);
-      label.textContent = originalText;
+      icon.textContent = '🔔 Aktiver';
     }
   });
 
