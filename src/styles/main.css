@@ -1658,11 +1658,11 @@ body.night-mode::after {
 
 /* HEARTBEAT GAME */
 .heartbeat-area {
-  height: 180px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
 }
 
 .heart-pulse {

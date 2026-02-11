@@ -266,23 +266,24 @@ function triggerKickPop() {
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
     el.innerHTML = emoji;
 
-    // Random position across bottom center area
-    const x = 10 + (Math.random() * 80);
+    // Random position across screen
+    const x = 5 + (Math.random() * 90);
+    const y = 20 + (Math.random() * 60);
     el.style.left = `${x}%`;
-    el.style.bottom = '80px';
+    el.style.top = `${y}vh`;
     // Slower duration: 3 to 6 seconds
     el.style.setProperty('--duration', `${3 + Math.random() * 3}s`);
 
     // Foot emoji is bigger and prominent
     if (emoji === '🦶') {
-      el.style.fontSize = `${45 + Math.random() * 30}px`;
+      el.style.fontSize = `${50 + Math.random() * 40}px`;
       el.style.zIndex = '10001';
-      el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.15))';
+      el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))';
     } else {
-      el.style.fontSize = `${18 + Math.random() * 32}px`;
-      el.style.opacity = '0.8';
+      el.style.fontSize = `${24 + Math.random() * 36}px`;
     }
 
+    console.log(`Creating emoji: ${emoji} at ${x}%, ${y}vh`);
     container.appendChild(el);
     setTimeout(() => el.remove(), 6500);
   }

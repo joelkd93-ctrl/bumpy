@@ -374,15 +374,15 @@ function renderHeartbeatGame(container, cleanupStack) {
   container.innerHTML = `
     <div class="text-center">
       <h2 class="heading-section mb-2">Hjerteslag 💓</h2>
-      <p class="text-warm mb-6">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
-      
-      <div class="heartbeat-area mb-6">
+      <p class="text-warm mb-4">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
+
+      <div class="heartbeat-area">
         <span id="heart-icon" class="heart-pulse reveal-emoji-big">💗</span>
       </div>
-      
-      <div id="heart-status" class="text-muted mb-6 text-sm">Ser etter partner...</div>
-      
-      <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px; margin-bottom: 48px;">
+
+      <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
+
+      <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px; margin-bottom: 64px;">
         Send hjertebank 💕
       </button>
     </div>
