@@ -130,7 +130,6 @@ export function initTimeline() {
                    type === 'kick' ? 'kicks' : null;
 
     if (prefix) {
-      const { storage } = await import('../utils/storage.js');
       await storage.removeFromCollection(prefix, id);
 
       // Refresh page
