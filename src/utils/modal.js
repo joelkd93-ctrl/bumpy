@@ -65,21 +65,17 @@ export class ModalManager {
    */
   lockScroll() {
     const body = document.body;
-    const html = document.documentElement;
-    const content = document.getElementById('content');
 
-    // Add modal-active class
+    // Store current scroll
+    this.scrollPosition = window.scrollY;
+
+    // Class-based lock + fixed body freeze (prevents wheel/touch bleed)
     body.classList.add('modal-active');
-    html.classList.add('modal-active');
-
-    // Lock the scrollable content container
-    if (content) {
-      content.style.overflow = 'hidden';
-      content.style.touchAction = 'none';
-    }
-
-    // Prevent iOS bounce scroll
-    document.addEventListener('touchmove', this.preventScroll, { passive: false });
+    body.style.position = 'fixed';
+    body.style.top = `-${this.scrollPosition}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
   }
 
   /**
@@ -87,25 +83,20 @@ export class ModalManager {
    */
   unlockScroll() {
     const body = document.body;
-    const html = document.documentElement;
-    const content = document.getElementById('content');
+    const scrollY = this.scrollPosition || 0;
 
-    // Remove modal-active class
+    // Remove class lock
     body.classList.remove('modal-active');
-    html.classList.remove('modal-active');
 
-    // Restore content scroll
-    if (content) {
-      content.style.overflow = '';
-      content.style.overflowY = 'scroll';
-      content.style.touchAction = '';
-    }
+    // Restore body positioning
+    body.style.position = '';
+    body.style.top = '';
+    body.style.left = '';
+    body.style.right = '';
+    body.style.width = '';
 
-    // Remove iOS scroll prevention
-    document.removeEventListener('touchmove', this.preventScroll);
-
-    // Restore scroll position
-    window.scrollTo(0, this.scrollPosition);
+    // Restore original scroll
+    window.scrollTo(0, scrollY);
   }
 
   /**
