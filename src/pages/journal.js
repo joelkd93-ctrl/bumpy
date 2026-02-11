@@ -15,6 +15,9 @@ export function renderJournal() {
   const progress = getPregnancyProgress(settings.dueDate);
   const entries = storage.getCollection('journal');
 
+  // DEBUG: Log entries to help troubleshoot
+  console.log('📔 Journal rendering with', entries.length, 'entries:', entries.map(e => e.id));
+
   const entriesHTML = entries.length > 0
     ? entries.map(entry => `
         <div class="journal-entry" data-id="${entry.id}">

@@ -70,10 +70,12 @@ export const storage = {
 
   // Add item to collection
   addToCollection(prefix, data) {
-    const id = Date.now().toString();
+    // Use timestamp + random number to ensure uniqueness
+    const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const entryData = { ...data, date: data.date || new Date().toISOString() };
     this.set(`${prefix}:${id}`, entryData);
     console.log(`💾 Saved to ${prefix}:${id}`, entryData);
+    console.log(`📊 Total ${prefix} entries in storage:`, this.getCollection(prefix).length);
     return id;
   },
 
