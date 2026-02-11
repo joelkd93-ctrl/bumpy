@@ -535,31 +535,71 @@ button:focus-visible,
     --text-3xl: 26px;
     --text-2xl: 22px;
   }
-  
+
   .progress-ring {
     width: 200px;
     height: 200px;
   }
-  
+
   .progress-percent {
     font-size: 36px;
   }
-  
+
   .baby-emoji {
     font-size: 56px;
   }
-  
+
   .stats-grid {
     gap: var(--space-3);
   }
-  
+
   .game-grid {
     gap: var(--space-3);
   }
-  
+
   .game-card {
     min-height: 120px;
     padding: var(--space-3);
+  }
+
+  /* Fix for game modals on small screens */
+  .game-modal-content {
+    max-height: 85vh;
+    padding-bottom: calc(var(--tab-bar-height) + var(--space-8));
+  }
+
+  .heartbeat-area {
+    height: 120px !important;
+    margin-bottom: var(--space-4) !important;
+  }
+
+  #tap-heart {
+    min-height: 60px !important;
+    font-size: var(--text-base) !important;
+  }
+}
+
+/* iPhone SE and similar small devices */
+@media (max-width: 413px) {
+  .game-modal-content {
+    max-height: 80vh;
+    padding: var(--space-6);
+    padding-top: var(--space-8);
+    padding-bottom: calc(var(--tab-bar-height) + var(--space-10));
+  }
+
+  .heartbeat-area {
+    height: 100px !important;
+    margin-bottom: var(--space-3) !important;
+  }
+
+  #tap-heart {
+    min-height: 56px !important;
+    padding: var(--space-3) !important;
+  }
+
+  .heading-section {
+    font-size: var(--text-2xl) !important;
   }
 }
 
@@ -568,12 +608,12 @@ button:focus-visible,
   .page {
     max-width: 440px;
   }
-  
+
   .progress-ring {
     width: 260px;
     height: 260px;
   }
-  
+
   .progress-percent {
     font-size: 48px;
   }
