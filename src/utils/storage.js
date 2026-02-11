@@ -73,8 +73,9 @@ export const storage = {
 
   // Add item to collection
   async addToCollection(prefix, data) {
-    // Use timestamp + random number to ensure uniqueness
-    const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use numeric-only ID (backend expects this format)
+    // Add small random offset to prevent collisions
+    const id = String(Date.now() + Math.floor(Math.random() * 1000));
     const entryData = { ...data, date: data.date || new Date().toISOString() };
 
     // Save locally but skip auto-sync (we'll do manual sync below)
