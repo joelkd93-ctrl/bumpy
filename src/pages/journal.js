@@ -228,13 +228,29 @@ export function initJournal() {
     saveBtn.disabled = true;
 
     try {
-      // Wait for save AND cloud sync to complete
-      await storage.addToCollection('journal', {
-        week: progress.weeksPregnant,
-        date: selectedDate || new Date().toISOString().split('T')[0],
-        photo: currentPhoto,
-        note: note
-      });
+      // Check if entry for this week already exists
+      const existingEntries = storage.getCollection('journal');
+      const existingWeekEntry = existingEntries.find(e => e.week === progress.weeksPregnant);
+
+      if (existingWeekEntry) {
+        // Update existing entry for this week
+        console.log(`📝 Updating existing entry for week ${progress.weeksPregnant}`);
+        storage.set(`journal:${existingWeekEntry.id}`, {
+          week: progress.weeksPregnant,
+          date: selectedDate || new Date().toISOString().split('T')[0],
+          photo: currentPhoto || existingWeekEntry.photo, // Keep existing photo if none provided
+          note: note || existingWeekEntry.note // Keep existing note if none provided
+        });
+        await storage.syncWithCloud();
+      } else {
+        // Create new entry
+        await storage.addToCollection('journal', {
+          week: progress.weeksPregnant,
+          date: selectedDate || new Date().toISOString().split('T')[0],
+          photo: currentPhoto,
+          note: note
+        });
+      }
 
       // Success feedback
       saveBtn.textContent = 'Lagret! 💕';
