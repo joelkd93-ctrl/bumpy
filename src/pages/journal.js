@@ -17,10 +17,15 @@ export function renderJournal() {
 
   const entriesHTML = entries.length > 0
     ? entries.map(entry => `
-        <div class="journal-entry">
+        <div class="journal-entry" data-id="${entry.id}">
           <div class="journal-header">
-            <span class="journal-week">Uke ${entry.week}</span>
-            <span class="journal-date">${formatDate(entry.date)}</span>
+            <div>
+              <span class="journal-week">Uke ${entry.week}</span>
+              <span class="journal-date">${formatDate(entry.date)}</span>
+            </div>
+            <button class="btn-icon-small delete-journal-entry" data-id="${entry.id}" aria-label="Slett">
+              🗑️
+            </button>
           </div>
           ${entry.photo
         ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
@@ -289,6 +294,31 @@ export function initJournal() {
   document.addEventListener('click', (e) => {
     if (emojiPopup && !emojiPopup.contains(e.target) && e.target !== emojiToggle) {
       emojiPopup.style.display = 'none';
+    }
+  });
+
+  // Handle delete buttons
+  document.addEventListener('click', async (e) => {
+    const deleteBtn = e.target.closest('.delete-journal-entry');
+    if (!deleteBtn) return;
+
+    const id = deleteBtn.dataset.id;
+
+    // Confirm deletion
+    const confirmed = confirm('Er du sikker på at du vil slette dette bildet?');
+    if (!confirmed) return;
+
+    // Haptic feedback
+    if (window.haptic) window.haptic.medium();
+
+    // Delete entry
+    await storage.removeFromCollection('journal', id);
+
+    // Refresh page
+    if (window.app?.refreshCurrentPage) {
+      setTimeout(() => {
+        window.app.refreshCurrentPage();
+      }, 500);
     }
   });
 }

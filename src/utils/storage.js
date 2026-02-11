@@ -72,8 +72,43 @@ export const storage = {
   },
 
   // Remove from collection
-  removeFromCollection(prefix, id) {
-    this.remove(`${prefix}:${id}`);
+  async removeFromCollection(prefix, id) {
+    // Remove from localStorage first
+    localStorage.removeItem(PREFIX + prefix + ':' + id);
+    console.log(`🗑️ Removed locally: ${prefix}:${id}`);
+
+    // Delete from cloud
+    try {
+      const apiUrl = getApiUrl();
+      const endpoint = prefix === 'journal' ? 'journal' :
+                       prefix === 'mood_entries' ? 'mood' : null;
+
+      if (endpoint) {
+        console.log(`☁️ Deleting from cloud: ${endpoint}/${id}`);
+        const response = await fetch(`${apiUrl}/${endpoint}/${id}`, {
+          method: 'DELETE',
+          mode: 'cors',
+          credentials: 'omit',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          console.log(`✅ Deleted from cloud: ${endpoint}/${id}`);
+          this.updateSyncIndicator('success', 'Deleted');
+          setTimeout(() => this.updateSyncIndicator('hide'), 2000);
+        } else {
+          console.warn(`⚠️ Cloud delete failed: ${response.status}`);
+          this.updateSyncIndicator('error', 'Delete failed');
+          setTimeout(() => this.updateSyncIndicator('hide'), 3000);
+        }
+      }
+    } catch (err) {
+      console.warn('☁️ Cloud delete failed:', err.message);
+    }
+
+    return true;
   },
 
   /**

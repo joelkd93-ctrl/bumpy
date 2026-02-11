@@ -336,6 +336,48 @@ async function handleSyncPost(env, request) {
   return json({ success: true, message: 'Sync complete' });
 }
 
+async function handleDeleteJournal(env, id) {
+  if (!id) {
+    return json({ success: false, error: 'Missing ID' }, { status: 400 });
+  }
+
+  const client = getClient(env);
+
+  try {
+    await client.execute({
+      sql: 'DELETE FROM journal_entries WHERE id = ?',
+      args: [id]
+    });
+
+    console.log(`🗑️ Deleted journal entry: ${id}`);
+    return json({ success: true, message: 'Journal entry deleted' });
+  } catch (err) {
+    console.error('Delete journal error:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+async function handleDeleteMood(env, id) {
+  if (!id) {
+    return json({ success: false, error: 'Missing ID' }, { status: 400 });
+  }
+
+  const client = getClient(env);
+
+  try {
+    await client.execute({
+      sql: 'DELETE FROM mood_entries WHERE id = ?',
+      args: [id]
+    });
+
+    console.log(`🗑️ Deleted mood entry: ${id}`);
+    return json({ success: true, message: 'Mood entry deleted' });
+  } catch (err) {
+    console.error('Delete mood error:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 👥 PRESENCE & HEARTBEAT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -823,6 +865,16 @@ export default {
       }
       if (url.pathname === '/api/sync' && request.method === 'POST') {
         return withCors(await handleSyncPost(env, request), env, request);
+      }
+
+      // Delete endpoints
+      if (url.pathname.startsWith('/api/journal/') && request.method === 'DELETE') {
+        const id = url.pathname.split('/').pop();
+        return withCors(await handleDeleteJournal(env, id), env, request);
+      }
+      if (url.pathname.startsWith('/api/mood/') && request.method === 'DELETE') {
+        const id = url.pathname.split('/').pop();
+        return withCors(await handleDeleteMood(env, id), env, request);
       }
 
       // Presence

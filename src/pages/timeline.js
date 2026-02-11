@@ -91,11 +91,16 @@ function renderEvent(event) {
   }
 
   return `
-    <div class="timeline-item type-${event.type}">
+    <div class="timeline-item type-${event.type}" data-id="${event.id}" data-type="${event.type}">
       <div class="card timeline-card">
         <div class="flex-between">
-          <span class="timeline-date">${dateStr}</span>
-          <span class="timeline-type-badge ${badgeClass}">${typeLabel}</span>
+          <div>
+            <span class="timeline-date">${dateStr}</span>
+            <span class="timeline-type-badge ${badgeClass}">${typeLabel}</span>
+          </div>
+          <button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="${event.type}" aria-label="Slett">
+            🗑️
+          </button>
         </div>
         ${content}
       </div>
@@ -104,5 +109,36 @@ function renderEvent(event) {
 }
 
 export function initTimeline() {
-  // Purely visual, but could add "delete" or "edit" logic here
+  // Handle delete buttons
+  document.addEventListener('click', async (e) => {
+    const deleteBtn = e.target.closest('.delete-timeline-entry');
+    if (!deleteBtn) return;
+
+    const id = deleteBtn.dataset.id;
+    const type = deleteBtn.dataset.type;
+
+    // Confirm deletion
+    const confirmed = confirm('Er du sikker på at du vil slette dette?');
+    if (!confirmed) return;
+
+    // Haptic feedback
+    if (window.haptic) window.haptic.medium();
+
+    // Delete based on type
+    const prefix = type === 'journal' ? 'journal' :
+                   type === 'mood' ? 'mood_entries' :
+                   type === 'kick' ? 'kicks' : null;
+
+    if (prefix) {
+      const { storage } = await import('../utils/storage.js');
+      await storage.removeFromCollection(prefix, id);
+
+      // Refresh page
+      if (window.app?.refreshCurrentPage) {
+        setTimeout(() => {
+          window.app.refreshCurrentPage();
+        }, 500);
+      }
+    }
+  });
 }
