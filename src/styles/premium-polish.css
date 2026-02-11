@@ -523,11 +523,11 @@ small, .text-sm {
   text-rendering: optimizeLegibility;
 }
 
-/* Optimize rendering for transforms */
-.card,
+/* Optimize rendering for transforms - REDUCED FOR PERFORMANCE */
+/* .card,
 .btn,
 .modal-content,
 .tab-bar {
   will-change: transform;
   transform: translateZ(0);
-}
+} */

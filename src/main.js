@@ -10,6 +10,7 @@ import './styles/main.css';
 import './styles/polish.css';
 import './styles/motion.css';
 import './styles/premium-polish.css';
+import './styles/performance-fix.css'; // CRITICAL: Must load last
 import { storage, initializeDefaults } from './utils/storage.js';
 import { notifyHeart, notifyKick } from './utils/notifications.js';
 import { renderHome, initHome } from './pages/home.js';
@@ -240,10 +241,10 @@ async function showNewPage(content, tab, direction) {
   // The 'page' class automatically triggers the smooth fade + slide animation
   content.innerHTML = `<div class="page active">${tab.render()}</div>`;
 
-  // Apply stagger animations to list items
-  requestAnimationFrame(() => {
-    applyStaggerAnimation();
-  });
+  // Apply stagger animations to list items - DISABLED FOR PERFORMANCE
+  // requestAnimationFrame(() => {
+  //   applyStaggerAnimation();
+  // });
 
   // Run page init if exists
   if (tab.init) {

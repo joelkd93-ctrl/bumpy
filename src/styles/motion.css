@@ -33,10 +33,10 @@
    Smooth screen-to-screen flow, no "page reload" feel
    ───────────────────────────────────────────────────────────────── */
 
-/* Page container base */
+/* Page container base - DISABLED FOR PERFORMANCE */
 .page {
-  animation: pageEnter var(--page-transition-duration) var(--page-transition-ease) forwards;
-  will-change: opacity, transform;
+  /* animation: pageEnter var(--page-transition-duration) var(--page-transition-ease) forwards; */
+  /* will-change: opacity, transform; */
 }
 
 @keyframes pageEnter {

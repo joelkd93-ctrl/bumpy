@@ -1,0 +1,216 @@
+/* ═══════════════════════════════════════════════════════════════
+   ⚡ CRITICAL PERFORMANCE & STABILITY FIXES
+   Fixes jittery scrolling, page jumping, layout shifts
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────
+   📱 STABLE PAGE LAYOUT - NO FLEX, FIXED HEIGHTS
+   ───────────────────────────────────────────────────────────────── */
+
+html,
+body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+#app {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+#content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--tab-bar-height);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 PREVENT LAYOUT SHIFTS
+   ───────────────────────────────────────────────────────────────── */
+
+.page {
+  min-height: 100%;
+  /* Remove animations that cause jitter */
+  animation: none !important;
+  will-change: auto !important;
+}
+
+/* Images - prevent layout shift */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure images have dimensions */
+.journal-photo,
+.journal-entry img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--gray-100);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🚫 DISABLE PROBLEMATIC ANIMATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+/* Disable all entrance animations */
+.animate-in,
+.stagger-item {
+  animation: none !important;
+}
+
+/* Disable breathing/float animations */
+.breathe,
+.float,
+.hero-icon,
+.feature-icon,
+.emotional-icon {
+  animation: none !important;
+}
+
+/* Keep only essential button feedback */
+.btn:active,
+button:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease-out;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📜 SMOOTH SCROLLING WITHOUT JUMPING
+   ───────────────────────────────────────────────────────────────── */
+
+/* Prevent scroll anchoring issues */
+#content {
+  scroll-behavior: auto;
+  overflow-anchor: none;
+}
+
+/* Prevent content shift during scroll */
+.page {
+  contain: layout style;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 REDUCE BACKDROP BLUR (PERFORMANCE HEAVY)
+   ───────────────────────────────────────────────────────────────── */
+
+.tab-bar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.modal-backdrop {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(20, 20, 20, 0.6);
+}
+
+.card-glass {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ⚡ GPU ACCELERATION ONLY WHERE NEEDED
+   ───────────────────────────────────────────────────────────────── */
+
+/* Remove excessive will-change */
+* {
+  will-change: auto !important;
+}
+
+/* Only accelerate actively animating elements */
+.modal-content.active,
+.global-heartbeat-overlay.active {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🔧 FIX SPECIFIC JITTERY PAGES
+   ───────────────────────────────────────────────────────────────── */
+
+/* Timeline/Reise page - prevent image loading shifts */
+.timeline-item {
+  contain: layout;
+}
+
+.timeline-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Journal/Dagbok page - stable grid */
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+  /* Prevent grid recalculation */
+  contain: layout style;
+}
+
+.journal-entry {
+  /* Fixed aspect ratio prevents jumping */
+  aspect-ratio: 1 / 1.2;
+  contain: layout style paint;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   📱 iOS SPECIFIC FIXES
+   ───────────────────────────────────────────────────────────────── */
+
+/* Prevent elastic scrolling on body */
+body {
+  position: fixed;
+  overflow: hidden;
+}
+
+/* Only #content should scroll */
+#content {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: scroll;
+}
+
+/* Prevent iOS zoom on input focus */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   🎯 CRITICAL: PREVENT PAGE NAVIGATION DURING SCROLL
+   ───────────────────────────────────────────────────────────────── */
+
+/* Ensure content stays in place */
+#content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--tab-bar-height);
+  overflow-y: scroll;
+}
+
+/* Prevent accidental swipe navigation */
+.page {
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
