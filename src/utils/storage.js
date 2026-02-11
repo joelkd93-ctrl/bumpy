@@ -3,7 +3,11 @@
  */
 
 const PREFIX = 'bumpy:';
-const API_URL = (window.API_BASE || 'http://localhost:8787') + '/api';
+
+// Use a function to get API_URL at runtime (not at import time)
+function getApiUrl() {
+  return (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev') + '/api';
+}
 
 import { celebrate } from './confetti.js';
 
@@ -105,13 +109,15 @@ export const storage = {
         predictions
       };
 
+      const apiUrl = getApiUrl();
+
       console.log('☁️ Syncing to cloud...', {
         journalCount: journal.length,
         moodsCount: moods.length,
-        api: API_URL
+        api: apiUrl
       });
 
-      const response = await fetch(`${API_URL}/sync`, {
+      const response = await fetch(`${apiUrl}/sync`, {
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',
@@ -180,8 +186,10 @@ export const storage = {
 
   async pullFromCloud() {
     try {
+      const apiUrl = getApiUrl();
+
       // Add cache buster to prevent stale data
-      const response = await fetch(`${API_URL}/sync?t=${Date.now()}`, {
+      const response = await fetch(`${apiUrl}/sync?t=${Date.now()}`, {
         mode: 'cors',
         credentials: 'omit',
         headers: {

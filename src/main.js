@@ -3,6 +3,9 @@
  * Made with love for Andrine
  */
 
+// Set API base URL FIRST before any imports
+window.API_BASE = "https://bumpyapi.joelkd93.workers.dev";
+
 import './styles/main.css';
 import './styles/polish.css';
 import { storage, initializeDefaults } from './utils/storage.js';
@@ -500,8 +503,7 @@ window.app = {
 // 🌐 GLOBAL API & CONFIG
 // ═══════════════════════════════════════════════════════════════
 
-// const hostname = window.location.hostname;
-window.API_BASE = "https://bumpyapi.joelkd93.workers.dev";
+// API_BASE is set at top of file before imports
 
 // ═══════════════════════════════════════════════════════════════
 // 🎉 WEEKLY CELEBRATION & NIGHT MODE
