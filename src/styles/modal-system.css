@@ -75,8 +75,7 @@ body.modal-active {
   /* Enable pointer events on modal */
   pointer-events: auto;
 
-  /* GPU acceleration */
-  transform: translateZ(0);
+  /* Animation hints */
   will-change: transform, opacity;
 
   /* Smooth slide-up animation */
@@ -85,11 +84,11 @@ body.modal-active {
 
 @keyframes modalSlideUp {
   from {
-    transform: translateY(100%);
+    transform: translateY(100%) scale(1);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
@@ -222,17 +221,9 @@ body.modal-active {
    🚀 PERFORMANCE OPTIMIZATIONS
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* Reduce paint/composite layers */
-.modal-backdrop,
-.modal-container,
-.modal-card {
-  contain: layout style paint;
-}
-
 /* Hardware acceleration hints */
 .modal-backdrop,
 .modal-card {
-  transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
 }
