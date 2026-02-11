@@ -340,11 +340,19 @@ async function startGlobalHeartbeatPoller() {
 
       // Handle Heartbeat (Partner Tap)
       if (data.partnerLastTap && data.partnerLastTap !== lastPartnerTapReceived) {
-        // Is this a fresh tap or a very recent one (within last 30s) that we haven't seen?
         const tapTime = new Date(data.partnerLastTap).getTime();
-        const isVeryRecent = (Date.now() - tapTime) < 30000;
+        const now = Date.now();
+        const timeSinceAppStart = now - appStartTime;
 
-        if (lastPartnerTapReceived !== null || isVeryRecent) {
+        // Only show if this is NOT the first poll (ignore hearts that existed before app opened)
+        // OR if the heart is very fresh (within last 5 seconds)
+        const isVeryFresh = (now - tapTime) < 5000;
+        const shouldShow = (lastPartnerTapReceived !== null) || (isVeryFresh && timeSinceAppStart > 3000);
+
+        // Update the last received BEFORE showing (prevents duplicates)
+        lastPartnerTapReceived = data.partnerLastTap;
+
+        if (shouldShow) {
           console.log('💓 Heartbeat received from partner at', new Date(data.partnerLastTap).toLocaleTimeString());
           console.log('💓 App hidden:', document.hidden, 'Permission:', Notification.permission);
           showGlobalHeartbeat();
@@ -354,12 +362,15 @@ async function startGlobalHeartbeatPoller() {
             console.error('💓 Heart notification failed:', err);
           });
         }
-        lastPartnerTapReceived = data.partnerLastTap;
       }
 
       // Handle Kick Notification (Yoel only)
       if (role === 'partner' && data.andrineLastKick && data.andrineLastKick !== lastAndrineKickReceived) {
-        if (lastAndrineKickReceived !== null) {
+        // Update last received BEFORE showing (prevents duplicates)
+        const shouldShow = lastAndrineKickReceived !== null;
+        lastAndrineKickReceived = data.andrineLastKick;
+
+        if (shouldShow) {
           console.log('🦶 Andrine started a kick session at', new Date(data.andrineLastKick).toLocaleTimeString());
           console.log('🦶 App hidden:', document.hidden, 'Permission:', Notification.permission);
           showGlobalKickNotification();
@@ -369,7 +380,6 @@ async function startGlobalHeartbeatPoller() {
             console.error('🦶 Kick notification failed:', err);
           });
         }
-        lastAndrineKickReceived = data.andrineLastKick;
       }
 
       // Sync Active Session Data
@@ -475,55 +485,88 @@ function showGlobalHeartbeat() {
 
   if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-  let overlay = document.querySelector('.global-heartbeat-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'global-heartbeat-overlay';
-    overlay.innerHTML = `
-      <div class="global-heartbeat-content">
-        <span class="global-heart-icon">❤️</span>
-        <div class="global-heartbeat-label"></div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
+  // Remove any existing overlay first to prevent stacking
+  const existingOverlay = document.querySelector('.global-heartbeat-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+    if (heartbeatTimeout) {
+      clearTimeout(heartbeatTimeout);
+      heartbeatTimeout = null;
+    }
   }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'global-heartbeat-overlay';
+  overlay.innerHTML = `
+    <div class="global-heartbeat-content">
+      <span class="global-heart-icon">❤️</span>
+      <div class="global-heartbeat-label"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Click to dismiss
+  overlay.addEventListener('click', () => {
+    overlay.classList.remove('active');
+    if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
+    setTimeout(() => overlay.remove(), 300);
+  });
 
   const label = overlay.querySelector('.global-heartbeat-label');
   label.innerHTML = `Hjertet mitt slår for deg 💓<br><small style="opacity: 0.8; font-size: 0.7em;">Hilsen ${partnerName} ${partnerEmoji}</small>`;
 
-  // Reset timeout and force reflow
-  if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
-  overlay.classList.remove('active');
-  overlay.offsetHeight; // Force reflow
+  // Trigger animation
+  requestAnimationFrame(() => {
+    overlay.classList.add('active');
+  });
 
-  overlay.classList.add('active');
+  // Auto-hide and remove
   heartbeatTimeout = setTimeout(() => {
     overlay.classList.remove('active');
     heartbeatTimeout = null;
+    // Remove from DOM after animation completes
+    setTimeout(() => overlay.remove(), 500);
   }, 3500);
 }
 
 function showGlobalKickNotification() {
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
-  let overlay = document.querySelector('.global-kick-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'global-kick-overlay';
-    overlay.innerHTML = `
-      <div class="global-kick-content">
-        <span class="global-kick-icon">👶🦶</span>
-        <div class="global-kick-label">
-          Andrine har begynt å telle spark! 💕<br>
-          <small style="opacity: 0.8; font-size: 0.75em;">Klar for små dult?</small>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
+  // Remove any existing overlay first to prevent stacking
+  const existingOverlay = document.querySelector('.global-kick-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
   }
 
-  overlay.classList.add('active');
-  setTimeout(() => overlay.classList.remove('active'), 5000);
+  const overlay = document.createElement('div');
+  overlay.className = 'global-kick-overlay';
+  overlay.innerHTML = `
+    <div class="global-kick-content">
+      <span class="global-kick-icon">👶🦶</span>
+      <div class="global-kick-label">
+        Andrine har begynt å telle spark! 💕<br>
+        <small style="opacity: 0.8; font-size: 0.75em;">Klar for små dult?</small>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Click to dismiss
+  overlay.addEventListener('click', () => {
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 300);
+  });
+
+  // Trigger animation
+  requestAnimationFrame(() => {
+    overlay.classList.add('active');
+  });
+
+  // Auto-hide and remove
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 500);
+  }, 5000);
 }
 
 // Expose app methods
