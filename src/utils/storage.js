@@ -275,7 +275,7 @@ export const storage = {
                 week: entry.week_number,
                 photo: entry.photo_blob,
                 note: entry.note,
-                date: entry.created_at
+                date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
               }, true); // Skip sync to avoid loop
               hasChanged = true;
             }

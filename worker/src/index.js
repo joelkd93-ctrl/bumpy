@@ -145,6 +145,9 @@ async function handleInit(env) {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
     
+    // Add entry_date column to journal_entries if not exists
+    `ALTER TABLE journal_entries ADD COLUMN entry_date TEXT`,
+
     // Indexes
     `CREATE INDEX IF NOT EXISTS idx_kick_sessions_time ON kick_sessions(start_time DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_predictions_role ON predictions(role)`,
@@ -185,7 +188,7 @@ async function handleSyncGet(env) {
     kicks,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
-    client.execute('SELECT * FROM journal_entries ORDER BY week_number DESC'),
+    client.execute('SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries ORDER BY COALESCE(entry_date, created_at) DESC'),
     client.execute('SELECT * FROM mood_entries ORDER BY date DESC'),
     client.execute('SELECT * FROM weekly_questions'),
     client.execute('SELECT * FROM heartbeat_sessions ORDER BY timestamp DESC LIMIT 10'),
@@ -266,13 +269,14 @@ async function handleSyncPost(env, request) {
     for (const entry of journal) {
       if (!entry || !entry.id) continue;
       await client.execute({
-        sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note)
-              VALUES (?, ?, ?, ?)`,
+        sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
+              VALUES (?, ?, ?, ?, ?)`,
         args: [
           entry.id,
           entry.week || entry.week_number || 0,
           entry.photo || entry.photo_blob || null,
           entry.note || '',
+          entry.date || entry.entry_date || new Date().toISOString().split('T')[0],
         ],
       });
     }
