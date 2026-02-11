@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// 💕 BUMPY SERVICE WORKER v3.1
-// Offline-first PWA with intelligent caching
+// 💕 BUMPY SERVICE WORKER v3.2
+// Offline-first PWA with intelligent caching + Push Notifications
 // ═══════════════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'bumpy-v3.1.0';
+const CACHE_VERSION = 'bumpy-v3.2.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const FONT_CACHE = `${CACHE_VERSION}-fonts`;
@@ -321,5 +321,61 @@ self.addEventListener('notificationclick', (event) => {
       })
   );
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🔔 PUSH NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+self.addEventListener('push', (event) => {
+  console.log('🔔 Push received:', event.data ? event.data.text() : 'no data');
+
+  let data = { title: '💕 Bumpy', body: 'Ny oppdatering', icon: '/icons/icon-192.png' };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    vibrate: data.vibrate || [200, 100, 200],
+    data: data.url || '/',
+    tag: data.tag || 'bumpy-notification',
+    renotify: true,
+    requireInteraction: false
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Background sync for checking updates
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'check-updates') {
+    event.waitUntil(checkForUpdates());
+  }
+});
+
+async function checkForUpdates() {
+  try {
+    const response = await fetch('/api/sync');
+    if (response.ok) {
+      const data = await response.json();
+      // Send message to all clients
+      const clients = await self.clients.matchAll();
+      clients.forEach(client => {
+        client.postMessage({ type: 'updates-available', data });
+      });
+    }
+  } catch (err) {
+    console.warn('Background sync failed:', err);
+  }
+}
 
 console.log('💕 Bumpy Service Worker loaded');
