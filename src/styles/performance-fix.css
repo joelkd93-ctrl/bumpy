@@ -241,3 +241,37 @@ select {
   touch-action: pan-y;
   overscroll-behavior-x: none;
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   🎨 FORCE LIGHT MODE (DISABLE DARK MODE)
+   ───────────────────────────────────────────────────────────────── */
+
+/* Override dark mode - force light pink theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #FFFFFF !important;
+    --text-primary: #141414 !important;
+    --text-secondary: #6B6B6B !important;
+    --text-muted: #A8A8A8 !important;
+    --background: #FDF4F8 !important;
+  }
+
+  body {
+    background: linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 60%, #FDF4F8 100%) !important;
+    background-attachment: fixed !important;
+    color: #141414 !important;
+  }
+
+  .loading-screen {
+    background: linear-gradient(145deg, #FDF4F8 0%, #FFEDF5 50%, #FFF5F9 100%) !important;
+  }
+
+  /* Force all cards and surfaces to be light */
+  .card,
+  .modal-content,
+  .tab-bar,
+  [class*="card-"] {
+    background: #FFFFFF !important;
+    color: #141414 !important;
+  }
+}
