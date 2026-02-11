@@ -50,26 +50,46 @@ export function renderJournal() {
         <div class="journal-week-badge mb-4">
           <span>Uke ${progress.weeksPregnant}</span>
         </div>
-        
-        <!-- Photo Upload -->
+
+        <!-- Date Picker -->
+        <div class="form-field mb-4">
+          <label class="form-label" for="entry-date">Dato</label>
+          <input
+            type="date"
+            id="entry-date"
+            class="input"
+            value="${new Date().toISOString().split('T')[0]}"
+            max="${new Date().toISOString().split('T')[0]}"
+          />
+        </div>
+
+        <!-- Photo Upload Options -->
         <div class="journal-photo-placeholder" id="photo-upload">
           <div class="photo-upload-content">
             <span class="photo-upload-icon">📷</span>
             <p class="photo-upload-text">Legg til magebilde</p>
-            <p class="photo-upload-hint">Trykk for å ta bilde</p>
+            <div class="photo-upload-buttons">
+              <button class="btn btn-soft btn-small" id="camera-btn" type="button">
+                📷 Ta bilde
+              </button>
+              <button class="btn btn-soft btn-small" id="gallery-btn" type="button">
+                🖼️ Velg fra galleri
+              </button>
+            </div>
           </div>
-          <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;"/>
+          <input type="file" id="photo-input-camera" accept="image/*" capture="environment" style="display: none;"/>
+          <input type="file" id="photo-input-gallery" accept="image/*" style="display: none;"/>
         </div>
-        
+
         <div id="photo-preview" class="text-center" style="display: none;">
           <img id="preview-img" class="journal-photo mb-3" alt="Preview"/>
           <button class="btn btn-ghost btn-small" id="remove-photo">Fjern bilde</button>
         </div>
-        
+
         <!-- Note Input -->
-        <textarea 
-          id="journal-note" 
-          class="textarea mt-4" 
+        <textarea
+          id="journal-note"
+          class="textarea mt-4"
           placeholder="Hvordan føler du deg denne uken, ${settings.name}? Noen spesielle øyeblikk å huske?"
           rows="4"
         ></textarea>
@@ -115,25 +135,50 @@ function formatDate(dateStr) {
 
 export function initJournal() {
   const photoUpload = document.getElementById('photo-upload');
-  const photoInput = document.getElementById('photo-input');
+  const cameraBtn = document.getElementById('camera-btn');
+  const galleryBtn = document.getElementById('gallery-btn');
+  const photoInputCamera = document.getElementById('photo-input-camera');
+  const photoInputGallery = document.getElementById('photo-input-gallery');
   const photoPreview = document.getElementById('photo-preview');
   const previewImg = document.getElementById('preview-img');
   const removePhotoBtn = document.getElementById('remove-photo');
   const saveBtn = document.getElementById('save-entry');
   const noteInput = document.getElementById('journal-note');
+  const dateInput = document.getElementById('entry-date');
 
   let currentPhoto = null;
 
-  // Handle photo upload tap
-  photoUpload?.addEventListener('click', () => {
-    photoInput?.click();
+  // Handle camera button
+  cameraBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.haptic) window.haptic.light();
+    photoInputCamera?.click();
   });
 
-  // Handle file selection
-  photoInput?.addEventListener('change', (e) => {
+  // Handle gallery button
+  galleryBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.haptic) window.haptic.light();
+    photoInputGallery?.click();
+  });
+
+  // Handle file selection from camera
+  photoInputCamera?.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Compress image for storage
+      compressImage(file, (result) => {
+        currentPhoto = result;
+        previewImg.src = currentPhoto;
+        photoUpload.style.display = 'none';
+        photoPreview.style.display = 'block';
+      });
+    }
+  });
+
+  // Handle file selection from gallery
+  photoInputGallery?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
       compressImage(file, (result) => {
         currentPhoto = result;
         previewImg.src = currentPhoto;
@@ -148,12 +193,14 @@ export function initJournal() {
     currentPhoto = null;
     photoPreview.style.display = 'none';
     photoUpload.style.display = 'flex';
-    photoInput.value = '';
+    photoInputCamera.value = '';
+    photoInputGallery.value = '';
   });
 
   // Save entry
   saveBtn?.addEventListener('click', () => {
     const note = noteInput?.value?.trim();
+    const selectedDate = dateInput?.value;
 
     if (!currentPhoto && !note) {
       // Subtle shake animation
@@ -163,10 +210,14 @@ export function initJournal() {
     }
 
     const settings = storage.get('settings') || { dueDate: '2026-06-29' };
-    const progress = getPregnancyProgress(settings.dueDate);
+
+    // Calculate week based on selected date
+    const entryDate = selectedDate ? new Date(selectedDate) : new Date();
+    const progress = getPregnancyProgress(settings.dueDate, entryDate);
 
     storage.addToCollection('journal', {
       week: progress.weeksPregnant,
+      date: selectedDate || new Date().toISOString().split('T')[0],
       photo: currentPhoto,
       note: note
     });
@@ -179,9 +230,11 @@ export function initJournal() {
       // Reset form
       currentPhoto = null;
       noteInput.value = '';
+      dateInput.value = new Date().toISOString().split('T')[0];
       photoPreview.style.display = 'none';
       photoUpload.style.display = 'flex';
-      photoInput.value = '';
+      photoInputCamera.value = '';
+      photoInputGallery.value = '';
       saveBtn.textContent = 'Lagre Minne 💕';
       saveBtn.disabled = false;
 

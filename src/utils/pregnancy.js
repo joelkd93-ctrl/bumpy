@@ -76,16 +76,19 @@ const WEEKLY_FACTS = {
 /**
  * Calculate pregnancy progress
  * @param {string} dueDateStr - Due date in YYYY-MM-DD format
+ * @param {Date|string} referenceDate - Optional reference date (defaults to today)
  * @returns {Object}
  */
-export function getPregnancyProgress(dueDateStr = '2026-06-29') {
-  const now = new Date();
+export function getPregnancyProgress(dueDateStr = '2026-06-29', referenceDate = null) {
+  const now = referenceDate ? new Date(referenceDate) : new Date();
 
-  // Dev Mode: Allow overriding "today" for testing daily facts
-  const override = localStorage.getItem('bumpy:dev_date_override');
-  if (override) {
-    now.setTime(new Date(override).getTime());
-    console.log('🛠️ Dev Mode: Overriding current date to', now.toDateString());
+  // Dev Mode: Allow overriding "today" for testing daily facts (only if no referenceDate provided)
+  if (!referenceDate) {
+    const override = localStorage.getItem('bumpy:dev_date_override');
+    if (override) {
+      now.setTime(new Date(override).getTime());
+      console.log('🛠️ Dev Mode: Overriding current date to', now.toDateString());
+    }
   }
 
   // Reset time to midnight to ensure day calculation doesn't depend on current time
