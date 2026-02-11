@@ -212,34 +212,26 @@ async function navigate(tabId) {
     item.classList.toggle('active', item.dataset.tab === tabId);
   });
 
-  // If there's a current page, animate it out
+  // INSTANT page switch - no animations, no delays
   if (currentPage && previousTab !== tabId) {
     isNavigating = true;
-
-    // Add premium exit animation
-    currentPage.classList.add('page-exit');
-
-    // Wait for exit animation, then show new page
-    setTimeout(async () => {
-      await showNewPage(content, tab, direction);
-      isNavigating = false;
-    }, 200); // Faster, more app-like
+    await showNewPage(content, tab, direction);
+    isNavigating = false;
   } else {
-    // First load or same page - no transition
+    // First load or same page
     await showNewPage(content, tab, 'none');
   }
 
-  // Scroll to top smoothly
-  content.scrollTo({ top: 0, behavior: 'smooth' });
+  // Scroll to top instantly
+  content.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 async function showNewPage(content, tab, direction) {
-  // Pull updates from cloud before rendering
-  await storage.pullFromCloud();
-
-  // Create new page with premium entrance animation
-  // The 'page' class automatically triggers the smooth fade + slide animation
+  // INSTANT page render - don't wait for cloud sync
   content.innerHTML = `<div class="page active">${tab.render()}</div>`;
+
+  // Sync in background (non-blocking)
+  storage.pullFromCloud().catch(err => console.warn('Background sync failed:', err));
 
   // Apply stagger animations to list items - DISABLED FOR PERFORMANCE
   // requestAnimationFrame(() => {
