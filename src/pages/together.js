@@ -239,6 +239,12 @@ export function initTogether() {
   const modal = document.getElementById('game-modal');
   const closeBtn = document.getElementById('close-modal');
 
+  // Portal mount: keep game modal outside scroll container to avoid fixed-position anchoring bugs
+  const modalRoot = document.getElementById('modal-root');
+  if (modal && modalRoot && modal.parentElement !== modalRoot) {
+    modalRoot.appendChild(modal);
+  }
+
   // Check identity
   const currentIdentity = localStorage.getItem('who_am_i');
 

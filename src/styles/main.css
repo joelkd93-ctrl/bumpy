@@ -430,6 +430,20 @@ input, textarea, select {
   overflow: hidden;
 }
 
+#modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  pointer-events: none;
+}
+
+#modal-root > * {
+  pointer-events: auto;
+}
+
 .app-content {
   flex: 1;
   min-height: 0;
