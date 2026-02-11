@@ -228,27 +228,10 @@ export function initJournal() {
     saveBtn.disabled = true;
 
     try {
-      // HACK: Backend only accepts DATE (not DATETIME) and has UNIQUE(week, date)
-      // Solution: Auto-increment date for multiple entries in same week
-      const baseDate = selectedDate || new Date().toISOString().split('T')[0];
-      const existingEntries = storage.getCollection('journal');
-      const sameWeekEntries = existingEntries.filter(e => e.week === progress.weeksPregnant);
-
-      // Find next available date for this week
-      let entryDate = baseDate;
-      let dateObj = new Date(baseDate);
-
-      while (sameWeekEntries.some(e => e.date?.startsWith(entryDate))) {
-        // Date already used for this week, increment by 1 day
-        dateObj.setDate(dateObj.getDate() + 1);
-        entryDate = dateObj.toISOString().split('T')[0];
-      }
-
-      console.log(`📅 Week ${progress.weeksPregnant}, Entry ${sameWeekEntries.length + 1}, Date: ${entryDate}`);
-
+      // Save journal entry - backend now works properly!
       await storage.addToCollection('journal', {
         week: progress.weeksPregnant,
-        date: entryDate, // Simple DATE format, auto-incremented if needed
+        date: selectedDate || new Date().toISOString().split('T')[0],
         photo: currentPhoto,
         note: note
       });
