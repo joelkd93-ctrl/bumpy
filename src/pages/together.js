@@ -315,6 +315,10 @@ export function initTogether() {
     modal.style.display = 'none';
     document.body.style.overflow = 'auto'; // Unlock scroll
 
+    // Show nav bar again
+    const navBar = document.getElementById('nav-bar');
+    if (navBar) navBar.style.display = 'flex';
+
     // Execute all cleanup functions
     modalCleanupStack.forEach(fn => {
       try { fn(); } catch (e) { console.warn('Modal cleanup error:', e); }
@@ -328,6 +332,11 @@ export function initTogether() {
   function openGame(gameId) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Lock scroll
+
+    // Hide nav bar when modal is open
+    const navBar = document.getElementById('nav-bar');
+    if (navBar) navBar.style.display = 'none';
+
     const content = document.getElementById('game-content');
 
     // Add generic close-on-click for buttons that should explicitly exit
