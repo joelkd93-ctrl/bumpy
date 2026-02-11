@@ -278,6 +278,22 @@ function registerSW() {
             }
           });
         });
+
+        // Register periodic background sync for checking updates even when app is closed
+        // NOTE: This works on Chrome/Edge but NOT on Safari/iOS
+        // Safari will rely on the setInterval polling when app is open
+        if ('periodicSync' in reg) {
+          try {
+            await reg.periodicSync.register('bumpy-sync', {
+              minInterval: 15 * 1000 // 15 seconds (browser may enforce longer intervals)
+            });
+            console.log('✅ Periodic background sync registered (Chrome/Edge)');
+          } catch (err) {
+            console.warn('⚠️ Periodic background sync not available:', err);
+          }
+        } else {
+          console.log('ℹ️ Periodic background sync not supported (likely Safari/iOS)');
+        }
       } catch (err) {
         console.warn('Offline mode not available:', err);
       }
@@ -610,6 +626,23 @@ setInterval(async () => {
     window.app.refreshCurrentPage();
   }
 }, 15000);
+
+// Listen for messages from service worker (periodic sync updates)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', async (event) => {
+    console.log('📬 Message from service worker:', event.data);
+
+    if (event.data.type === 'sync-update') {
+      console.log('🔄 Service worker detected updates, pulling from cloud');
+      const hasUpdates = await storage.pullFromCloud();
+
+      // Refresh UI if app is visible and has updates
+      if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage) {
+        window.app.refreshCurrentPage();
+      }
+    }
+  });
+}
 
 // Start app
 if (document.readyState === 'loading') {

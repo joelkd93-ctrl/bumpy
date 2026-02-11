@@ -3,7 +3,7 @@
 // Offline-first PWA with intelligent caching + Push Notifications
 // ═══════════════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'bumpy-v3.2.0';
+const CACHE_VERSION = 'bumpy-v3.3.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const FONT_CACHE = `${CACHE_VERSION}-fonts`;
@@ -362,6 +362,14 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Periodic background sync - runs even when app is closed
+self.addEventListener('periodicsync', (event) => {
+  console.log('🔄 Periodic sync triggered:', event.tag);
+  if (event.tag === 'bumpy-sync') {
+    event.waitUntil(checkForUpdatesAndNotify());
+  }
+});
+
 async function checkForUpdates() {
   try {
     const response = await fetch('/api/sync');
@@ -375,6 +383,124 @@ async function checkForUpdates() {
     }
   } catch (err) {
     console.warn('Background sync failed:', err);
+  }
+}
+
+// Check for updates and send notifications (used by periodic sync)
+async function checkForUpdatesAndNotify() {
+  console.log('🔄 Checking for updates in background...');
+
+  try {
+    const API_URL = 'https://bumpyapi.joelkd93.workers.dev/api';
+
+    // Check for data changes
+    const response = await fetch(`${API_URL}/sync?t=${Date.now()}`);
+    if (!response.ok) {
+      console.warn('Background sync failed:', response.status);
+      return;
+    }
+
+    const result = await response.json();
+    if (!result.success || !result.data) {
+      return;
+    }
+
+    // Notify clients about new data
+    const clients = await self.clients.matchAll({ includeUncontrolled: true });
+    if (clients.length > 0) {
+      console.log(`📢 Notifying ${clients.length} clients about updates`);
+      clients.forEach(client => {
+        client.postMessage({ type: 'sync-update', data: result.data });
+      });
+    } else {
+      // No clients open - show notifications directly from service worker
+      console.log('📱 No clients open, checking for notifications to show');
+
+      // Check for new journal entries, hearts, kicks etc and show notifications
+      // We'll do this by checking the lastSync timestamp stored in IndexedDB or cache
+      await checkAndShowNotifications(result.data);
+    }
+  } catch (err) {
+    console.error('🔄 Background sync error:', err);
+  }
+}
+
+// Helper to check if we should show notifications
+async function checkAndShowNotifications(data) {
+  try {
+    // Get last known state from cache
+    const cache = await caches.open('bumpy-state');
+    const lastStateResponse = await cache.match('last-state');
+    let lastState = null;
+
+    if (lastStateResponse) {
+      lastState = await lastStateResponse.json();
+    }
+
+    // Check for new journal entries
+    if (data.journal && (!lastState || data.journal.length > (lastState.journalCount || 0))) {
+      await self.registration.showNotification('💕 Ny dagbokpost', {
+        body: 'Din partner har lagt til et nytt magebilde!',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: 'bumpy-journal-' + Date.now(),
+        renotify: true
+      });
+      console.log('🔔 Showed journal notification');
+    }
+
+    // Check for heartbeats
+    const heartbeatResponse = await fetch('https://bumpyapi.joelkd93.workers.dev/api/heartbeat');
+    if (heartbeatResponse.ok) {
+      const heartbeatData = await heartbeatResponse.json();
+
+      // If there's a recent heartbeat and it's newer than our last check
+      if (heartbeatData.partnerLastTap) {
+        const tapTime = new Date(heartbeatData.partnerLastTap).getTime();
+        const lastCheckTime = lastState?.lastHeartbeatCheck || 0;
+
+        if (tapTime > lastCheckTime) {
+          await self.registration.showNotification('❤️ Hjerte mottatt!', {
+            body: 'Din partner sendte deg et hjerte 💕',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            vibrate: [100, 50, 100, 50, 100],
+            tag: 'bumpy-heart-' + Date.now(),
+            renotify: true
+          });
+          console.log('🔔 Showed heart notification');
+        }
+      }
+
+      // Check for kicks
+      if (heartbeatData.andrineLastKick) {
+        const kickTime = new Date(heartbeatData.andrineLastKick).getTime();
+        const lastKickCheck = lastState?.lastKickCheck || 0;
+
+        if (kickTime > lastKickCheck) {
+          await self.registration.showNotification('🦶 Baby sparker!', {
+            body: 'Din partner registrerte babyspark',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            vibrate: [200, 100, 200],
+            tag: 'bumpy-kick-' + Date.now(),
+            renotify: true
+          });
+          console.log('🔔 Showed kick notification');
+        }
+      }
+
+      // Update last state
+      await cache.put('last-state', new Response(JSON.stringify({
+        journalCount: data.journal?.length || 0,
+        lastHeartbeatCheck: Date.now(),
+        lastKickCheck: Date.now(),
+        timestamp: Date.now()
+      })));
+    }
+  } catch (err) {
+    console.error('Error checking notifications:', err);
   }
 }
 
