@@ -63,6 +63,10 @@ export function renderSettings() {
       <!-- Data Section -->
       <p class="text-tiny mb-2">DATA</p>
       <div class="settings-list mb-6">
+        <div class="settings-item" id="force-sync">
+          <span class="settings-label">Tving Synkronisering</span>
+          <span class="settings-icon">🔄</span>
+        </div>
         <div class="settings-item" id="export-data">
           <span class="settings-label">Eksporter Sikkerhetskopi</span>
           <span class="settings-icon">📤</span>
@@ -106,6 +110,7 @@ export function initSettings() {
   const partnerInput = document.getElementById('setting-partner');
   const dueDateInput = document.getElementById('setting-due-date');
   const saveBtn = document.getElementById('save-settings');
+  const forceSyncBtn = document.getElementById('force-sync');
   const exportBtn = document.getElementById('export-data');
   const clearBtn = document.getElementById('clear-data');
 
@@ -131,6 +136,51 @@ export function initSettings() {
       // Navigate to home to see changes
       window.app?.navigate('home');
     }, 1500);
+  });
+
+  // Force sync
+  forceSyncBtn?.addEventListener('click', async () => {
+    const label = forceSyncBtn.querySelector('.settings-label');
+    const icon = forceSyncBtn.querySelector('.settings-icon');
+    const originalText = label.textContent;
+    const originalIcon = icon.textContent;
+
+    try {
+      label.textContent = 'Synkroniserer...';
+      icon.textContent = '⏳';
+
+      console.log('🔄 Manual sync triggered');
+
+      // Push local data to cloud
+      await storage.syncWithCloud();
+
+      // Pull cloud data to local
+      await storage.pullFromCloud();
+
+      label.textContent = 'Synkronisert! ✓';
+      icon.textContent = '✅';
+
+      console.log('✅ Manual sync complete');
+
+      setTimeout(() => {
+        label.textContent = originalText;
+        icon.textContent = originalIcon;
+
+        // Refresh page to show synced data
+        if (window.app?.refreshCurrentPage) {
+          window.app.refreshCurrentPage();
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('❌ Manual sync failed:', err);
+      label.textContent = 'Sync feilet';
+      icon.textContent = '❌';
+
+      setTimeout(() => {
+        label.textContent = originalText;
+        icon.textContent = originalIcon;
+      }, 3000);
+    }
   });
 
   // Export data
