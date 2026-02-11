@@ -206,7 +206,7 @@ export function initJournal() {
   });
 
   // Save entry
-  saveBtn?.addEventListener('click', () => {
+  saveBtn?.addEventListener('click', async () => {
     const note = noteInput?.value?.trim();
     const selectedDate = dateInput?.value;
 
@@ -223,34 +223,47 @@ export function initJournal() {
     const entryDate = selectedDate ? new Date(selectedDate) : new Date();
     const progress = getPregnancyProgress(settings.dueDate, entryDate);
 
-    storage.addToCollection('journal', {
-      week: progress.weeksPregnant,
-      date: selectedDate || new Date().toISOString().split('T')[0],
-      photo: currentPhoto,
-      note: note
-    });
-
-    // Success feedback
-    saveBtn.textContent = 'Lagret! 💕';
+    // Show saving feedback
+    saveBtn.textContent = 'Lagrer... ☁️';
     saveBtn.disabled = true;
 
-    setTimeout(() => {
-      // Reset form
-      currentPhoto = null;
-      noteInput.value = '';
-      dateInput.value = new Date().toISOString().split('T')[0];
-      photoPreview.style.display = 'none';
-      photoUpload.style.display = 'flex';
-      photoInputCamera.value = '';
-      photoInputGallery.value = '';
-      saveBtn.textContent = 'Lagre Minne 💕';
-      saveBtn.disabled = false;
+    try {
+      // Wait for save AND cloud sync to complete
+      await storage.addToCollection('journal', {
+        week: progress.weeksPregnant,
+        date: selectedDate || new Date().toISOString().split('T')[0],
+        photo: currentPhoto,
+        note: note
+      });
 
-      // Refresh entries
-      if (window.app?.refreshCurrentPage) {
-        window.app.refreshCurrentPage();
-      }
-    }, 1500);
+      // Success feedback
+      saveBtn.textContent = 'Lagret! 💕';
+
+      setTimeout(() => {
+        // Reset form
+        currentPhoto = null;
+        noteInput.value = '';
+        dateInput.value = new Date().toISOString().split('T')[0];
+        photoPreview.style.display = 'none';
+        photoUpload.style.display = 'flex';
+        photoInputCamera.value = '';
+        photoInputGallery.value = '';
+        saveBtn.textContent = 'Lagre Minne 💕';
+        saveBtn.disabled = false;
+
+        // Refresh entries - now safe because cloud sync completed
+        if (window.app?.refreshCurrentPage) {
+          window.app.refreshCurrentPage();
+        }
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to save journal entry:', err);
+      saveBtn.textContent = 'Feil! Prøv igjen';
+      setTimeout(() => {
+        saveBtn.textContent = 'Lagre Minne 💕';
+        saveBtn.disabled = false;
+      }, 2000);
+    }
   });
 
   // ── Emoji Picker ──

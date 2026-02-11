@@ -4,6 +4,9 @@
 
 const PREFIX = 'bumpy:';
 
+// Track last sync to prevent race conditions
+let lastPushSyncTime = 0;
+
 // Use a function to get API_URL at runtime (not at import time)
 function getApiUrl() {
   return (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev') + '/api';
@@ -69,13 +72,19 @@ export const storage = {
   },
 
   // Add item to collection
-  addToCollection(prefix, data) {
+  async addToCollection(prefix, data) {
     // Use timestamp + random number to ensure uniqueness
     const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const entryData = { ...data, date: data.date || new Date().toISOString() };
     this.set(`${prefix}:${id}`, entryData);
     console.log(`💾 Saved to ${prefix}:${id}`, entryData);
     console.log(`📊 Total ${prefix} entries in storage:`, this.getCollection(prefix).length);
+
+    // Wait for cloud sync to complete before returning
+    console.log('⏳ Waiting for cloud sync to complete...');
+    await this.syncWithCloud();
+    console.log('✅ Cloud sync complete, safe to proceed');
+
     return id;
   },
 
@@ -185,6 +194,7 @@ export const storage = {
 
       if (result.success) {
         console.log('✅ Cloud synchronization complete');
+        lastPushSyncTime = Date.now(); // Track when we pushed to prevent immediate pull
         this.updateSyncIndicator('success', 'Synced');
         setTimeout(() => this.updateSyncIndicator('hide'), 2000);
         return true;
@@ -230,6 +240,14 @@ export const storage = {
 
   async pullFromCloud() {
     console.log('🔽 Starting pullFromCloud...');
+
+    // Prevent pulling immediately after pushing to avoid race condition
+    const timeSinceLastPush = Date.now() - lastPushSyncTime;
+    if (timeSinceLastPush < 3000) {
+      console.log(`⏭️ Skipping pull - just pushed ${timeSinceLastPush}ms ago`);
+      return false;
+    }
+
     try {
       const apiUrl = getApiUrl();
       console.log(`🔽 Pulling from: ${apiUrl}/sync`);
