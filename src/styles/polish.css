@@ -77,9 +77,10 @@
   position: relative;
   isolation: isolate;
   transition:
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-normal) var(--ease-spring),
+    box-shadow var(--duration-normal) var(--ease-out),
     background var(--duration-fast);
+  will-change: transform;
 }
 
 .btn::before {
@@ -87,10 +88,15 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 60%);
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--duration-fast);
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn:hover::before {
@@ -98,7 +104,8 @@
 }
 
 .btn:active {
-  transform: var(--press-scale);
+  transform: scale(0.96) translateY(0);
+  transition-duration: 0.1s;
 }
 
 .btn:focus-visible {
@@ -123,19 +130,37 @@
    ───────────────────────────────────────────────────────────────────────────── */
 
 .card {
+  position: relative;
   transition:
-    transform var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-spring),
     box-shadow var(--duration-normal) var(--ease-out);
+  will-change: transform;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal);
 }
 
 .card:hover {
-  transform: var(--hover-lift);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-lg);
+}
+
+.card:hover::after {
+  opacity: 1;
 }
 
 .card:active {
-  transform: var(--press-scale);
-  box-shadow: var(--shadow-xs);
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+  transition-duration: 0.1s;
 }
 
 .card-love {
@@ -288,27 +313,57 @@
    ───────────────────────────────────────────────────────────────────────────── */
 
 .game-card {
+  position: relative;
   transition:
     transform var(--duration-normal) var(--ease-spring),
-    box-shadow var(--duration-normal);
+    box-shadow var(--duration-normal) var(--ease-out);
+  will-change: transform;
+  overflow: visible;
+}
+
+.game-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 77, 166, 0.05), rgba(255, 77, 166, 0));
+  opacity: 0;
+  transition: opacity var(--duration-normal);
 }
 
 .game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    var(--shadow-lg),
+    0 8px 32px rgba(255, 77, 166, 0.15);
+}
+
+.game-card:hover::before {
+  opacity: 1;
 }
 
 .game-card:active {
-  transform: scale(0.97);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px) scale(0.99);
+  box-shadow: var(--shadow-md);
+  transition-duration: 0.1s;
 }
 
 .game-icon {
-  transition: transform var(--duration-slow) var(--ease-spring);
+  transition:
+    transform var(--duration-slow) var(--ease-spring),
+    filter var(--duration-normal);
+  display: inline-block;
 }
 
 .game-card:hover .game-icon {
-  transform: scale(1.1) rotate(-5deg);
+  transform: scale(1.15) rotate(-8deg);
+  filter: drop-shadow(0 4px 8px rgba(255, 77, 166, 0.2));
+  animation: iconBounce 0.6s var(--ease-spring);
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: scale(1.15) rotate(-8deg) translateY(0); }
+  50% { transform: scale(1.15) rotate(-8deg) translateY(-4px); }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
