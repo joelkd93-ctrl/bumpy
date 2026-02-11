@@ -400,6 +400,17 @@ body {
   color: var(--gray-800);
 }
 
+/* Remove webpage artifacts - native app feel */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Re-enable for inputs */
+input, textarea, select {
+  -webkit-touch-callout: default;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    📱 APP SHELL
    ═══════════════════════════════════════════════════════════════ */
@@ -815,17 +826,16 @@ li + li {
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast),
-    background var(--duration-normal);
+  /* Native app-like tap physics */
+  transition: transform 0.08s ease, opacity 0.15s ease, background 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .btn:active {
-  transform: scale(0.96);
-  opacity: 0.9;
+  transform: scale(0.97);
+  opacity: 0.92;
+  transition: transform 0.05s ease, opacity 0.05s ease;
 }
 
 .btn-primary {
@@ -1608,11 +1618,13 @@ body.modal-open #content {
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   padding: var(--space-8);
   padding-top: max(var(--space-12), env(safe-area-inset-top, 0px));
-  padding-bottom: calc(var(--tab-bar-height) + max(var(--space-16), env(safe-area-inset-bottom, 0px)));
+  /* Reduced padding-bottom to prevent white space - modal covers tab bar */
+  padding-bottom: max(var(--space-8), env(safe-area-inset-bottom, 16px));
   width: 100%;
   max-width: var(--content-max-width);
-  max-height: 85vh;
-  max-height: 85dvh;
+  /* Safer max-height to prevent iOS viewport issues */
+  max-height: 80vh;
+  max-height: max(80dvh, 500px);
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
@@ -1647,24 +1659,32 @@ body.modal-open #content {
 }
 
 .game-modal-close {
-  position: sticky;
-  top: max(var(--space-2), env(safe-area-inset-top, 0px));
-  float: right;
-  margin-bottom: var(--space-4);
-  width: 32px;
-  height: 32px;
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 8px));
+  right: 16px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  background: var(--gray-50);
-  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
   color: var(--text-primary);
   border-radius: var(--radius-full);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  z-index: 10;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.game-modal-close:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.game-modal-close:active {
+  transform: scale(0.95);
 }
 
 /* ═══════════════════════════════════════════════════════════════

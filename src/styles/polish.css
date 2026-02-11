@@ -47,7 +47,8 @@
   }
 
   .game-modal-content {
-    padding-bottom: calc(var(--tab-bar-height) + max(var(--space-4), env(safe-area-inset-bottom)));
+    /* Reduced padding - modal covers tab bar, no need for extra space */
+    padding-bottom: max(var(--space-8), env(safe-area-inset-bottom, 16px));
   }
 }
 
@@ -92,11 +93,11 @@
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid rgba(255, 192, 203, 0.3);
-  min-height: 100vh;
-  min-height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
+  /* Limit height to prevent overflow - leave safe space at top/bottom */
+  max-height: 80vh;
+  max-height: max(80dvh, 500px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
 }

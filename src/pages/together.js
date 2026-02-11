@@ -214,14 +214,11 @@ export function renderTogether() {
         </div>
       </div>
       
-      <!-- Game Modal (Native App System) -->
-      <div id="game-modal" class="modal-backdrop" style="display: none;">
-        <div class="modal-container">
-          <div class="modal-card game-modal-content">
-            <div class="modal-handle"></div>
-            <button class="modal-close-btn" id="close-modal">✕</button>
-            <div id="game-content"></div>
-          </div>
+      <!-- Game Modal -->
+      <div id="game-modal" class="game-modal" style="display: none;">
+        <div class="game-modal-content">
+          <button class="game-modal-close" id="close-modal">✕</button>
+          <div id="game-content"></div>
         </div>
       </div>
     </div>
@@ -315,11 +312,21 @@ export function initTogether() {
   let modalCleanupStack = [];
 
   function closeModal() {
-    // Use native modal system to close
-    if (window.modal) {
-      window.modal.close(modal);
-    } else {
-      modal.style.display = 'none';
+    // Hide modal
+    modal.style.display = 'none';
+
+    // Unlock scroll on main content
+    const body = document.body;
+    const html = document.documentElement;
+    const mainContent = document.getElementById('content');
+
+    body.classList.remove('modal-active');
+    html.classList.remove('modal-active');
+
+    if (mainContent) {
+      mainContent.style.overflow = '';
+      mainContent.style.overflowY = 'scroll';
+      mainContent.style.touchAction = '';
     }
 
     // Show nav bar again
@@ -343,11 +350,26 @@ export function initTogether() {
 
     const content = document.getElementById('game-content');
 
-    // Use native modal system to open
-    if (window.modal) {
-      window.modal.open(modal);
-    } else {
-      modal.style.display = 'flex';
+    // Lock scroll on background
+    const body = document.body;
+    const html = document.documentElement;
+    const mainContent = document.getElementById('content');
+
+    body.classList.add('modal-active');
+    html.classList.add('modal-active');
+
+    if (mainContent) {
+      mainContent.style.overflow = 'hidden';
+      mainContent.style.touchAction = 'none';
+    }
+
+    // Show modal
+    modal.style.display = 'flex';
+
+    // Force scroll to top of modal content
+    const modalContent = modal.querySelector('.game-modal-content');
+    if (modalContent) {
+      modalContent.scrollTop = 0;
     }
 
     // Add generic close-on-click for buttons that should explicitly exit
