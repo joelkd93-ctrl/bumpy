@@ -155,10 +155,27 @@ export const storage = {
 
       const predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
 
+      // Transform journal entries to backend format
+      const journalForBackend = journal.map(entry => ({
+        id: entry.id,
+        week_number: entry.week,
+        photo_blob: entry.photo,
+        note: entry.note,
+        entry_date: entry.date
+      }));
+
+      // Transform mood entries to backend format
+      const moodsForBackend = moods.map(entry => ({
+        id: entry.id,
+        mood_emoji: entry.mood,
+        note: entry.note,
+        date: entry.date
+      }));
+
       const payload = {
         settings,
-        journal,
-        moods,
+        journal: journalForBackend,
+        moods: moodsForBackend,
         together,
         nameVotes,
         predictions
