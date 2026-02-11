@@ -1588,15 +1588,17 @@ li + li {
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   /* Sheet radius */
   padding: var(--space-8);
-  padding-top: var(--space-10);
-  padding-bottom: calc(var(--tab-bar-height) + var(--space-16));
+  padding-top: max(var(--space-12), env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--tab-bar-height) + max(var(--space-16), env(safe-area-inset-bottom, 0px)));
   width: 100%;
   max-width: var(--content-max-width);
-  max-height: 92vh;
+  max-height: 85vh;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
   animation: sheetSlideUp 0.5s var(--ease-out);
+  -webkit-overflow-scrolling: touch;
 }
 
 /* iOS Modal Handler */
@@ -1623,9 +1625,10 @@ li + li {
 }
 
 .game-modal-close {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
+  position: sticky;
+  top: max(var(--space-2), env(safe-area-inset-top, 0px));
+  float: right;
+  margin-bottom: var(--space-4);
   width: 32px;
   height: 32px;
   display: flex;
@@ -1633,6 +1636,7 @@ li + li {
   justify-content: center;
   border: none;
   background: var(--gray-50);
+  z-index: 10;
   color: var(--text-primary);
   border-radius: var(--radius-full);
   font-size: 14px;
