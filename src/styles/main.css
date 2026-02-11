@@ -440,6 +440,55 @@ body {
   }
 }
 
+/* Directional Page Transitions */
+@keyframes pageInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+@keyframes pageOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    🧭 NAV BAR — iOS-style Elegance
    ═══════════════════════════════════════════════════════════════ */
@@ -488,12 +537,16 @@ body {
   background: var(--pink-50);
   border-radius: var(--radius-sm);
   opacity: 0;
-  transition: opacity var(--duration-normal) var(--ease-out);
+  transform: scale(0.85);
+  transition:
+    opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-spring);
   z-index: -1;
 }
 
 .nav-item.active::before {
   opacity: 1;
+  transform: scale(1);
 }
 
 .nav-item:active {

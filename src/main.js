@@ -85,31 +85,66 @@ function initApp() {
 // 🧭 NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 
+let isNavigating = false;
+
 function navigate(tabId) {
   const tab = TABS.find(t => t.id === tabId);
-  if (!tab) return;
+  if (!tab || isNavigating) return;
 
+  const previousTab = currentTab;
+  const content = document.getElementById('content');
+  const currentPage = content.querySelector('.page');
+
+  // Determine transition direction
+  const previousIndex = TABS.findIndex(t => t.id === previousTab);
+  const newIndex = TABS.findIndex(t => t.id === tabId);
+  const direction = newIndex > previousIndex ? 'forward' : 'backward';
+
+  // Update current tab
   currentTab = tabId;
 
-  // Update nav bar active state
+  // Update nav bar active state with smooth transition
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.toggle('active', item.dataset.tab === tabId);
   });
 
-  // Add page wrapper with active class
-  const content = document.getElementById('content');
-  content.innerHTML = `<div class="page active fade-in">${tab.render()}</div>`;
+  // If there's a current page, animate it out
+  if (currentPage && previousTab !== tabId) {
+    isNavigating = true;
 
-  // Run page init if exists
-  if (tab.init) {
-    // Small delay to ensure DOM is ready
-    requestAnimationFrame(() => {
-      tab.init();
-    });
+    // Add exit animation
+    currentPage.style.animation = direction === 'forward'
+      ? 'pageOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+      : 'pageOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+
+    // Wait for exit animation, then show new page
+    setTimeout(() => {
+      showNewPage(content, tab, direction);
+      isNavigating = false;
+    }, 300);
+  } else {
+    // First load or same page - no transition
+    showNewPage(content, tab, 'none');
   }
 
   // Scroll to top smoothly
   content.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showNewPage(content, tab, direction) {
+  // Create new page with appropriate entrance animation
+  const animationClass = direction === 'forward' ? 'pageInRight' :
+                         direction === 'backward' ? 'pageInLeft' :
+                         'pageIn';
+
+  content.innerHTML = `<div class="page active" style="animation: ${animationClass} 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards">${tab.render()}</div>`;
+
+  // Run page init if exists
+  if (tab.init) {
+    requestAnimationFrame(() => {
+      tab.init();
+    });
+  }
 }
 
 // Refresh current page (for use after data changes)
