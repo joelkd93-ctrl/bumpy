@@ -187,7 +187,7 @@ function initApp() {
 
 let isNavigating = false;
 
-function navigate(tabId) {
+async function navigate(tabId) {
   const tab = TABS.find(t => t.id === tabId);
   if (!tab || isNavigating) return;
 
@@ -218,13 +218,13 @@ function navigate(tabId) {
       : 'pageOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
 
     // Wait for exit animation, then show new page
-    setTimeout(() => {
-      showNewPage(content, tab, direction);
+    setTimeout(async () => {
+      await showNewPage(content, tab, direction);
       isNavigating = false;
     }, 300);
   } else {
     // First load or same page - no transition
-    showNewPage(content, tab, 'none');
+    await showNewPage(content, tab, 'none');
   }
 
   // Scroll to top smoothly
