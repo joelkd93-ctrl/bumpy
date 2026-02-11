@@ -1,0 +1,24 @@
+{
+  "name": "bumpy-pwa",
+  "version": "3.0.0",
+  "description": "A loving pregnancy companion PWA for Andrine & Yoel 💕",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js"
+  },
+  "keywords": [
+    "pregnancy",
+    "pwa",
+    "tracker",
+    "baby",
+    "health"
+  ],
+  "author": "Yoel & Andrine",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

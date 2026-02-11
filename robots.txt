@@ -1,0 +1,6 @@
+# Bumpy - Private pregnancy companion app
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://bumpy.app/sitemap.xml

@@ -1,0 +1,29 @@
+# Bumpy PWA Headers Configuration
+
+# All pages
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Service Worker - no cache
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Manifest - short cache
+/manifest.json
+  Cache-Control: public, max-age=3600
+
+# Static assets - long cache
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Icons - long cache
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fonts - long cache
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *

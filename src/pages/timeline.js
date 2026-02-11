@@ -1,0 +1,108 @@
+/**
+ * Timeline Page - Our Journey Timeline 💖
+ * A combined view of all pregnancy moments
+ */
+import { storage } from '../utils/storage.js';
+
+export function renderTimeline() {
+  const journal = storage.getCollection('journal');
+  const moods = storage.getCollection('mood_entries');
+  const kicks = storage.getCollection('kicks');
+
+  // Combine all events
+  const events = [
+    ...journal.map(e => ({ ...e, type: 'journal', sortDate: new Date(e.date) })),
+    ...moods.map(e => ({ ...e, type: 'mood', sortDate: new Date(e.timestamp || e.date) })),
+    ...kicks.map(e => ({ ...e, type: 'kick', sortDate: new Date(e.startTime) }))
+  ].sort((a, b) => b.sortDate - a.sortDate);
+
+  const timelineHTML = events.length > 0
+    ? events.map(event => renderEvent(event)).join('')
+    : `
+        <div class="empty-state">
+          <div class="empty-state-icon">✨</div>
+          <p class="heading-section mb-2">Historien deres begynner...</p>
+          <p class="text-muted">Øyeblikk du lagrer vil vises her i en vakker tidslinje.</p>
+        </div>
+      `;
+
+  return `
+    <div class="page-timeline">
+      <div class="mb-6">
+        <h1 class="heading-love mb-2">Vår Reise 💖</h1>
+        <p class="text-warm">Hvert lille øyeblikk, trygt bevart</p>
+      </div>
+
+      <div class="timeline-container">
+        ${timelineHTML}
+      </div>
+
+    </div>
+  `;
+}
+
+function renderEvent(event) {
+  const dateStr = new Date(event.sortDate).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+  });
+
+  let content = '';
+  let badgeClass = `badge-${event.type}`;
+  let typeLabel = event.type;
+
+  if (event.type === 'journal') {
+    if (event.isSpecial) {
+      content = `
+        <div class="text-center py-2">
+          <div class="timeline-special-icon">👶💙</div>
+          <h3 class="timeline-special-heading">Det er en Gutt!</h3>
+          <p class="timeline-special-note">${event.note}</p>
+        </div>
+      `;
+      badgeClass = 'badge-boy';
+      typeLabel = 'Milepæl';
+    } else {
+      content = `
+        ${event.photo ? `<img src="${event.photo}" class="timeline-img" />` : ''}
+        <p class="font-bold">Uke ${event.week} Magebilde! 📸</p>
+        ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
+      `;
+    }
+  } else if (event.type === 'mood') {
+    content = `
+      <div class="flex items-center gap-4">
+        <span class="timeline-mood-icon">${event.mood}</span>
+        <div>
+          <p class="font-bold">Føler seg ${event.mood}</p>
+          ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
+        </div>
+      </div>
+    `;
+  } else if (event.type === 'kick') {
+    content = `
+      <div class="flex items-center gap-4">
+        <span class="timeline-kick-icon">🦶</span>
+        <div>
+          <p class="font-bold">${event.count} Spark Talt</p>
+          <p class="text-warm">Varte i ${event.duration} minutter</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="timeline-item type-${event.type}">
+      <div class="card timeline-card">
+        <div class="flex-between">
+          <span class="timeline-date">${dateStr}</span>
+          <span class="timeline-type-badge ${badgeClass}">${typeLabel}</span>
+        </div>
+        ${content}
+      </div>
+    </div>
+  `;
+}
+
+export function initTimeline() {
+  // Purely visual, but could add "delete" or "edit" logic here
+}

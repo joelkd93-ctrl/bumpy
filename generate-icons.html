@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bumpy Icon Generator</title>
+  <style>
+    body { font-family: system-ui; padding: 20px; background: #f5f5f5; }
+    .icons { display: flex; flex-wrap: wrap; gap: 20px; }
+    .icon-card { background: white; padding: 15px; border-radius: 12px; text-align: center; }
+    .icon-card img { display: block; margin: 0 auto 10px; }
+    .icon-card a { display: block; color: #FF4DA6; font-weight: 500; }
+    h1 { color: #FF4DA6; }
+  </style>
+</head>
+<body>
+  <h1>🩷 Bumpy PWA Icon Generator</h1>
+  <p>Click each link to download the icon. Save them to your <code>/icons/</code> folder.</p>
+  <div class="icons" id="icons"></div>
+
+  <script>
+    const sizes = [48, 72, 96, 128, 144, 152, 192, 256, 384, 512];
+    const maskableSizes = [192, 512];
+
+    function createIcon(size, maskable = false) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Background gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, size, size);
+      bgGrad.addColorStop(0, '#FFE4EF');
+      bgGrad.addColorStop(0.5, '#FFD0E3');
+      bgGrad.addColorStop(1, '#FFBCD7');
+
+      // Heart gradient
+      const heartGrad = ctx.createLinearGradient(0, 0, size, size);
+      heartGrad.addColorStop(0, '#FF6BAF');
+      heartGrad.addColorStop(0.5, '#FF4DA6');
+      heartGrad.addColorStop(1, '#E63D90');
+
+      const center = size / 2;
+      const scale = size / 512;
+
+      // Maskable icons need safe zone (80% centered content)
+      const padding = maskable ? size * 0.1 : 0;
+      const contentScale = maskable ? 0.8 : 1;
+
+      // Background circle
+      ctx.beginPath();
+      ctx.arc(center, center, center, 0, Math.PI * 2);
+      ctx.fillStyle = bgGrad;
+      ctx.fill();
+
+      // Inner glow
+      const glowGrad = ctx.createRadialGradient(center, center * 0.85, 0, center, center * 0.85, center * 0.7);
+      glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+      glowGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath();
+      ctx.arc(center, center * 0.85, center * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw heart - adjusted for maskable safe zone
+      ctx.save();
+      if (maskable) {
+        ctx.translate(padding, padding);
+        ctx.scale(contentScale, contentScale);
+      }
+
+      // Heart shadow
+      ctx.shadowColor = 'rgba(230, 61, 144, 0.3)';
+      ctx.shadowBlur = 16 * scale;
+      ctx.shadowOffsetY = 8 * scale;
+
+      // Heart path
+      ctx.beginPath();
+      const hs = scale; // heart scale
+      ctx.moveTo(256 * hs, 400 * hs);
+      ctx.bezierCurveTo(130 * hs, 285 * hs, 85 * hs, 195 * hs, 155 * hs, 135 * hs);
+      ctx.bezierCurveTo(195 * hs, 100 * hs, 240 * hs, 115 * hs, 256 * hs, 155 * hs);
+      ctx.bezierCurveTo(272 * hs, 115 * hs, 317 * hs, 100 * hs, 357 * hs, 135 * hs);
+      ctx.bezierCurveTo(427 * hs, 195 * hs, 382 * hs, 285 * hs, 256 * hs, 400 * hs);
+      ctx.closePath();
+      ctx.fillStyle = heartGrad;
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+
+      // Heart highlight
+      ctx.beginPath();
+      ctx.moveTo(180 * hs, 160 * hs);
+      ctx.bezierCurveTo(200 * hs, 145 * hs, 225 * hs, 150 * hs, 235 * hs, 175 * hs);
+      ctx.quadraticCurveTo(215 * hs, 165 * hs, 180 * hs, 180 * hs);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fill();
+
+      // Sparkles
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.arc(350 * hs, 145 * hs, 10 * hs, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.beginPath();
+      ctx.arc(335 * hs, 165 * hs, 5 * hs, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.beginPath();
+      ctx.arc(365 * hs, 170 * hs, 4 * hs, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      return canvas.toDataURL('image/png');
+    }
+
+    const container = document.getElementById('icons');
+
+    sizes.forEach(size => {
+      const dataUrl = createIcon(size);
+      const card = document.createElement('div');
+      card.className = 'icon-card';
+      card.innerHTML = `
+        <img src="${dataUrl}" width="${Math.min(size, 128)}" height="${Math.min(size, 128)}">
+        <a href="${dataUrl}" download="icon-${size}.png">icon-${size}.png</a>
+      `;
+      container.appendChild(card);
+    });
+
+    maskableSizes.forEach(size => {
+      const dataUrl = createIcon(size, true);
+      const card = document.createElement('div');
+      card.className = 'icon-card';
+      card.innerHTML = `
+        <img src="${dataUrl}" width="${Math.min(size, 128)}" height="${Math.min(size, 128)}">
+        <a href="${dataUrl}" download="icon-maskable-${size}.png">icon-maskable-${size}.png (safe zone)</a>
+      `;
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Bumpy PWA Redirects
+# Handle client-side routing for SPA
+
+# All routes should serve index.html
+/*    /index.html   200
