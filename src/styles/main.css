@@ -165,6 +165,91 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   ✅ SUCCESS & LOADING STATES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Success Checkmark Animation */
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(-45deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-45deg);
+    opacity: 1;
+  }
+}
+
+.success-check {
+  display: inline-block;
+  width: 20px;
+  height: 12px;
+  border-left: 3px solid var(--pink-500);
+  border-bottom: 3px solid var(--pink-500);
+  transform: rotate(-45deg);
+  animation: checkmark 0.4s var(--ease-spring);
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--pink-100);
+  border-top-color: var(--pink-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Shimmer Effect for Loading States */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--pink-50) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: calc(var(--tab-bar-height) + 20px);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 16px 24px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 100000;
+  opacity: 0;
+  transition: all 0.4s var(--ease-spring);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    🌙 DARK MODE — Cozy Night
    ═══════════════════════════════════════════════════════════════ */
 
