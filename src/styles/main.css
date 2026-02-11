@@ -64,6 +64,12 @@
   --surface: #FFFFFF;
   --surface-raised: #FFF9F7;
   --surface-overlay: rgba(255, 255, 255, 0.92);
+  --surface-2: #FFF5FA;
+  --surface-glass: rgba(255, 255, 255, 0.85);
+
+  --success: #2E7D32;
+  --blue-500: #3B82F6;
+  --blue-600: #2563EB;
 
   --text-primary: #141414;
   --text-secondary: #6B6B6B;
@@ -1578,12 +1584,15 @@ li + li {
 }
 
 /* Modal Open State - Prevent Background Scroll */
-body.modal-open {
+body.modal-open,
+body.modal-active {
   touch-action: none;
   -webkit-overflow-scrolling: none;
+  overflow: hidden;
 }
 
-body.modal-open #content {
+body.modal-open #content,
+body.modal-active #content {
   overflow: hidden !important;
   touch-action: none;
 }
@@ -1612,19 +1621,14 @@ body.modal-open #content {
 }
 
 .game-modal-content {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,245,249,0.95) 100%),
-    var(--surface);
+  background: var(--surface);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   padding: var(--space-8);
   padding-top: max(var(--space-12), env(safe-area-inset-top, 0px));
-  /* Reduced padding-bottom to prevent white space - modal covers tab bar */
   padding-bottom: max(var(--space-8), env(safe-area-inset-bottom, 16px));
   width: 100%;
   max-width: var(--content-max-width);
-  /* Safer max-height to prevent iOS viewport issues */
-  max-height: 80vh;
-  max-height: max(80dvh, 500px);
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 10px);
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
@@ -1659,9 +1663,10 @@ body.modal-open #content {
 }
 
 .game-modal-close {
-  position: absolute;
-  top: max(16px, env(safe-area-inset-top, 8px));
-  right: 16px;
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top, 0px));
+  margin-left: auto;
+  right: 0;
   width: 36px;
   height: 36px;
   display: flex;
@@ -3440,6 +3445,16 @@ body.night-mode::after {
 /* ═══════════════════════════════════════════════════════════════
    💸 LOVE AUCTION V2 UI
    ═══════════════════════════════════════════════════════════════ */
+
+/* Auction page shell */
+.auction-page {
+  padding-top: var(--space-2);
+}
+
+.auction-content {
+  position: relative;
+  z-index: 1;
+}
 
 /* Wallet Switcher */
 .wallet-switcher {
