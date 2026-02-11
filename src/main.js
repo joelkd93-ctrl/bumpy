@@ -9,6 +9,7 @@ window.API_BASE = "https://bumpyapi.joelkd93.workers.dev";
 import './styles/main.css';
 import './styles/polish.css';
 import { storage, initializeDefaults } from './utils/storage.js';
+import { notifyHeart, notifyKick } from './utils/notifications.js';
 import { renderHome, initHome } from './pages/home.js';
 import { renderJournal, initJournal } from './pages/journal.js';
 import { renderTimeline, initTimeline } from './pages/timeline.js';
@@ -330,6 +331,7 @@ async function startGlobalHeartbeatPoller() {
         if (lastPartnerTapReceived !== null || isVeryRecent) {
           console.log('💓 Heartbeat received from partner');
           showGlobalHeartbeat();
+          notifyHeart(); // Send notification
         }
         lastPartnerTapReceived = data.partnerLastTap;
       }
@@ -339,6 +341,7 @@ async function startGlobalHeartbeatPoller() {
         if (lastAndrineKickReceived !== null) {
           console.log('🦶 Andrine started a kick session!');
           showGlobalKickNotification();
+          notifyKick(); // Send notification
         }
         lastAndrineKickReceived = data.andrineLastKick;
       }
