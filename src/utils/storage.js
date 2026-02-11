@@ -220,8 +220,10 @@ export const storage = {
   },
 
   async pullFromCloud() {
+    console.log('🔽 Starting pullFromCloud...');
     try {
       const apiUrl = getApiUrl();
+      console.log(`🔽 Pulling from: ${apiUrl}/sync`);
 
       // Add cache buster to prevent stale data
       const response = await fetch(`${apiUrl}/sync?t=${Date.now()}`, {
@@ -232,12 +234,15 @@ export const storage = {
         }
       });
 
+      console.log(`🔽 Pull response status: ${response.status}`);
+
       if (!response.ok) {
         console.warn(`☁️ Cloud pull failed with status ${response.status}`);
         return false;
       }
 
       const result = await response.json();
+      console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
         const { settings, journal, moods, together, nameVotes, predictions } = result.data;
@@ -299,13 +304,17 @@ export const storage = {
         }
 
         if (journal) {
+          console.log(`🔽 Processing ${journal.length} journal entries from cloud`);
           // Get existing local journal entries
           const localJournal = this.getCollection('journal');
           const localIds = new Set(localJournal.map(e => e.id));
+          console.log(`🔽 Local has ${localJournal.length} journal entries:`, Array.from(localIds));
 
           // Only add entries that don't exist locally (don't overwrite)
           journal.forEach(entry => {
+            console.log(`🔽 Checking entry ${entry.id}: exists locally? ${localIds.has(entry.id)}`);
             if (!localIds.has(entry.id)) {
+              console.log(`🔽 Adding new entry from cloud: ${entry.id}`);
               this.set(`journal:${entry.id}`, {
                 week: entry.week_number,
                 photo: entry.photo_blob,
@@ -313,6 +322,8 @@ export const storage = {
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
               }, true); // Skip sync to avoid loop
               hasChanged = true;
+            } else {
+              console.log(`🔽 Skipping existing entry: ${entry.id}`);
             }
           });
         }
@@ -341,6 +352,8 @@ export const storage = {
           });
         }
 
+        console.log(`🔽 hasChanged: ${hasChanged}`);
+
         if (hasChanged) {
           console.log('☁️ Pulled and updated data from cloud');
           celebrate();
@@ -357,11 +370,14 @@ export const storage = {
 
           return true;
         }
+        console.log('🔽 No changes detected, skipping update');
         return false;
       }
     } catch (err) {
-      console.warn('☁️ Cloud pull failed', err);
+      console.error('☁️ Cloud pull failed with error:', err);
+      console.error('Error stack:', err.stack);
     }
+    console.log('🔽 pullFromCloud returning false');
     return false;
   }
 };
