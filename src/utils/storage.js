@@ -82,7 +82,7 @@ export const storage = {
         name,
         andrine_vote: votes.andrine,
         partner_vote: votes.partner,
-        is_custom: false // Todo: track custom properly if needed, defaulting to false for now
+        is_custom: false
       }));
 
       const predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
@@ -98,9 +98,19 @@ export const storage = {
 
       const response = await fetch(`${API_URL}/sync`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
+
+      if (!response.ok) {
+        console.warn(`☁️ Cloud sync failed with status ${response.status}`);
+        return false;
+      }
 
       const result = await response.json();
       if (result.success) {
@@ -108,7 +118,7 @@ export const storage = {
         return true;
       }
     } catch (err) {
-      console.warn('☁️ Cloud sync failed (offline or server down)', err);
+      console.warn('☁️ Cloud sync failed (offline or server down)', err.message);
     }
     return false;
   },
@@ -116,7 +126,19 @@ export const storage = {
   async pullFromCloud() {
     try {
       // Add cache buster to prevent stale data
-      const response = await fetch(`${API_URL}/sync?t=${Date.now()}`);
+      const response = await fetch(`${API_URL}/sync?t=${Date.now()}`, {
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.warn(`☁️ Cloud pull failed with status ${response.status}`);
+        return false;
+      }
+
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -252,10 +274,10 @@ export function initializeDefaults() {
     storage.set('settings', {
       name: 'Andrine',
       partnerName: '',
-      dueDate: '2026-06-29',  // User requested due date
+      dueDate: '2026-06-29',
       notifications: true,
       darkMode: 'auto'
-    });
+    }, true); // Skip sync on first init
   }
 
   // Check if we should skip cloud pull (set by "Slett all data")
@@ -263,9 +285,11 @@ export function initializeDefaults() {
   if (skipPull) {
     localStorage.removeItem('bumpy:skip_pull');
     console.log('⏭️ Skipping cloud pull after data reset');
-    return; // Don't pull from cloud or re-create milestones
+    return;
   }
 
-  // Initial pull from cloud if possible
-  storage.pullFromCloud();
+  // Initial pull from cloud if possible (non-blocking)
+  storage.pullFromCloud().catch(err => {
+    console.warn('☁️ Initial cloud pull failed, continuing with local data', err.message);
+  });
 }
