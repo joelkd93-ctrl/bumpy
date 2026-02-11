@@ -378,6 +378,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -389,13 +391,13 @@ body {
     radial-gradient(ellipse at top, rgba(255, 237, 245, 0.4) 0%, transparent 50%),
     radial-gradient(ellipse at bottom, rgba(255, 245, 249, 0.6) 0%, transparent 50%),
     linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 40%, #FFF9FC 60%, #FDF4F8 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
+  margin: 0;
+  height: 100%;
   font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
   font-variant-ligatures: common-ligatures;
   font-kerning: normal;
-  min-height: 100dvh;
   overscroll-behavior: none;
+  overflow: hidden;
   overflow-x: hidden;
   letter-spacing: var(--tracking-normal);
 }
@@ -421,23 +423,26 @@ input, textarea, select {
    📱 APP SHELL
    ═══════════════════════════════════════════════════════════════ */
 
-.app {
-  min-height: 100vh;
-  min-height: 100dvh;
+.app,
+.app-shell {
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: transparent;
   position: relative;
+  overflow: hidden;
 }
 
 .app-content {
   flex: 1;
+  min-height: 0;
   padding: var(--space-4);
   padding-top: max(var(--space-5), env(safe-area-inset-top));
   padding-bottom: calc(var(--tab-bar-height) + var(--space-4));
   padding-left: max(var(--space-4), env(safe-area-inset-left));
   padding-right: max(var(--space-4), env(safe-area-inset-right));
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
@@ -1662,6 +1667,53 @@ body.modal-active #content {
   }
 }
 
+/* Reusable Native Modal System */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2100;
+  pointer-events: none;
+}
+
+.modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2101;
+  pointer-events: none;
+}
+
+.modal-container.active {
+  pointer-events: auto;
+}
+
+.modal-card {
+  width: min(420px, 92vw);
+  max-height: 85dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transform: scale(0.96);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.modal-card.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
 .game-modal-close {
   position: sticky;
   top: max(8px, env(safe-area-inset-top, 0px));
@@ -2287,6 +2339,22 @@ body.modal-active #content {
   .game-modal-content {
     -webkit-overflow-scrolling: touch;
   }
+}
+
+/* Generic micro-interactions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.2s ease both;
 }
 
 /* Touch ripple effect */

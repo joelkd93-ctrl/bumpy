@@ -104,22 +104,26 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
+      height: 100%;
+      overflow: hidden;
     }
 
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 60%, #FDF4F8 100%);
-      background-attachment: fixed;
-      min-height: 100vh;
-      min-height: 100dvh;
+      margin: 0;
+      height: 100%;
       color: #141414;
       overscroll-behavior: none;
+      overflow: hidden;
       overflow-x: hidden;
     }
 
     #app {
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* Loading Screen */
@@ -264,7 +268,7 @@
 </head>
 
 <body>
-  <div id="app" class="app">
+  <div id="app" class="app app-shell">
     <!-- Loading state shown until JS loads -->
     <div class="loading-screen" id="loading-screen">
       <div class="loading-heart">💕</div>

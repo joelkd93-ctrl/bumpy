@@ -10,8 +10,10 @@ import './styles/main.css';
 import './styles/polish.css';
 import './styles/motion.css';
 import './styles/premium-polish.css';
+import './styles/modal-system.css'; // Native app modal system
 import './styles/performance-fix.css'; // CRITICAL: Must load last
 import { storage, initializeDefaults } from './utils/storage.js';
+import { modal } from './utils/modal.js';
 import { notifyHeart, notifyKick } from './utils/notifications.js';
 import { renderHome, initHome } from './pages/home.js';
 import { renderJournal, initJournal } from './pages/journal.js';
@@ -121,6 +123,7 @@ function initApp() {
 
   // Render app shell
   const app = document.getElementById('app');
+  app.classList.add('app-shell');
   app.innerHTML = `
     <div id="sync-indicator" class="sync-indicator">
       <span class="sync-icon">☁️</span>
