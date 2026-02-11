@@ -1595,6 +1595,10 @@ body.modal-active {
   overflow: hidden;
 }
 
+.app-content.modal-active {
+  overflow: hidden !important;
+}
+
 /* Unified Modal System (used by game modals + reusable modals) */
 .game-modal,
 .modal-backdrop {

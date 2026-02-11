@@ -16,8 +16,9 @@ export class ModalManager {
   open(modalElement) {
     if (!modalElement) return;
 
-    // Store scroll position before locking
-    this.scrollPosition = window.scrollY;
+    // Store scroll position of app scroll root before locking
+    const scrollContainer = document.querySelector('.app-content');
+    this.scrollPosition = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
 
     // Add modal to active set
     this.activeModals.add(modalElement);
@@ -65,17 +66,17 @@ export class ModalManager {
    */
   lockScroll() {
     const body = document.body;
+    const scrollContainer = document.querySelector('.app-content');
 
-    // Store current scroll
-    this.scrollPosition = window.scrollY;
-
-    // Class-based lock + fixed body freeze (prevents wheel/touch bleed)
+    // Class lock for CSS hooks
     body.classList.add('modal-active');
-    body.style.position = 'fixed';
-    body.style.top = `-${this.scrollPosition}px`;
-    body.style.left = '0';
-    body.style.right = '0';
-    body.style.width = '100%';
+
+    // Lock the real scroll root for this app architecture
+    if (scrollContainer) {
+      this.scrollPosition = scrollContainer.scrollTop;
+      scrollContainer.classList.add('modal-active');
+      scrollContainer.style.overflow = 'hidden';
+    }
   }
 
   /**
@@ -83,20 +84,17 @@ export class ModalManager {
    */
   unlockScroll() {
     const body = document.body;
-    const scrollY = this.scrollPosition || 0;
+    const scrollContainer = document.querySelector('.app-content');
 
     // Remove class lock
     body.classList.remove('modal-active');
 
-    // Restore body positioning
-    body.style.position = '';
-    body.style.top = '';
-    body.style.left = '';
-    body.style.right = '';
-    body.style.width = '';
-
-    // Restore original scroll
-    window.scrollTo(0, scrollY);
+    // Restore app scroll root
+    if (scrollContainer) {
+      scrollContainer.classList.remove('modal-active');
+      scrollContainer.style.overflow = '';
+      scrollContainer.scrollTop = this.scrollPosition || 0;
+    }
   }
 
   /**

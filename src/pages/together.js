@@ -315,23 +315,21 @@ export function initTogether() {
     // Hide modal
     modal.style.display = 'none';
 
-    // Unlock scroll
+    // Unlock scroll (app-content is the real scroll root)
     const body = document.body;
     const html = document.documentElement;
-    const storedScroll = Number(body.dataset.modalScrollY || 0);
+    const mainContent = document.getElementById('content');
+    const storedScroll = Number((mainContent?.dataset.modalScrollTop) || 0);
 
     body.classList.remove('modal-active');
     html.classList.remove('modal-active');
 
-    body.style.position = '';
-    body.style.top = '';
-    body.style.left = '';
-    body.style.right = '';
-    body.style.width = '';
-    body.style.overflow = '';
-
-    delete body.dataset.modalScrollY;
-    window.scrollTo(0, storedScroll);
+    if (mainContent) {
+      mainContent.classList.remove('modal-active');
+      mainContent.style.overflow = '';
+      mainContent.scrollTop = storedScroll;
+      delete mainContent.dataset.modalScrollTop;
+    }
 
     // Show nav bar again
     const navBar = document.getElementById('nav-bar');
@@ -354,21 +352,19 @@ export function initTogether() {
 
     const content = document.getElementById('game-content');
 
-    // Lock scroll on background (freeze body to prevent scroll bleed)
+    // Lock scroll on background (.app-content is the scroll root)
     const body = document.body;
     const html = document.documentElement;
-    const scrollY = window.scrollY;
+    const mainContent = document.getElementById('content');
 
-    body.dataset.modalScrollY = String(scrollY);
     body.classList.add('modal-active');
     html.classList.add('modal-active');
 
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.left = '0';
-    body.style.right = '0';
-    body.style.width = '100%';
-    body.style.overflow = 'hidden';
+    if (mainContent) {
+      mainContent.dataset.modalScrollTop = String(mainContent.scrollTop || 0);
+      mainContent.classList.add('modal-active');
+      mainContent.style.overflow = 'hidden';
+    }
 
     // Show modal
     modal.style.display = 'flex';
