@@ -279,7 +279,7 @@ async function handleSyncPush(db, request) {
       await db.execute({
         sql: `INSERT OR REPLACE INTO journal (id, week_number, photo_url, note, created_at, updated_at)
               VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-        args: [entry.id, entry.week, entry.photo, entry.note, entry.date]
+        args: [entry.id, entry.week_number, entry.photo_blob, entry.note, entry.entry_date]
       });
     }
   }
@@ -291,7 +291,7 @@ async function handleSyncPush(db, request) {
       await db.execute({
         sql: `INSERT OR REPLACE INTO moods (id, date, mood_emoji, note, created_at)
               VALUES (?, ?, ?, ?, ?)`,
-        args: [entry.id, dateKey, entry.mood, entry.note, entry.date]
+        args: [entry.id, dateKey, entry.mood_emoji, entry.note, entry.date]
       });
     }
   }
