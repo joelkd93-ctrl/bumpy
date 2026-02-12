@@ -110,11 +110,21 @@ export const storage = {
     localStorage.removeItem(PREFIX + prefix + ':' + id);
     console.log(`🗑️ Removed locally: ${prefix}:${id}`);
 
+    // Track pending cloud deletes so sync can hard-delete them
+    if (prefix === 'kicks') {
+      const pending = JSON.parse(localStorage.getItem('bumpy:pending_kick_deletes') || '[]');
+      if (!pending.includes(id)) {
+        pending.push(id);
+        localStorage.setItem('bumpy:pending_kick_deletes', JSON.stringify(pending));
+      }
+    }
+
     // Delete from cloud
     try {
       const apiUrl = getApiUrl();
       const endpoint = prefix === 'journal' ? 'journal' :
-                       prefix === 'mood_entries' ? 'mood' : null;
+                       prefix === 'mood_entries' ? 'mood' :
+                       prefix === 'kicks' ? 'kicks' : null;
 
       if (endpoint) {
         console.log(`☁️ Deleting from cloud: ${endpoint}/${id}`);
@@ -212,6 +222,12 @@ export const storage = {
           count: session.count || 0,
           duration_minutes: session.duration || 0
         }));
+        // Include IDs that were deleted locally so cloud hard-deletes them
+        const pendingDeletes = JSON.parse(localStorage.getItem('bumpy:pending_kick_deletes') || '[]');
+        if (pendingDeletes.length > 0) {
+          payload.deletedKickIds = pendingDeletes;
+          console.log(`🗑️ Sending ${pendingDeletes.length} kick deletions to cloud:`, pendingDeletes);
+        }
       }
 
       if (shouldSync('baby_predictions')) {
@@ -256,7 +272,12 @@ export const storage = {
 
       if (result.success) {
         console.log('✅ Cloud synchronization complete');
-        lastPushSyncTime = Date.now(); // Track when we pushed to prevent immediate pull
+        lastPushSyncTime = Date.now();
+        // Clear pending kick delete queue — cloud has processed them
+        if (payload.deletedKickIds?.length > 0) {
+          localStorage.removeItem('bumpy:pending_kick_deletes');
+          console.log('🗑️ Cleared pending kick deletes queue');
+        }
         this.updateSyncIndicator('success', 'Synced');
         setTimeout(() => this.updateSyncIndicator('hide'), 2000);
         return true;
@@ -512,11 +533,13 @@ export const storage = {
           const localKicks = this.getCollection('kicks');
           const localKickIds = new Set(localKicks.map(e => e.id));
           const cloudKickIds = new Set(kicks.map(e => e.id));
+          // Don't restore kicks we've explicitly deleted locally
+          const pendingDeletes = new Set(JSON.parse(localStorage.getItem('bumpy:pending_kick_deletes') || '[]'));
 
-          // Add kick sessions that don't exist locally
+          // Add kick sessions that don't exist locally (and aren't pending deletion)
           let newKicksCount = 0;
           kicks.forEach(session => {
-            if (!localKickIds.has(session.id)) {
+            if (!localKickIds.has(session.id) && !pendingDeletes.has(session.id)) {
               console.log(`🦶 Adding kick session from cloud: ${session.id}`);
               this.set(`kicks:${session.id}`, {
                 id: session.id,
@@ -528,6 +551,8 @@ export const storage = {
               }, true);
               hasChanged = true;
               newKicksCount++;
+            } else if (pendingDeletes.has(session.id)) {
+              console.log(`⏭️ Skipping pull of deleted kick: ${session.id}`);
             }
           });
 
