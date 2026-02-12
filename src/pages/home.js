@@ -31,7 +31,7 @@ export function renderHome() {
       </div>
 
       <!-- Main Progress Card -->
-      <div class="card card-love mb-6 text-center">
+      <div class="card card-love mb-6 text-center home-hero-card">
         <div class="progress-ring-wrapper">
           <svg class="progress-ring" width="220" height="220" viewBox="0 0 220 220" style="transform: rotate(-90deg);">
             <defs>
