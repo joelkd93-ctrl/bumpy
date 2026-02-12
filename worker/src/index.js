@@ -353,7 +353,7 @@ async function handleSyncPost(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { settings, journal, moods, together, nameVotes, predictions, kicks, auctionState } = body;
+  const { settings, journal, moods, together, nameVotes, predictions, kicks, deletedKickIds, auctionState } = body;
 
   // 1) Settings
   if (settings) {
@@ -505,6 +505,23 @@ async function handleSyncPost(env, request) {
     }
   }
 
+  // Delete kick sessions explicitly marked for deletion by client
+  if (Array.isArray(deletedKickIds) && deletedKickIds.length > 0) {
+    console.log(`🗑️ Deleting ${deletedKickIds.length} kick sessions:`, deletedKickIds);
+    for (const id of deletedKickIds) {
+      if (!id) continue;
+      try {
+        await client.execute({
+          sql: 'DELETE FROM kick_sessions WHERE id = ?',
+          args: [id]
+        });
+        console.log(`✅ Deleted kick session: ${id}`);
+      } catch (err) {
+        console.error(`❌ Failed to delete kick session ${id}:`, err.message);
+      }
+    }
+  }
+
   // 8) Auction State (store as JSON blob)
   if (auctionState) {
     console.log(`💾 Syncing auction state`);
@@ -556,6 +573,27 @@ async function handleDeleteMood(env, id) {
     return json({ success: true, message: 'Mood entry deleted' });
   } catch (err) {
     console.error('Delete mood error:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+async function handleDeleteKick(env, id) {
+  if (!id) {
+    return json({ success: false, error: 'Missing ID' }, { status: 400 });
+  }
+
+  const client = getClient(env);
+
+  try {
+    await client.execute({
+      sql: 'DELETE FROM kick_sessions WHERE id = ?',
+      args: [id]
+    });
+
+    console.log(`🗑️ Deleted kick session: ${id}`);
+    return json({ success: true, message: 'Kick session deleted' });
+  } catch (err) {
+    console.error('Delete kick error:', err);
     return json({ success: false, error: err.message }, { status: 500 });
   }
 }
@@ -1057,6 +1095,10 @@ export default {
       if (url.pathname.startsWith('/api/mood/') && request.method === 'DELETE') {
         const id = url.pathname.split('/').pop();
         return withCors(await handleDeleteMood(env, id), env, request);
+      }
+      if (url.pathname.startsWith('/api/kicks/') && request.method === 'DELETE') {
+        const id = url.pathname.split('/').pop();
+        return withCors(await handleDeleteKick(env, id), env, request);
       }
 
       // Presence
