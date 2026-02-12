@@ -1789,16 +1789,17 @@ function renderAuctionGame(container, cleanupStack) {
 
     console.log(`🛒 ${user} bought ${item.title} (payer: ${actualPayer})`);
 
-    // Show success feedback
-    if (btn) {
-      btn.textContent = '✅ Kjøpt!';
-      btn.style.background = '#4ade80';
-      setTimeout(() => {
-        saveAndRender(); // Render after showing success
-      }, 500);
-    } else {
-      saveAndRender();
-    }
+    // CRITICAL: Save IMMEDIATELY to prevent sync race condition
+    lastSaveTime = Date.now(); // Block pulls for 3 seconds
+    saveAndRender();
+
+    // Show success feedback AFTER saving (just UI feedback)
+    setTimeout(() => {
+      if (btn) {
+        btn.textContent = '✅ Kjøpt!';
+        btn.style.background = '#4ade80';
+      }
+    }, 100);
 
     if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
   };
