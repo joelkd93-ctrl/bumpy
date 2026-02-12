@@ -500,9 +500,14 @@ export const storage = {
           console.log('☁️ Pulled and updated data from cloud');
 
           // Don't interrupt if a game modal is open - let the game handle its own refresh
-          const gameModalOpen = document.getElementById('game-modal')?.style.display !== 'none';
+          const gameModal = document.getElementById('game-modal');
+          const isModalOpen = gameModal &&
+                               gameModal.style.display === 'flex' &&
+                               gameModal.offsetParent !== null;
 
-          if (!gameModalOpen) {
+          console.log(`🔍 Modal check: exists=${!!gameModal}, display=${gameModal?.style.display}, visible=${gameModal?.offsetParent !== null}`);
+
+          if (!isModalOpen) {
             celebrate();
 
             // Trigger a refresh if in standalone mode (PWA)

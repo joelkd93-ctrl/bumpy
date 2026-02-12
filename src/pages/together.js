@@ -813,26 +813,35 @@ function renderNamesGame(container, cleanupStack) {
         console.warn('Failed to sync vote:', err);
       });
 
-      // Check for match IMMEDIATELY to celebrate
-      if (votes[name].andrine === 'love' && votes[name].partner === 'love') {
-        // Find existing matches to avoid duplicates
+      // Check for match IMMEDIATELY to celebrate Tinder-style!
+      const isMatch = votes[name].andrine === 'love' && votes[name].partner === 'love';
+
+      if (isMatch) {
+        // Save to matches
         const matches = storage.get('matched_names', []);
         if (!matches.includes(name)) {
           matches.push(name);
           storage.set('matched_names', matches);
-          if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-          // Could show a modal here, but for now we just proceed
         }
-      }
 
-      // Render next state (Wait or Next Name)
-      const namesTimeout = setTimeout(() => {
-        if (modalCleanupStack.includes(namesTimeout)) {
-          // No need to clear if we are already here, but good to know
-        }
-        renderNamesGame(container, cleanupStack);
-      }, 300);
-      cleanupStack.push(() => clearTimeout(namesTimeout));
+        // Show Tinder-style match overlay
+        showMatchOverlay(name, card);
+
+        // Haptic celebration
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+
+        // Wait 2.5s, then move to next name
+        const matchTimeout = setTimeout(() => {
+          renderNamesGame(container, cleanupStack);
+        }, 2500);
+        cleanupStack.push(() => clearTimeout(matchTimeout));
+      } else {
+        // No match - render next state (Wait or Next Name) after animation
+        const namesTimeout = setTimeout(() => {
+          renderNamesGame(container, cleanupStack);
+        }, 300);
+        cleanupStack.push(() => clearTimeout(namesTimeout));
+      }
     });
   });
 
@@ -869,6 +878,37 @@ function renderNamesGame(container, cleanupStack) {
   // Start Presence Heartbeat
   const currentIdentity = localStorage.getItem('who_am_i') || 'andrine';
   startPresenceHeartbeat(currentIdentity, container, cleanupStack);
+}
+
+// Tinder-style match overlay animation
+function showMatchOverlay(matchedName, cardElement) {
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'match-overlay';
+  overlay.innerHTML = `
+    <div class="match-content">
+      <h1 class="match-title">Det er en match! 💕</h1>
+      <div class="match-name">${matchedName}</div>
+      <p class="match-subtitle">Dere elsker begge dette navnet!</p>
+    </div>
+  `;
+
+  // Add to modal content
+  const modalContent = document.querySelector('.game-modal-content');
+  if (modalContent) {
+    modalContent.appendChild(overlay);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      overlay.classList.add('show');
+    });
+
+    // Remove after animation
+    setTimeout(() => {
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.remove(), 300);
+    }, 2200);
+  }
 }
 
 function renderNameStats(container, cleanupStack) {
