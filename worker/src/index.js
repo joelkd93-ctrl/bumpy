@@ -187,6 +187,33 @@ async function handleInit(env) {
     }
   }
 
+  // CLEANUP: Remove any references to journal_entries_old
+  try {
+    // Drop any triggers referencing old table
+    const triggers = await client.execute(`
+      SELECT name FROM sqlite_master WHERE type='trigger' AND sql LIKE '%journal_entries_old%'
+    `);
+    for (const trigger of (triggers.rows || [])) {
+      await client.execute(`DROP TRIGGER IF EXISTS ${trigger.name}`);
+      console.log(`🧹 Dropped trigger: ${trigger.name}`);
+    }
+
+    // Drop any views referencing old table
+    const views = await client.execute(`
+      SELECT name FROM sqlite_master WHERE type='view' AND sql LIKE '%journal_entries_old%'
+    `);
+    for (const view of (views.rows || [])) {
+      await client.execute(`DROP VIEW IF EXISTS ${view.name}`);
+      console.log(`🧹 Dropped view: ${view.name}`);
+    }
+
+    // Drop the old table itself
+    await client.execute(`DROP TABLE IF EXISTS journal_entries_old`);
+    console.log('🧹 Cleaned up old migration artifacts');
+  } catch (e) {
+    console.warn('⚠️ Cleanup warning:', e.message);
+  }
+
   // FIX: Ensure journal_entries table exists (handle broken migration state)
   try {
     // Check if journal_entries exists
