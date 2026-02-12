@@ -388,6 +388,7 @@ export const storage = {
 
         if (nameVotes && Array.isArray(nameVotes)) {
           const currentVotes = this.get('name_votes', {});
+          let nameVotesChanged = false;
 
           nameVotes.forEach(remote => {
             const local = currentVotes[remote.name] || {};
@@ -396,19 +397,20 @@ export const storage = {
             if (remote.andrine_vote && remote.andrine_vote !== local.andrine) {
               console.log(`♻️ Syncing ${remote.name} Andrine: ${local.andrine} -> ${remote.andrine_vote}`);
               local.andrine = remote.andrine_vote;
-              hasChanged = true;
+              nameVotesChanged = true;
             }
             if (remote.partner_vote && remote.partner_vote !== local.partner) {
               console.log(`♻️ Syncing ${remote.name} Partner: ${local.partner} -> ${remote.partner_vote}`);
               local.partner = remote.partner_vote;
-              hasChanged = true;
+              nameVotesChanged = true;
             }
 
             currentVotes[remote.name] = local;
           });
 
-          if (hasChanged) {
+          if (nameVotesChanged) {
             this.set('name_votes', currentVotes, true); // Skip sync to avoid loop!
+            hasChanged = true;
           }
         }
 
@@ -442,9 +444,12 @@ export const storage = {
         // Sync Love Auction state - store in temp key for together.js to handle with timestamp checking
         // DON'T merge directly into love_auction_v2 to prevent race conditions!
         if (auctionState) {
-          console.log('♻️ Received auction state from cloud, storing for timestamp-based merge');
-          this.set('_auction_cloud_temp', auctionState, true);
-          hasChanged = true;
+          const prevAuctionTemp = this.get('_auction_cloud_temp', null);
+          if (JSON.stringify(prevAuctionTemp) !== JSON.stringify(auctionState)) {
+            console.log('♻️ Received updated auction state from cloud, storing for timestamp-based merge');
+            this.set('_auction_cloud_temp', auctionState, true);
+            hasChanged = true;
+          }
         }
 
         if (journal !== undefined) {

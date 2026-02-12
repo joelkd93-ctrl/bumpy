@@ -370,25 +370,25 @@ async function handleSyncPost(env, request) {
   }
 
   // 2) Name votes (merge-safe upsert)
-  if (Array.isArray(nameVotes)) {
-    for (const vote of nameVotes) {
-      if (!vote || !vote.name) continue;
-      await client.execute({
-        sql: `INSERT INTO name_votes (name, andrine_vote, partner_vote, is_custom, updated_at)
-              VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-              ON CONFLICT(name) DO UPDATE SET
-                andrine_vote = COALESCE(excluded.andrine_vote, name_votes.andrine_vote),
-                partner_vote = COALESCE(excluded.partner_vote, name_votes.partner_vote),
-                is_custom = COALESCE(excluded.is_custom, name_votes.is_custom),
-                updated_at = excluded.updated_at`,
-        args: [
-          vote.name,
-          vote.andrine_vote || null,
-          vote.partner_vote || null,
-          vote.is_custom ? 1 : 0,
-        ],
-      });
-    }
+  // Use one SQL statement via json_each to avoid "Too many subrequests"
+  if (Array.isArray(nameVotes) && nameVotes.length > 0) {
+    await client.execute({
+      sql: `INSERT INTO name_votes (name, andrine_vote, partner_vote, is_custom, updated_at)
+            SELECT
+              json_extract(value, '$.name') AS name,
+              json_extract(value, '$.andrine_vote') AS andrine_vote,
+              json_extract(value, '$.partner_vote') AS partner_vote,
+              COALESCE(json_extract(value, '$.is_custom'), 0) AS is_custom,
+              CURRENT_TIMESTAMP
+            FROM json_each(?)
+            WHERE json_extract(value, '$.name') IS NOT NULL
+            ON CONFLICT(name) DO UPDATE SET
+              andrine_vote = COALESCE(excluded.andrine_vote, name_votes.andrine_vote),
+              partner_vote = COALESCE(excluded.partner_vote, name_votes.partner_vote),
+              is_custom = COALESCE(excluded.is_custom, name_votes.is_custom),
+              updated_at = excluded.updated_at`,
+      args: [JSON.stringify(nameVotes)],
+    });
   }
 
   // 3) Journal
@@ -401,7 +401,7 @@ async function handleSyncPost(env, request) {
       }
       console.log(`💾 Inserting journal entry ${entry.id}`);
       try {
-        const insertResult = await client.execute({
+        await client.execute({
           sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
                 VALUES (?, ?, ?, ?, ?)`,
           args: [
@@ -412,14 +412,6 @@ async function handleSyncPost(env, request) {
             entry.date || entry.entry_date || new Date().toISOString().split('T')[0],
           ],
         });
-        console.log(`✅ INSERT result for ${entry.id}:`, insertResult);
-
-        // Verify the insert
-        const verify = await client.execute({
-          sql: 'SELECT * FROM journal_entries WHERE id = ?',
-          args: [entry.id]
-        });
-        console.log(`🔍 Verification for ${entry.id}:`, verify.rows.length > 0 ? 'FOUND' : 'NOT FOUND');
       } catch (err) {
         console.error(`❌ Failed to insert ${entry.id}:`, err.message);
       }
