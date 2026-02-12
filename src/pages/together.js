@@ -700,17 +700,29 @@ function renderNamesGame(container, cleanupStack) {
   const partnerRole = currentPlayer === 'andrine' ? 'partner' : 'andrine';
 
   // Check if any name just became a match (both voted love)
+  const matches = storage.get('matched_names', []);
   const newMatch = allNames.find(name => {
     const v = votes[name] || {};
-    const matches = storage.get('matched_names', []);
     return v.andrine === 'love' && v.partner === 'love' && !matches.includes(name);
   });
+
+  // Debug logging for voting state
+  const currentName = allNames.find(name => {
+    const v = votes[name] || {};
+    return !v.andrine || !v.partner;
+  });
+  if (currentName && votes[currentName]) {
+    console.log(`🗳️ Voting status for ${currentName}:`, {
+      andrine: votes[currentName].andrine || 'not voted',
+      partner: votes[currentName].partner || 'not voted',
+      bothVoted: !!(votes[currentName].andrine && votes[currentName].partner)
+    });
+  }
 
   // If we found a new match, save it and show overlay
   if (newMatch && newMatch !== pendingMatch) {
     console.log(`💕 NEW MATCH DETECTED: ${newMatch}`);
     pendingMatch = newMatch;
-    const matches = storage.get('matched_names', []);
     matches.push(newMatch);
     storage.set('matched_names', matches);
 
@@ -862,8 +874,12 @@ function renderNamesGame(container, cleanupStack) {
     const btn = document.getElementById('check-sync');
     if (btn) btn.textContent = 'Synkroniserer... 🔄';
 
-    await storage.syncWithCloud();
+    await storage.syncWithCloud({ only: ['name_votes', 'matched_names'] });
     await storage.pullFromCloud({ skipCelebration: true });
+
+    // Clear rendering cache to force fresh render
+    lastRenderedState = { name: null, waiting: null, finished: null };
+    pendingMatch = null;
 
     renderNamesGame(container);
   });
@@ -1004,13 +1020,14 @@ function renderNameStats(container, cleanupStack) {
     const confirmed = confirm('Er du sikker på at du vil nullstille alle stemmer? Dette kan ikke angres!');
     if (!confirmed) return;
 
-    // Clear all votes and matches
+    // Clear all votes, matches, AND custom names
     storage.set('name_votes', {}, true); // skipSync
     storage.set('matched_names', [], true); // skipSync
+    storage.set('custom_names', [], true); // skipSync
     pendingMatch = null;
 
-    // Sync both keys to cloud so both devices reset
-    await storage.syncWithCloud({ only: ['name_votes', 'matched_names'] });
+    // Sync all three keys to cloud so both devices reset
+    await storage.syncWithCloud({ only: ['name_votes', 'matched_names', 'custom_names'] });
 
     // Show feedback
     const btn = document.getElementById('reset-votes');
