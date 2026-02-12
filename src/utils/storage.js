@@ -48,8 +48,11 @@ export const storage = {
 
   remove(key) {
     localStorage.removeItem(PREFIX + key);
-    // Don't sync for temp keys or daily keys
-    if (!key.startsWith('_') && !key.startsWith('daily_')) {
+    // Don't sync for temp keys, daily keys, task records, or claim records
+    const skipPatterns = ['_', 'daily_', 'last_', 'task_'];
+    const shouldSkip = skipPatterns.some(pattern => key.startsWith(pattern));
+
+    if (!shouldSkip) {
       this.syncWithCloud({ only: [key] });
     }
   },
@@ -91,7 +94,8 @@ export const storage = {
     // Set timestamp BEFORE syncing to block auto-pull during sync
     lastPushSyncTime = Date.now();
     console.log('⏳ Syncing to cloud...');
-    await this.syncWithCloud();
+    // Only sync the collection that was modified
+    await this.syncWithCloud({ only: [prefix] });
     console.log('✅ Cloud sync complete, safe to proceed');
 
     return id;
