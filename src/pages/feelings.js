@@ -164,23 +164,27 @@ export function initFeelings() {
   });
 
   // Save mood
-  saveBtn?.addEventListener('click', () => {
+  saveBtn?.addEventListener('click', async () => {
     if (!selectedMood) return;
+    saveBtn.disabled = true;
 
     const todayKey = getTodayKey();
-    storage.set(`feeling:${todayKey}`, {
-      mood: selectedMood,
-      note: noteInput?.value?.trim() || '',
-      timestamp: new Date().toISOString()
-    });
+    const note = noteInput?.value?.trim() || '';
+    const timestamp = new Date().toISOString();
 
-    // Also add to collection for easier querying
-    storage.addToCollection('mood_entries', {
-      mood: selectedMood,
-      note: noteInput?.value?.trim() || ''
-    });
+    // Save today's quick-access key
+    storage.set(`feeling:${todayKey}`, { mood: selectedMood, note, timestamp });
 
-    // Refresh page
+    // Upsert into mood_entries using todayKey as stable ID — prevents duplicates
+    // If already saved today, overwrite the same key instead of creating a new entry
+    storage.set(`mood_entries:${todayKey}`, {
+      mood: selectedMood,
+      note,
+      date: timestamp,
+      timestamp
+    }, true); // skipSync — sync manually below
+    await storage.syncWithCloud({ only: ['mood_entries'] });
+
     if (window.app?.refreshCurrentPage) {
       window.app.refreshCurrentPage();
     } else {
@@ -188,10 +192,12 @@ export function initFeelings() {
     }
   });
 
-  // Change mood (clear today's entry)
+  // Change mood (clear today's entry from both keys)
   changeBtn?.addEventListener('click', () => {
     const todayKey = getTodayKey();
     storage.remove(`feeling:${todayKey}`);
+    storage.remove(`mood_entries:${todayKey}`); // Also remove from history collection
+    storage.syncWithCloud({ only: ['mood_entries'] });
 
     if (window.app?.refreshCurrentPage) {
       window.app.refreshCurrentPage();

@@ -13,7 +13,7 @@ export function renderSettings() {
     notifications: true
   };
 
-  const dueDateFormatted = new Date(settings.dueDate).toLocaleDateString('en-GB', {
+  const dueDateFormatted = new Date(settings.dueDate).toLocaleDateString('nb-NO', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
@@ -128,12 +128,15 @@ export function initSettings() {
   saveBtn?.addEventListener('click', () => {
     const currentSettings = storage.get('settings') || {};
 
-    storage.set('settings', {
+    const newSettings = {
       ...currentSettings,
       name: nameInput?.value?.trim() || 'Andrine',
       partnerName: partnerInput?.value?.trim() || '',
       dueDate: dueDateInput?.value || '2026-06-29'
-    });
+    };
+    storage.set('settings', newSettings);
+    // Sync to cloud so partner sees updated names/due date
+    storage.syncWithCloud({ only: ['settings'] });
 
     // Success feedback
     saveBtn.textContent = 'Lagret! 💕';
@@ -311,10 +314,16 @@ export function initSettings() {
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
 
-      // 3. Set skip_pull flag to prevent re-download on reload
+      // 3. Preserve identity — user should not lose Andrine/Partner role on clear
+      const savedIdentity = localStorage.getItem('who_am_i');
+
+      // 4. Set skip_pull flag to prevent re-download on reload
       localStorage.setItem('bumpy:skip_pull', 'true');
 
-      // 4. Reinitialize with defaults
+      // Restore identity after clearing
+      if (savedIdentity) localStorage.setItem('who_am_i', savedIdentity);
+
+      // 5. Reinitialize with defaults
       storage.set('settings', {
         name: 'Andrine',
         partnerName: '',
@@ -322,7 +331,7 @@ export function initSettings() {
         notifications: true
       }, true); // skipSync = true
 
-      // 5. Full reload for a clean state
+      // 6. Full reload for a clean state
       location.reload();
     }
   });

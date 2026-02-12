@@ -15,9 +15,6 @@ export function renderJournal() {
   const progress = getPregnancyProgress(settings.dueDate);
   const entries = storage.getCollection('journal');
 
-  // DEBUG: Log entries to help troubleshoot
-  console.log('📔 Journal rendering with', entries.length, 'entries:', entries.map(e => e.id));
-
   const entriesHTML = entries.length > 0
     ? entries.map(entry => `
         <div class="journal-entry" data-id="${entry.id}">
@@ -341,21 +338,20 @@ export function initJournal() {
     emojiPopup.style.display = 'none';
   });
 
-  // Close popup when clicking outside (prevent duplicate listeners)
-  if (!window._journalEmojiCloseHandlerAttached) {
-    document.addEventListener('click', (e) => {
-      const emojiPopup = document.getElementById('emoji-popup');
-      const emojiToggle = document.getElementById('emoji-toggle');
-      if (emojiPopup && !emojiPopup.contains(e.target) && e.target !== emojiToggle) {
-        emojiPopup.style.display = 'none';
-      }
-    });
-    window._journalEmojiCloseHandlerAttached = true;
-  }
+  // Close popup when clicking outside — replace handler each time page loads
+  if (window._journalEmojiCloseHandler) document.removeEventListener('click', window._journalEmojiCloseHandler);
+  window._journalEmojiCloseHandler = (e) => {
+    const emojiPopup = document.getElementById('emoji-popup');
+    const emojiToggle = document.getElementById('emoji-toggle');
+    if (emojiPopup && !emojiPopup.contains(e.target) && e.target !== emojiToggle) {
+      emojiPopup.style.display = 'none';
+    }
+  };
+  document.addEventListener('click', window._journalEmojiCloseHandler);
 
-  // Handle edit buttons (prevent duplicate listeners)
-  if (!window._journalEditHandlerAttached) {
-    const handleEdit = async (e) => {
+  // Handle edit buttons — replace handler each time page loads
+  if (window._journalEditHandler) document.removeEventListener('click', window._journalEditHandler);
+  const handleEdit = async (e) => {
       const editBtn = e.target.closest('.edit-journal-entry');
       if (!editBtn) return;
 
@@ -365,13 +361,13 @@ export function initJournal() {
 
       if (!entry) return;
 
-      // Get form elements
-      const noteInput = document.getElementById('note-input');
-      const dateInput = document.getElementById('date-input');
+      // Get form elements (correct IDs matching the rendered HTML)
+      const noteInput = document.getElementById('journal-note');
+      const dateInput = document.getElementById('entry-date');
       const photoUpload = document.getElementById('photo-upload');
       const photoPreview = document.getElementById('photo-preview');
       const previewImg = document.getElementById('preview-img');
-      const saveBtn = document.getElementById('save-journal');
+      const saveBtn = document.getElementById('save-entry');
 
       // Populate form with entry data
       editingEntryId = id;
@@ -396,13 +392,12 @@ export function initJournal() {
       if (window.haptic) window.haptic.light();
     };
 
-    document.addEventListener('click', handleEdit);
-    window._journalEditHandlerAttached = true;
-  }
+  document.addEventListener('click', handleEdit);
+  window._journalEditHandler = handleEdit;
 
-  // Handle delete buttons (prevent duplicate listeners)
-  if (!window._journalDeleteHandlerAttached) {
-    const handleDelete = async (e) => {
+  // Handle delete buttons — replace handler each time page loads
+  if (window._journalDeleteHandler) document.removeEventListener('click', window._journalDeleteHandler);
+  const handleDelete = async (e) => {
       const deleteBtn = e.target.closest('.delete-journal-entry');
       if (!deleteBtn) return;
 
@@ -438,9 +433,8 @@ export function initJournal() {
       }
     };
 
-    document.addEventListener('click', handleDelete);
-    window._journalDeleteHandlerAttached = true;
-  }
+  document.addEventListener('click', handleDelete);
+  window._journalDeleteHandler = handleDelete;
 }
 
 // Compress image to reduce localStorage usage

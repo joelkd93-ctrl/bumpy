@@ -29,7 +29,7 @@ export function renderHome() {
             <p class="home-greeting-label">God dag,</p>
             <h1 class="home-greeting-name">${firstName} 💕</h1>
           </div>
-          <button class="home-settings-btn" onclick="window.app.navigate('settings')" aria-label="Innstillinger">⚙️</button>
+          <button class="home-settings-btn" id="home-settings-btn" aria-label="Innstillinger">⚙️</button>
         </div>
 
         <div class="home-week-pill">
@@ -133,8 +133,8 @@ export function renderHome() {
 
     </div>
 
-    <!-- Dev controls -->
-    <div class="dev-controls" id="dev-controls">
+    <!-- Dev controls (only visible when bumpy:dev flag is set) -->
+    <div class="dev-controls" id="dev-controls" style="display:none;">
       <div class="dev-panel" id="dev-panel" style="display:none;">
         <p class="text-tiny mb-2">DEV MODE: TEST DAGER</p>
         <div class="flex-between mb-3">
@@ -159,6 +159,14 @@ export function renderHome() {
 }
 
 export function initHome() {
+  // Only show dev tools if dev flag is enabled
+  if (localStorage.getItem('bumpy:dev') === 'true') {
+    const devControls = document.getElementById('dev-controls');
+    if (devControls) devControls.style.display = 'flex';
+  }
+
+  document.getElementById('home-settings-btn')?.addEventListener('click', () => window.app?.navigate('settings'));
+
   const fab = document.getElementById('dev-fab');
   const panel = document.getElementById('dev-panel');
   const applyBtn = document.getElementById('dev-apply');
