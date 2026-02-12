@@ -437,18 +437,34 @@ function renderHeartbeatGame(container, cleanupStack) {
 
   cleanupStack.push(() => clearInterval(statusInterval));
 
-  tapBtn?.addEventListener('click', async () => {
-    pulse();
-    window.app.triggerHeartbeat();
+  if (!tapBtn) {
+    console.error('❌ Tap button not found! DOM:', document.getElementById('tap-heart'));
+    return;
+  }
+
+  console.log('✅ Heartbeat initialized, button found:', tapBtn);
+
+  tapBtn.addEventListener('click', async () => {
+    console.log('💓 Heart button clicked!');
 
     try {
-      await fetch(`${window.API_BASE}/api/presence`, {
+      pulse();
+
+      if (window.app && window.app.triggerHeartbeat) {
+        window.app.triggerHeartbeat();
+      } else {
+        console.warn('⚠️ window.app.triggerHeartbeat not available');
+      }
+
+      const response = await fetch(`${window.API_BASE}/api/presence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role, tap: true })
       });
+
+      console.log('💓 Heartbeat sent, response:', response.status);
     } catch (err) {
-      console.error('Send tap error:', err);
+      console.error('❌ Send tap error:', err);
     }
   });
 }
