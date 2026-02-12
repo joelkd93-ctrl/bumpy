@@ -1290,8 +1290,17 @@ function renderAuctionGame(container, cleanupStack) {
 
   // 2. HELPER: Save & Render
   const saveAndRender = () => {
+    console.log('💾 Saving auction state:', {
+      andrineCoins: state.profiles.andrine.coins,
+      partnerCoins: state.profiles.partner.coins,
+      ownedItems: state.ownedRewards.length
+    });
     storage.set('love_auction_v2', state);
-    storage.syncWithCloud(); // Fire & Forget
+    storage.syncWithCloud().then(() => {
+      console.log('✅ Auction state synced to cloud');
+    }).catch(err => {
+      console.error('❌ Auction sync failed:', err);
+    });
     renderUI();
   };
 
@@ -1512,8 +1521,8 @@ function renderAuctionGame(container, cleanupStack) {
 
   // --- TAB: INVENTORY ---
   const renderInventoryTab = (user, profile) => {
-    // Inventory Items logic
-    const all = state.ownedRewards.filter(r => r.payer === user || r.payer === 'BEGGE');
+    // Show ALL owned items (both yours and partner's)
+    const all = state.ownedRewards;
     const filtered = all.filter(r => {
       if (inventoryDetail === 'ready') return r.status === 'READY' || r.status === 'WON';
       if (inventoryDetail === 'redeemed') return r.status === 'REDEEMED';
@@ -1532,16 +1541,23 @@ function renderAuctionGame(container, cleanupStack) {
           ${filtered.length === 0 ? '<p class="text-center text-muted py-8">Her var det tomt...</p>' : ''}
           ${filtered.map(item => {
       const isPending = item.waitingForPartnerConfirmation;
+      const isOwner = item.payer === user || item.payer === 'BEGGE';
+      const ownerName = item.payer === 'andrine' ? 'Andrine 💗' :
+                        item.payer === 'partner' ? 'Yoel 💙' :
+                        'Begge 💕';
       return `
-               <div class="inventory-card">
+               <div class="inventory-card ${!isOwner ? 'opacity-75' : ''}">
                  ${item.status === 'WON' ? '<div class="status-badge status-won">VUNNET</div>' : ''}
                  ${item.status === 'REDEEMED' ? '<div class="status-badge status-redeemed">BRUKT</div>' : ''}
-                 
+
                  <h4 class="shop-title">${item.title}</h4>
-                 <p class="text-xs text-muted mb-3">Fra: ${item.source}</p>
+                 <p class="text-xs text-muted mb-1">Fra: ${item.source}</p>
+                 <p class="text-xs font-bold mb-3" style="color: ${item.payer === 'andrine' ? '#FF8FAB' : item.payer === 'partner' ? '#89CFF0' : '#FFB6C1'}">Eier: ${ownerName}</p>
                  
                  ${item.status !== 'REDEEMED' ? `
-                   ${item.requiresBothConfirm && !item.confirmations?.[user] ? `
+                   ${!isOwner ? `
+                     <p class="text-xs text-center text-muted">Dette tilhører ${ownerName}</p>
+                   ` : item.requiresBothConfirm && !item.confirmations?.[user] ? `
                      <button class="btn btn-primary btn-block btn-sm" onclick="window.redeemItem('${user}', '${item.id}')">
                        Jeg bekrefter 🤝
                      </button>
@@ -1609,6 +1625,9 @@ function renderAuctionGame(container, cleanupStack) {
     // Daily Claim
     container.querySelector('#btn-daily-claim')?.addEventListener('click', () => {
       const active = state.activeProfileId;
+      const oldCoins = state.profiles[active].coins;
+      console.log(`💰 Daily claim for ${active}: ${oldCoins} -> ${oldCoins + 10} coins`);
+
       addLedger(state, 'DAILY_CLAIM', active, 10, { desc: 'Daglig bonus' });
       state.profiles[active].coins += 10;
       storage.set(`last_coin_claim_${active}`, new Date().toDateString());
@@ -1756,7 +1775,14 @@ function renderAuctionGame(container, cleanupStack) {
     // Reload state from storage (in case partner updated it)
     const freshState = storage.get('love_auction_v2', null);
     if (freshState) {
-      state = freshState;
+      console.log('🔄 Syncing fresh state from cloud:', {
+        andrineCoins: freshState.profiles.andrine.coins,
+        partnerCoins: freshState.profiles.partner.coins,
+        ownedItems: freshState.ownedRewards.length
+      });
+
+      // Update state object in-place (don't replace reference)
+      Object.assign(state, freshState);
     }
 
     tickAuctions(state); // Check settlements
