@@ -103,53 +103,51 @@ function renderEvent(event) {
 }
 
 export function initTimeline() {
-  // Handle delete buttons (prevent duplicate listeners)
-  if (!window._timelineDeleteHandlerAttached) {
-    const handleDelete = async (e) => {
-      const deleteBtn = e.target.closest('.delete-timeline-entry');
-      if (!deleteBtn) return;
-
-      // Prevent multiple triggers
-      if (deleteBtn.disabled) return;
-      deleteBtn.disabled = true;
-
-      const id = deleteBtn.dataset.id;
-      const type = deleteBtn.dataset.type;
-
-      // Confirm deletion
-      const confirmed = confirm('Er du sikker på at du vil slette dette?');
-      if (!confirmed) {
-        deleteBtn.disabled = false;
-        return;
-      }
-
-      // Haptic feedback
-      if (window.haptic) window.haptic.medium();
-
-      // Delete based on type
-      const prefix = type === 'journal' ? 'journal' :
-                     type === 'mood' ? 'mood_entries' :
-                     type === 'kick' ? 'kicks' : null;
-
-      if (prefix) {
-        // Delete locally
-        await storage.removeFromCollection(prefix, id);
-
-        // Sync deletion to cloud so it deletes on all devices
-        console.log(`🗑️ Syncing deletion to cloud: ${type} ${id}`);
-        await storage.syncWithCloud({ only: [prefix] });
-        console.log(`✅ Deletion synced to cloud`);
-
-        // Refresh page
-        if (window.app?.refreshCurrentPage) {
-          setTimeout(() => {
-            window.app.refreshCurrentPage();
-          }, 500);
-        }
-      }
-    };
-
-    document.addEventListener('click', handleDelete);
-    window._timelineDeleteHandlerAttached = true;
+  // Remove old handler flag — re-attach cleanly each time page loads
+  // (using document listener with guard instead of persistent flag)
+  if (window._timelineDeleteHandler) {
+    document.removeEventListener('click', window._timelineDeleteHandler);
   }
+
+  const handleDelete = async (e) => {
+    const deleteBtn = e.target.closest('.delete-timeline-entry');
+    if (!deleteBtn) return;
+
+    if (deleteBtn.disabled) return;
+    deleteBtn.disabled = true;
+
+    const id = deleteBtn.dataset.id;
+    const type = deleteBtn.dataset.type;
+
+    const confirmed = confirm('Er du sikker på at du vil slette dette?');
+    if (!confirmed) {
+      deleteBtn.disabled = false;
+      return;
+    }
+
+    if (window.haptic) window.haptic.medium();
+
+    const prefix = type === 'journal' ? 'journal' :
+                   type === 'mood' ? 'mood_entries' :
+                   type === 'kick' ? 'kicks' : null;
+
+    if (prefix) {
+      // Delete locally + cloud DELETE request (handled inside removeFromCollection)
+      await storage.removeFromCollection(prefix, id);
+
+      // For kicks, also sync the full updated list so cloud state stays clean
+      if (type === 'kick') {
+        await storage.syncWithCloud({ only: ['kicks'] });
+      }
+
+      if (window.app?.refreshCurrentPage) {
+        setTimeout(() => {
+          window.app.refreshCurrentPage();
+        }, 300);
+      }
+    }
+  };
+
+  document.addEventListener('click', handleDelete);
+  window._timelineDeleteHandler = handleDelete;
 }

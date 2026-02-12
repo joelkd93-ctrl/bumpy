@@ -98,13 +98,12 @@ export function initKicks() {
   const finishBtn = document.getElementById('finish-session');
   const role = localStorage.getItem('who_am_i') || 'andrine';
 
-  // Force refresh kick data when page loads (ensures latest from cloud)
-  console.log('🦶 Kicks page loaded, pulling latest data...');
-  if (window.storage && window.storage.pullFromCloud) {
-    window.storage.pullFromCloud().then(() => {
-      console.log('✅ Latest kick data loaded');
-      // Only refresh if we're still on kicks page
-      if (window.app.getCurrentTab() === 'kicks') {
+  // Pull latest kick data from cloud on page load
+  // But skip if we just synced (avoids pulling stale data over fresh local state)
+  const skipPull = localStorage.getItem('bumpy:skip_pull') === 'true';
+  if (!skipPull && window.storage && window.storage.pullFromCloud) {
+    window.storage.pullFromCloud().then((hasChanges) => {
+      if (hasChanges && window.app.getCurrentTab() === 'kicks') {
         window.app.refreshCurrentPage();
       }
     }).catch(err => {
@@ -171,18 +170,23 @@ export function initKicks() {
     if (session) {
       const endTime = new Date();
       const startTime = new Date(session.startTime);
-      const durationMinutes = Math.round((endTime - startTime) / 60000); // minutes
+      const durationMinutes = Math.round((endTime - startTime) / 60000);
 
-      // Save to local collection with unique ID
+      // Use a stable ID based on startTime — prevents double-save if button tapped twice
+      const sessionId = String(new Date(session.startTime).getTime());
+
       const savedSession = {
-        id: `kick_${Date.now()}`,
-        ...session,
+        startTime: session.startTime,
         endTime: endTime.toISOString(),
-        duration: durationMinutes
+        count: session.count,
+        duration: durationMinutes,
+        date: session.startTime
       };
 
-      storage.addToCollection('kicks', savedSession);
-      // Note: addToCollection already syncs to cloud
+      // Save directly with explicit ID — avoids addToCollection generating a second ID
+      storage.set(`kicks:${sessionId}`, savedSession, true); // skipSync
+      // Now sync just kicks to cloud
+      await storage.syncWithCloud({ only: ['kicks'] });
 
       storage.remove('current_kick_session');
 
