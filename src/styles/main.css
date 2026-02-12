@@ -441,7 +441,8 @@ input, textarea, select {
 #modal-root {
   position: fixed;
   inset: 0;
-  height: var(--vvh);
+  width: 100%;
+  height: 100%;
   z-index: 9999;
   transform: none !important;
   filter: none !important;
