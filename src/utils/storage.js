@@ -499,31 +499,7 @@ export const storage = {
 
         if (hasChanged) {
           console.log('☁️ Pulled and updated data from cloud');
-
-          // Don't interrupt if a game modal is open - let the game handle its own refresh
-          const gameModal = document.getElementById('game-modal');
-          const isModalOpen = gameModal &&
-                               gameModal.style.display === 'flex' &&
-                               gameModal.offsetParent !== null;
-
-          console.log(`🔍 Modal check: exists=${!!gameModal}, display=${gameModal?.style.display}, visible=${gameModal?.offsetParent !== null}, skipCelebration=${skipCelebration}`);
-
-          if (!isModalOpen && !skipCelebration) {
-            celebrate();
-
-            // Trigger a refresh if in standalone mode (PWA)
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-              console.log('📱 PWA detected - refreshing to show synced data');
-              setTimeout(() => {
-                if (window.app?.refreshCurrentPage) {
-                  window.app.refreshCurrentPage();
-                }
-              }, 1000);
-            }
-          } else {
-            console.log('🎮 Game modal open or skipCelebration=true - skipping confetti/refresh');
-          }
-
+          // Storage layer should NOT control UI - let pages handle their own refresh
           return true;
         }
         console.log('🔽 No changes detected, skipping update');

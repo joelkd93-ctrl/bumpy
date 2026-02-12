@@ -740,13 +740,21 @@ function spawnFloatingEmoji() {
   setTimeout(() => el.remove(), 4500);
 }
 
+// Helper to check if game modal is open
+function isGameModalOpen() {
+  const gameModal = document.getElementById('game-modal');
+  return gameModal && gameModal.style.display === 'flex';
+}
+
 // Auto-sync when page becomes visible (user switches back to app)
 document.addEventListener('visibilitychange', async () => {
   if (!document.hidden) {
     console.log('👀 App visible - pulling updates...');
     const hasUpdates = await storage.pullFromCloud();
-    if (hasUpdates && window.app?.refreshCurrentPage) {
+    if (hasUpdates && window.app?.refreshCurrentPage && !isGameModalOpen()) {
       window.app.refreshCurrentPage();
+    } else if (hasUpdates && isGameModalOpen()) {
+      console.log('🎮 Game modal open - skipping refresh');
     }
   }
 });
@@ -755,9 +763,12 @@ document.addEventListener('visibilitychange', async () => {
 const autoPull = async () => {
   console.log('⏰ Auto-pull', document.hidden ? '[minimized]' : '[visible]');
   const hasUpdates = await storage.pullFromCloud();
-  // Only refresh UI if app is visible
-  if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage) {
+  // Only refresh UI if app is visible AND modal is not open
+  if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage && !isGameModalOpen()) {
+    console.log('📱 Auto-refresh triggered');
     window.app.refreshCurrentPage();
+  } else if (hasUpdates && isGameModalOpen()) {
+    console.log('🎮 Game modal open - skipping auto-refresh');
   }
 };
 
@@ -779,9 +790,11 @@ if ('serviceWorker' in navigator) {
       console.log('🔄 Service worker detected updates, pulling from cloud');
       const hasUpdates = await storage.pullFromCloud();
 
-      // Refresh UI if app is visible and has updates
-      if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage) {
+      // Refresh UI if app is visible and has updates AND modal not open
+      if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage && !isGameModalOpen()) {
         window.app.refreshCurrentPage();
+      } else if (hasUpdates && isGameModalOpen()) {
+        console.log('🎮 Game modal open - skipping SW refresh');
       }
     }
   });
