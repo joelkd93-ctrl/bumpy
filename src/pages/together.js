@@ -1597,10 +1597,13 @@ function renderAuctionGame(container, cleanupStack) {
 
         <div class="mt-8 mb-8 text-center animate-fade-in">
            <p class="text-xs text-muted mb-3 opacity-60">Data lagres lokalt i nettleseren.</p>
-           <div class="flex gap-3 justify-center">
+           <div class="flex gap-3 justify-center mb-4">
              <button class="btn-backup" onclick="window.exportAuctionJSON()">Lagre Backup 💾</button>
              <button class="btn-backup" onclick="window.importAuctionJSON()">Gjenopprett 📥</button>
            </div>
+           <button class="btn btn-ghost btn-small" id="reset-auction" style="color: rgba(255,0,0,0.6);">
+             🔄 Nullstill alt (reset coins & kjøp)
+           </button>
         </div>
       </div>
     `;
@@ -1627,16 +1630,66 @@ function renderAuctionGame(container, cleanupStack) {
     });
 
     // Daily Claim
-    container.querySelector('#btn-daily-claim')?.addEventListener('click', () => {
+    container.querySelector('#btn-daily-claim')?.addEventListener('click', (e) => {
+      const btn = e.target;
+      if (btn.disabled) return; // Prevent double-click
+
       const active = state.activeProfileId;
+      const today = new Date().toDateString();
+      const lastClaim = storage.get(`last_coin_claim_${active}`, null);
+
+      if (lastClaim === today) {
+        console.log(`⚠️ Daily bonus already claimed today`);
+        return;
+      }
+
       const oldCoins = state.profiles[active].coins;
       console.log(`💰 Daily claim for ${active}: ${oldCoins} -> ${oldCoins + 10} coins`);
 
+      // Disable button immediately
+      btn.disabled = true;
+      btn.textContent = 'Hentet ✅';
+
+      // Mark as claimed FIRST
+      storage.set(`last_coin_claim_${active}`, today);
+      lastSaveTime = Date.now(); // Prevent immediate pull
+
+      // Update state
       addLedger(state, 'DAILY_CLAIM', active, 10, { desc: 'Daglig bonus' });
       state.profiles[active].coins += 10;
-      storage.set(`last_coin_claim_${active}`, new Date().toDateString());
+
       saveAndRender();
       if (navigator.vibrate) navigator.vibrate(50);
+    });
+
+    // Reset Auction
+    container.querySelector('#reset-auction')?.addEventListener('click', async () => {
+      const confirmed = confirm('Er du SIKKER? Dette sletter alle coins, kjøp og auksjonsoversikt. Kan ikke angres!');
+      if (!confirmed) return;
+
+      // Reset state to default
+      state.profiles.andrine.coins = 50;
+      state.profiles.partner.coins = 50;
+      state.profiles.andrine.weeklyEarned = 0;
+      state.profiles.partner.weeklyEarned = 0;
+      state.ownedRewards = [];
+      state.ledger = [];
+      state.auctions = [];
+
+      // Clear daily claim records
+      storage.remove('last_coin_claim_andrine');
+      storage.remove('last_coin_claim_partner');
+
+      // Clear task records (all of today's tasks)
+      const today = new Date().toDateString();
+      ['hug', 'letter', 'tidy'].forEach(taskId => {
+        storage.remove(`task_${taskId}_andrine_${today}`);
+        storage.remove(`task_${taskId}_partner_${today}`);
+      });
+
+      console.log('🔄 Auction reset to default state');
+      saveAndRender();
+      alert('✅ Alt er nullstilt! Begge har 50 coins.');
     });
   };
 
@@ -1647,11 +1700,21 @@ function renderAuctionGame(container, cleanupStack) {
   window.handleSoftTask = (user, taskId, amount) => {
     const today = new Date().toDateString();
     const key = `task_${taskId}_${user}_${today}`;
-    if (storage.get(key, false)) return;
+    if (storage.get(key, false)) {
+      console.log(`⚠️ Task ${taskId} already claimed today`);
+      return;
+    }
 
+    console.log(`💰 Task ${taskId} for ${user}: +${amount} coins`);
+
+    // Mark as claimed FIRST (prevent double-click)
     storage.set(key, true);
+    lastSaveTime = Date.now(); // Prevent immediate pull
+
+    // Update state
     state.profiles[user].coins += amount;
     addLedger(state, 'TASK', user, amount, { desc: taskId });
+
     saveAndRender();
     if (navigator.vibrate) navigator.vibrate([30, 30]);
   };
@@ -1659,6 +1722,13 @@ function renderAuctionGame(container, cleanupStack) {
   window.buyShopItem = (user, itemId) => {
     const item = state.shopItems.find(i => i.id === itemId);
     if (!item || state.profiles[user].coins < item.cost) return;
+
+    // Disable button immediately to prevent double-click
+    const btn = document.querySelector(`button[onclick*="${itemId}"]`);
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Kjøper... ⏳';
+    }
 
     if (item.requiresBothConfirm) {
       // Logic for split pay is tricky with instant buy. Simpler: One buys, other confirms later?
@@ -1718,8 +1788,19 @@ function renderAuctionGame(container, cleanupStack) {
     });
 
     console.log(`🛒 ${user} bought ${item.title} (payer: ${actualPayer})`);
-    saveAndRender();
-    if (navigator.vibrate) navigator.vibrate(50);
+
+    // Show success feedback
+    if (btn) {
+      btn.textContent = '✅ Kjøpt!';
+      btn.style.background = '#4ade80';
+      setTimeout(() => {
+        saveAndRender(); // Render after showing success
+      }, 500);
+    } else {
+      saveAndRender();
+    }
+
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
   };
 
   window.placeBid = (user, aucId, amount) => {
