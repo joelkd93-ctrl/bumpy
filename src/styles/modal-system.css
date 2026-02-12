@@ -18,6 +18,9 @@ body.modal-active {
 .modal-backdrop {
   position: fixed;
   inset: 0;
+  top: 0;
+  bottom: auto;
+  height: var(--vvh);
   z-index: 1000;
   background: rgba(0, 0, 0, 0);
   backdrop-filter: none !important;
@@ -43,6 +46,9 @@ body.modal-active {
 .modal-container {
   position: fixed;
   inset: 0;
+  top: 0;
+  bottom: auto;
+  height: var(--vvh);
   z-index: 1001;
   display: flex;
   align-items: flex-end; /* Sheet-style from bottom */
@@ -135,13 +141,6 @@ body.modal-active {
   }
 }
 
-/* iOS Safari viewport fix */
-@supports (-webkit-touch-callout: none) {
-  .modal-card {
-    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10vh);
-  }
-}
-
 /* ─────────────────────────────────────────────────────────────────────────────
    🎯 ACCESSIBILITY & FOCUS MANAGEMENT
    ───────────────────────────────────────────────────────────────────────────── */
@@ -163,8 +162,7 @@ body.modal-active {
 
 /* Full-height modal (no max-height) */
 .modal-card.modal-full {
-  max-height: 100vh;
-  max-height: 100dvh;
+  max-height: var(--vvh);
   border-radius: 0;
 }
 

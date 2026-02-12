@@ -23,6 +23,20 @@ import { renderTogether, initTogether } from './pages/together.js';
 import { renderKicks, initKicks } from './pages/kicks.js';
 import { renderSettings, initSettings } from './pages/settings.js';
 
+// Keep a stable visual viewport unit for iOS standalone/PWA modal geometry
+function setVV() {
+  const vv = window.visualViewport;
+  const h = vv ? vv.height : window.innerHeight;
+  document.documentElement.style.setProperty('--vvh', `${h}px`);
+}
+
+setVV();
+window.addEventListener('resize', setVV);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', setVV);
+  window.visualViewport.addEventListener('scroll', setVV);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 📳 HAPTIC FEEDBACK
 // ═══════════════════════════════════════════════════════════════
