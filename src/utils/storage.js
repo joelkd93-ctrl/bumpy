@@ -278,7 +278,8 @@ export const storage = {
     }
   },
 
-  async pullFromCloud() {
+  async pullFromCloud(options = {}) {
+    const { skipCelebration = false } = options;
     console.log('🔽 Starting pullFromCloud...');
 
     // Prevent pulling immediately after pushing to avoid race condition
@@ -505,9 +506,9 @@ export const storage = {
                                gameModal.style.display === 'flex' &&
                                gameModal.offsetParent !== null;
 
-          console.log(`🔍 Modal check: exists=${!!gameModal}, display=${gameModal?.style.display}, visible=${gameModal?.offsetParent !== null}`);
+          console.log(`🔍 Modal check: exists=${!!gameModal}, display=${gameModal?.style.display}, visible=${gameModal?.offsetParent !== null}, skipCelebration=${skipCelebration}`);
 
-          if (!isModalOpen) {
+          if (!isModalOpen && !skipCelebration) {
             celebrate();
 
             // Trigger a refresh if in standalone mode (PWA)
@@ -520,7 +521,7 @@ export const storage = {
               }, 1000);
             }
           } else {
-            console.log('🎮 Game modal open - skipping confetti/refresh (game will handle)');
+            console.log('🎮 Game modal open or skipCelebration=true - skipping confetti/refresh');
           }
 
           return true;

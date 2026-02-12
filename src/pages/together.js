@@ -679,6 +679,7 @@ function renderGuessGame(container) {
 
 // State tracking to prevent flickering
 let lastRenderedState = { name: null, waiting: null, finished: null };
+let pendingMatch = null; // Track name that just matched
 
 function renderNamesGame(container, cleanupStack) {
   const votes = storage.get('name_votes', {});
@@ -688,6 +689,33 @@ function renderNamesGame(container, cleanupStack) {
   // Use global identity
   const currentPlayer = localStorage.getItem('who_am_i') || 'andrine';
   const partnerRole = currentPlayer === 'andrine' ? 'partner' : 'andrine';
+
+  // Check if any name just became a match (both voted love)
+  const newMatch = allNames.find(name => {
+    const v = votes[name] || {};
+    const matches = storage.get('matched_names', []);
+    return v.andrine === 'love' && v.partner === 'love' && !matches.includes(name);
+  });
+
+  // If we found a new match, save it and show overlay
+  if (newMatch && newMatch !== pendingMatch) {
+    console.log(`💕 NEW MATCH DETECTED: ${newMatch}`);
+    pendingMatch = newMatch;
+    const matches = storage.get('matched_names', []);
+    matches.push(newMatch);
+    storage.set('matched_names', matches);
+
+    // Show match overlay
+    setTimeout(() => {
+      showMatchOverlay(newMatch);
+      // After match animation, clear pending and continue
+      setTimeout(() => {
+        pendingMatch = null;
+        renderNamesGame(container, cleanupStack);
+      }, 2500);
+    }, 100);
+    return; // Don't render the normal game UI yet
+  }
 
   // Find the first name that is NOT fully completed (both voted)
   const currentName = allNames.find(name => {
@@ -813,35 +841,11 @@ function renderNamesGame(container, cleanupStack) {
         console.warn('Failed to sync vote:', err);
       });
 
-      // Check for match IMMEDIATELY to celebrate Tinder-style!
-      const isMatch = votes[name].andrine === 'love' && votes[name].partner === 'love';
-
-      if (isMatch) {
-        // Save to matches
-        const matches = storage.get('matched_names', []);
-        if (!matches.includes(name)) {
-          matches.push(name);
-          storage.set('matched_names', matches);
-        }
-
-        // Show Tinder-style match overlay
-        showMatchOverlay(name, card);
-
-        // Haptic celebration
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
-
-        // Wait 2.5s, then move to next name
-        const matchTimeout = setTimeout(() => {
-          renderNamesGame(container, cleanupStack);
-        }, 2500);
-        cleanupStack.push(() => clearTimeout(matchTimeout));
-      } else {
-        // No match - render next state (Wait or Next Name) after animation
-        const namesTimeout = setTimeout(() => {
-          renderNamesGame(container, cleanupStack);
-        }, 300);
-        cleanupStack.push(() => clearTimeout(namesTimeout));
-      }
+      // Re-render after animation (match check will happen in render function)
+      const namesTimeout = setTimeout(() => {
+        renderNamesGame(container, cleanupStack);
+      }, 300);
+      cleanupStack.push(() => clearTimeout(namesTimeout));
     });
   });
 
@@ -855,7 +859,7 @@ function renderNamesGame(container, cleanupStack) {
     if (btn) btn.textContent = 'Synkroniserer... 🔄';
 
     await storage.syncWithCloud();
-    await storage.pullFromCloud();
+    await storage.pullFromCloud({ skipCelebration: true });
 
     renderNamesGame(container);
   });
@@ -881,7 +885,10 @@ function renderNamesGame(container, cleanupStack) {
 }
 
 // Tinder-style match overlay animation
-function showMatchOverlay(matchedName, cardElement) {
+function showMatchOverlay(matchedName) {
+  // Haptic celebration
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+
   // Create overlay
   const overlay = document.createElement('div');
   overlay.className = 'match-overlay';
@@ -1872,8 +1879,8 @@ function startPresenceHeartbeat(role, container, cleanupStack) {
         indicator.querySelector('.status-text').textContent = 'Venter på partner...';
       }
 
-      // Pull latest votes from cloud and check if we need to re-render
-      await storage.pullFromCloud();
+      // Pull latest votes from cloud (skip confetti during game)
+      await storage.pullFromCloud({ skipCelebration: true });
 
       // Check if game state changed (partner voted or we can advance)
       const votes = storage.get('name_votes', {});
