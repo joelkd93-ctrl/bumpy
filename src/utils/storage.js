@@ -498,16 +498,24 @@ export const storage = {
 
         if (hasChanged) {
           console.log('☁️ Pulled and updated data from cloud');
-          celebrate();
 
-          // Trigger a refresh if in standalone mode (PWA)
-          if (window.matchMedia('(display-mode: standalone)').matches) {
-            console.log('📱 PWA detected - refreshing to show synced data');
-            setTimeout(() => {
-              if (window.app?.refreshCurrentPage) {
-                window.app.refreshCurrentPage();
-              }
-            }, 1000);
+          // Don't interrupt if a game modal is open - let the game handle its own refresh
+          const gameModalOpen = document.getElementById('game-modal')?.style.display !== 'none';
+
+          if (!gameModalOpen) {
+            celebrate();
+
+            // Trigger a refresh if in standalone mode (PWA)
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+              console.log('📱 PWA detected - refreshing to show synced data');
+              setTimeout(() => {
+                if (window.app?.refreshCurrentPage) {
+                  window.app.refreshCurrentPage();
+                }
+              }, 1000);
+            }
+          } else {
+            console.log('🎮 Game modal open - skipping confetti/refresh (game will handle)');
           }
 
           return true;
