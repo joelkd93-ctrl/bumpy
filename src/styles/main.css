@@ -1684,8 +1684,15 @@ body.modal-active {
   right: 0;
   bottom: 0;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18);
-  animation: sheetSlideUp 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
   pointer-events: auto;
+}
+
+/* Diagnostic: kill transform propagation inside modal content for iOS standalone compositor test */
+.game-modal-content * {
+  transform: none !important;
 }
 
 /* iOS Modal Handler */

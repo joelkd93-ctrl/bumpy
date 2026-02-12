@@ -81,11 +81,11 @@ body.modal-active {
   /* Enable pointer events on modal */
   pointer-events: auto;
 
-  /* Animation hints */
-  will-change: transform, opacity;
-
-  /* Smooth slide-up animation */
-  animation: modalSlideUp 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
+  /* Diagnostic: disable transform-based animation on iOS standalone compositor path */
+  will-change: auto;
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
 }
 
 @keyframes modalSlideUp {
