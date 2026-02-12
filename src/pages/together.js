@@ -2141,6 +2141,7 @@ function renderNaughtyGame(container, cleanupStack) {
   let selectedLevel = null;
   let activeProps = new Set();
   let lastDare = null;
+  let lastDareText = null;
 
   function render() {
     const savedPlan = storage.get('naughty_plan') || {};
@@ -2253,13 +2254,17 @@ function renderNaughtyGame(container, cleanupStack) {
       }
       const all = Object.keys(NAUGHTY_LEVEL_META);
       const lvl = selectedLevel || all[Math.floor(Math.random() * all.length)];
-      const dares = NAUGHTY_DARES[lvl];
+      const baseDares = NAUGHTY_DARES[lvl] || [];
+      const filteredDares = baseDares.filter(d => d !== lastDareText);
+      const dares = filteredDares.length > 0 ? filteredDares : baseDares;
       const dare = dares[Math.floor(Math.random() * dares.length)];
       const allProps = activeProps.size > 0
         ? [...activeProps]
         : [...NAUGHTY_PROPS.control, ...NAUGHTY_PROPS.pleasure];
       const prop = allProps[Math.floor(Math.random() * allProps.length)];
       lastDare = { dare, prop, level: lvl, levelLabel: NAUGHTY_LEVEL_META[lvl].label };
+      lastDareText = dare;
+      console.log('😈 Naughty dare roll:', { lvl, dare });
       render();
     });
 
