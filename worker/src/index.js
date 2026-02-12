@@ -181,25 +181,34 @@ async function handleInit(env) {
   }
 
   // FIX: Remove UNIQUE(week_number) constraint to allow multiple entries per week
+  // Check if migration already completed by checking if journal_entries exists
   try {
-    console.log('🔧 Migrating journal_entries table to remove UNIQUE constraint...');
-    await client.execute(`ALTER TABLE journal_entries RENAME TO journal_entries_old`);
-    await client.execute(`
-      CREATE TABLE journal_entries (
-        id TEXT PRIMARY KEY,
-        week_number INTEGER,
-        photo_blob TEXT,
-        note TEXT,
-        entry_date TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
-      )
+    const tableCheck = await client.execute(`
+      SELECT name FROM sqlite_master WHERE type='table' AND name='journal_entries'
     `);
-    await client.execute(`
-      INSERT INTO journal_entries (id, week_number, photo_blob, note, entry_date, created_at)
-      SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries_old
-    `);
-    await client.execute(`DROP TABLE journal_entries_old`);
-    console.log('✅ Migration complete - UNIQUE constraint removed');
+
+    if (tableCheck.rows.length > 0) {
+      console.log('✅ journal_entries table exists - migration already complete');
+    } else {
+      console.log('🔧 Migrating journal_entries table to remove UNIQUE constraint...');
+      await client.execute(`ALTER TABLE journal_entries RENAME TO journal_entries_old`);
+      await client.execute(`
+        CREATE TABLE journal_entries (
+          id TEXT PRIMARY KEY,
+          week_number INTEGER,
+          photo_blob TEXT,
+          note TEXT,
+          entry_date TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.execute(`
+        INSERT INTO journal_entries (id, week_number, photo_blob, note, entry_date, created_at)
+        SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries_old
+      `);
+      await client.execute(`DROP TABLE journal_entries_old`);
+      console.log('✅ Migration complete - UNIQUE constraint removed');
+    }
   } catch (e) {
     console.warn('⚠️ Migration skipped (table already migrated or error):', e.message);
   }
