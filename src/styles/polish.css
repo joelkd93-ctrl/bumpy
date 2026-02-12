@@ -90,8 +90,6 @@
     rgba(255, 245, 250, 0.98) 0%,
     rgba(255, 228, 240, 0.96) 100%
   );
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid rgba(255, 192, 203, 0.3);
   /* Limit height to prevent overflow - leave safe space at top/bottom */
   max-height: 80vh;
