@@ -42,102 +42,108 @@ export function renderTimeline() {
 }
 
 function renderEvent(event) {
-  const dateStr = new Date(event.sortDate).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+  const dateStr = new Date(event.sortDate).toLocaleDateString('nb-NO', {
+    day: 'numeric', month: 'short'
   });
 
-  let content = '';
-  let badgeClass = `badge-${event.type}`;
-  let typeLabel = event.type;
-
+  // Use journal-entry styling for all events
   if (event.type === 'journal') {
-    if (event.isSpecial) {
-      content = `
-        <div class="text-center py-2">
-          <div class="timeline-special-icon">👶💙</div>
-          <h3 class="timeline-special-heading">Det er en Gutt!</h3>
-          <p class="timeline-special-note">${event.note}</p>
+    return `
+      <div class="journal-entry" data-id="${event.id}">
+        <div class="journal-header">
+          <div>
+            <span class="journal-week">Uke ${event.week}</span>
+            <span class="journal-date">${dateStr}</span>
+          </div>
+          <div>
+            <button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="${event.type}" aria-label="Slett">
+              🗑️
+            </button>
+          </div>
         </div>
-      `;
-      badgeClass = 'badge-boy';
-      typeLabel = 'Milepæl';
-    } else {
-      content = `
-        ${event.photo ? `<img src="${event.photo}" class="timeline-img" loading="lazy" decoding="async" />` : ''}
-        <p class="font-bold">Uke ${event.week} Magebilde! 📸</p>
-        ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
-      `;
-    }
+        ${event.photo ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : ''}
+        ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
+      </div>
+    `;
   } else if (event.type === 'mood') {
-    content = `
-      <div class="flex items-center gap-4">
-        <span class="timeline-mood-icon">${event.mood}</span>
-        <div>
-          <p class="font-bold">Føler seg ${event.mood}</p>
-          ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
+    return `
+      <div class="journal-entry" data-id="${event.id}">
+        <div class="journal-header">
+          <div>
+            <span class="journal-week">${event.mood} Stemning</span>
+            <span class="journal-date">${dateStr}</span>
+          </div>
+          <div>
+            <button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="${event.type}" aria-label="Slett">
+              🗑️
+            </button>
+          </div>
         </div>
+        ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
       </div>
     `;
   } else if (event.type === 'kick') {
-    content = `
-      <div class="flex items-center gap-4">
-        <span class="timeline-kick-icon">🦶</span>
-        <div>
-          <p class="font-bold">${event.count} Spark Talt</p>
-          <p class="text-warm">Varte i ${event.duration} minutter</p>
+    return `
+      <div class="journal-entry" data-id="${event.id}">
+        <div class="journal-header">
+          <div>
+            <span class="journal-week">🦶 ${event.count} Spark</span>
+            <span class="journal-date">${dateStr}</span>
+          </div>
+          <div>
+            <button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="${event.type}" aria-label="Slett">
+              🗑️
+            </button>
+          </div>
         </div>
+        <p class="journal-note">Økten varte i ${event.duration} minutter</p>
       </div>
     `;
   }
-
-  return `
-    <div class="timeline-item type-${event.type}" data-id="${event.id}" data-type="${event.type}">
-      <div class="card timeline-card">
-        <div class="flex-between">
-          <div>
-            <span class="timeline-date">${dateStr}</span>
-            <span class="timeline-type-badge ${badgeClass}">${typeLabel}</span>
-          </div>
-          <button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="${event.type}" aria-label="Slett">
-            🗑️
-          </button>
-        </div>
-        ${content}
-      </div>
-    </div>
-  `;
 }
 
 export function initTimeline() {
-  // Handle delete buttons
-  document.addEventListener('click', async (e) => {
-    const deleteBtn = e.target.closest('.delete-timeline-entry');
-    if (!deleteBtn) return;
+  // Handle delete buttons (prevent duplicate listeners)
+  if (!window._timelineDeleteHandlerAttached) {
+    const handleDelete = async (e) => {
+      const deleteBtn = e.target.closest('.delete-timeline-entry');
+      if (!deleteBtn) return;
 
-    const id = deleteBtn.dataset.id;
-    const type = deleteBtn.dataset.type;
+      // Prevent multiple triggers
+      if (deleteBtn.disabled) return;
+      deleteBtn.disabled = true;
 
-    // Confirm deletion
-    const confirmed = confirm('Er du sikker på at du vil slette dette?');
-    if (!confirmed) return;
+      const id = deleteBtn.dataset.id;
+      const type = deleteBtn.dataset.type;
 
-    // Haptic feedback
-    if (window.haptic) window.haptic.medium();
-
-    // Delete based on type
-    const prefix = type === 'journal' ? 'journal' :
-                   type === 'mood' ? 'mood_entries' :
-                   type === 'kick' ? 'kicks' : null;
-
-    if (prefix) {
-      await storage.removeFromCollection(prefix, id);
-
-      // Refresh page
-      if (window.app?.refreshCurrentPage) {
-        setTimeout(() => {
-          window.app.refreshCurrentPage();
-        }, 500);
+      // Confirm deletion
+      const confirmed = confirm('Er du sikker på at du vil slette dette?');
+      if (!confirmed) {
+        deleteBtn.disabled = false;
+        return;
       }
-    }
-  });
+
+      // Haptic feedback
+      if (window.haptic) window.haptic.medium();
+
+      // Delete based on type
+      const prefix = type === 'journal' ? 'journal' :
+                     type === 'mood' ? 'mood_entries' :
+                     type === 'kick' ? 'kicks' : null;
+
+      if (prefix) {
+        await storage.removeFromCollection(prefix, id);
+
+        // Refresh page
+        if (window.app?.refreshCurrentPage) {
+          setTimeout(() => {
+            window.app.refreshCurrentPage();
+          }, 500);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleDelete);
+    window._timelineDeleteHandlerAttached = true;
+  }
 }
