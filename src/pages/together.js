@@ -51,6 +51,12 @@ const GAMES = [
     icon: '💸',
     title: 'Love Auction',
     description: 'Coins + små kjærlighetskjøp'
+  },
+  {
+    id: 'naughty',
+    icon: '😈',
+    title: 'Rampete Kveld',
+    description: 'Litt spicy moro for to 🔥'
   }
 ];
 
@@ -377,6 +383,9 @@ export function initTogether() {
         break;
       case 'auction':
         renderAuctionGame(content, modalCleanupStack);
+        break;
+      case 'naughty':
+        renderNaughtyGame(content, modalCleanupStack);
         break;
     }
 
@@ -1789,17 +1798,16 @@ function renderAuctionGame(container, cleanupStack) {
 
     console.log(`🛒 ${user} bought ${item.title} (payer: ${actualPayer})`);
 
-    // CRITICAL: Save IMMEDIATELY to prevent sync race condition
-    lastSaveTime = Date.now(); // Block pulls for 3 seconds
-    saveAndRender();
-
-    // Show success feedback AFTER saving (just UI feedback)
-    setTimeout(() => {
-      if (btn) {
-        btn.textContent = '✅ Kjøpt!';
-        btn.style.background = '#4ade80';
-      }
-    }, 100);
+    // Show success feedback
+    if (btn) {
+      btn.textContent = '✅ Kjøpt!';
+      btn.style.background = '#4ade80';
+      setTimeout(() => {
+        saveAndRender(); // Render after showing success
+      }, 500);
+    } else {
+      saveAndRender();
+    }
 
     if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
   };
@@ -2076,4 +2084,196 @@ function startPresenceHeartbeat(role, container, cleanupStack) {
   check();
   presenceInterval = setInterval(check, 5000);
   cleanupStack.push(() => clearInterval(presenceInterval));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 😈 RAMPETE KVELD
+// ═══════════════════════════════════════════════════════════════
+
+const NAUGHTY_DARES = {
+  soft: [
+    "Gi partneren din en 2-minutters nakkemassasje 💆",
+    "Si tre ting du elsker med kroppen hans 💕",
+    "Dans sakte til en sang dere begge liker 🎵",
+    "Kyss i 30 sekunder – ingen rush 💋",
+    "Gi hverandre en skikkelig klem – hold i 20 sekunder 🤗",
+    "Skriv ett ord som beskriver kvelden du vil ha 🌙",
+  ],
+  naughty: [
+    "Hvisk noe frekk i øret 😏",
+    "Massasje fra topp til tå – 5 minutter 🔥",
+    "Ta av ett plagg fra partneren din sakte 👀",
+    "Fortell en fantasi du aldri har delt 😈",
+    "Kysse-konkurranse: den som stopper taper 💋",
+    "Blind taste test – ett kyss, øynene lukket 👁️",
+  ],
+  bold: [
+    "Blindfold partneren og overrask dem 😈",
+    "Slow control – ingen hastverk tillatt 🔥",
+    "Ta kommando og bestem alt i 10 minutter 👑",
+    "Tease & Pause – stopp akkurat i det gode øyeblikket 😏",
+    "Lek med lys og skygger – kun stearinlys 🕯️",
+    "Iscenesjett favorittsituasjonen din 🎭",
+  ],
+  extra: [
+    "Wrist cuffs + blindfold = full overraskelse 😈🔥",
+    "Sensory focus: kun berøring, ingen ord 🫦",
+    "Rule Roulette – terningen bestemmer reglene 🎲",
+    "Tease i 10 minutter – absolutt ingenting mer 😈",
+    "Partneren din bestemmer alt – du har null valg 👑",
+    "Skriv en regel dere MÅ følge i kveld 📜🔥",
+  ]
+};
+
+const NAUGHTY_PROPS = {
+  control: ['Blindfold 🙈', 'Wrist Cuffs ⛓️', 'Teaser 🪶', 'Silk Scarf 🎀'],
+  pleasure: ['Vibrator 💜', 'Massage Oil 💆', 'Lube ✨', 'Surprise Toy 🎁'],
+};
+
+const NAUGHTY_LEVEL_META = {
+  soft:    { emoji: '😌', label: 'Soft & Sweet', color: '#E91E8C' },
+  naughty: { emoji: '😏', label: 'Naughty',      color: '#C2185B' },
+  bold:    { emoji: '🔥', label: 'Bold',          color: '#9B27AF' },
+  extra:   { emoji: '😈', label: 'Extra Naughty', color: '#6A1B9A' },
+};
+
+function renderNaughtyGame(container, cleanupStack) {
+  let selectedLevel = null;
+  let activeProps = new Set();
+  let lastDare = null;
+
+  function render() {
+    const savedPlan = storage.get('naughty_plan') || {};
+
+    container.innerHTML = `
+      <div class="naughty-game">
+
+        <div class="naughty-hero">
+          <div class="naughty-hero-title-row">
+            <span>🔥</span>
+            <h2 class="naughty-hero-title">Rampete Kveld</h2>
+            <span>😈</span>
+          </div>
+          <p class="naughty-hero-sub">La oss gjøre kvelden litt mer interessant…</p>
+        </div>
+
+        <p class="naughty-section-label">KVELDENS STEMNING</p>
+        <div class="naughty-level-grid">
+          ${Object.entries(NAUGHTY_LEVEL_META).map(([id, m]) => `
+            <button class="naughty-level-btn ${selectedLevel === id ? 'active' : ''}" data-level="${id}">
+              <span class="naughty-level-emoji">${m.emoji}</span>
+              <span class="naughty-level-text">${m.label}</span>
+            </button>
+          `).join('')}
+          <button class="naughty-level-btn naughty-surprise ${selectedLevel === 'random' ? 'active' : ''}" data-level="random">
+            <span class="naughty-level-emoji">🎲</span>
+            <span class="naughty-level-text">Surprise Me</span>
+          </button>
+        </div>
+
+        <p class="naughty-section-label" style="margin-top:24px;">PLAY KIT 😏</p>
+        <div class="naughty-kit-block">
+          <p class="naughty-kit-subtitle">😈 Control & Tease</p>
+          <div class="naughty-pills">
+            ${NAUGHTY_PROPS.control.map(p => `
+              <button class="naughty-pill ${activeProps.has(p) ? 'active' : ''}" data-prop="${p}">${p}</button>
+            `).join('')}
+          </div>
+          <p class="naughty-kit-subtitle" style="margin-top:12px;">🔥 Pleasure Boosters</p>
+          <div class="naughty-pills">
+            ${NAUGHTY_PROPS.pleasure.map(p => `
+              <button class="naughty-pill ${activeProps.has(p) ? 'active' : ''}" data-prop="${p}">${p}</button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="naughty-dare-wrap">
+          <button class="naughty-dare-btn" id="naughty-dare-btn">
+            <span class="naughty-dice" id="naughty-dice">🎲</span>
+            Dare Us!
+          </button>
+        </div>
+
+        <div class="naughty-result-card ${lastDare ? 'has-dare' : ''}" id="naughty-result">
+          ${lastDare ? `
+            <div class="naughty-result-badge">${NAUGHTY_LEVEL_META[lastDare.level]?.emoji} ${NAUGHTY_LEVEL_META[lastDare.level]?.label}</div>
+            <p class="naughty-result-dare">${lastDare.dare}</p>
+            <div class="naughty-result-prop">💥 ${lastDare.prop}</div>
+          ` : `<p class="naughty-result-empty">Klar for litt rampete moro? 😏</p>`}
+        </div>
+
+        ${lastDare ? `
+          <button class="naughty-save-btn" id="naughty-save">💾 Lagre Kveldplan</button>
+        ` : ''}
+
+        ${savedPlan.dare ? `
+          <div class="naughty-saved">
+            <p class="naughty-section-label">LAGRET PLAN 💾</p>
+            <p class="naughty-saved-dare">${savedPlan.dare}</p>
+            <p class="naughty-saved-meta">${savedPlan.levelLabel} · ${savedPlan.date}</p>
+          </div>
+        ` : ''}
+
+      </div>
+    `;
+
+    // Level buttons
+    container.querySelectorAll('.naughty-level-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (window.haptic) window.haptic.light();
+        let lvl = btn.dataset.level;
+        if (lvl === 'random') {
+          const all = Object.keys(NAUGHTY_LEVEL_META);
+          lvl = all[Math.floor(Math.random() * all.length)];
+          btn.dataset.level = lvl;
+        }
+        selectedLevel = lvl;
+        render();
+      });
+    });
+
+    // Props
+    container.querySelectorAll('.naughty-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        if (window.haptic) window.haptic.light();
+        const p = pill.dataset.prop;
+        activeProps.has(p) ? activeProps.delete(p) : activeProps.add(p);
+        render();
+      });
+    });
+
+    // Dare
+    container.querySelector('#naughty-dare-btn')?.addEventListener('click', () => {
+      if (window.haptic) window.haptic.medium();
+      const dice = container.querySelector('#naughty-dice');
+      if (dice) {
+        dice.style.animation = 'none';
+        dice.offsetHeight; // reflow
+        dice.style.animation = 'naughtyDiceSpin 0.6s cubic-bezier(0.36,0.07,0.19,0.97)';
+      }
+      const all = Object.keys(NAUGHTY_LEVEL_META);
+      const lvl = selectedLevel || all[Math.floor(Math.random() * all.length)];
+      const dares = NAUGHTY_DARES[lvl];
+      const dare = dares[Math.floor(Math.random() * dares.length)];
+      const allProps = activeProps.size > 0
+        ? [...activeProps]
+        : [...NAUGHTY_PROPS.control, ...NAUGHTY_PROPS.pleasure];
+      const prop = allProps[Math.floor(Math.random() * allProps.length)];
+      lastDare = { dare, prop, level: lvl, levelLabel: NAUGHTY_LEVEL_META[lvl].label };
+      render();
+    });
+
+    // Save
+    container.querySelector('#naughty-save')?.addEventListener('click', () => {
+      if (window.haptic) window.haptic.medium();
+      storage.set('naughty_plan', {
+        ...lastDare,
+        date: new Date().toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
+      });
+      render();
+    });
+  }
+
+  render();
+  cleanupStack.push(() => {});
 }
