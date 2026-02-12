@@ -11,7 +11,7 @@ import './styles/polish.css?v=20260212d1';
 import './styles/motion.css?v=20260212d1';
 import './styles/premium-polish.css?v=20260212d1';
 import './styles/modal-system.css?v=20260212d1'; // Native app modal system
-import './styles/performance-fix.css?v=20260212d1'; // CRITICAL: Must load last
+// import './styles/performance-fix.css?v=20260212d1'; // disabled: was overriding viewport/modal mechanics
 import { storage, initializeDefaults } from './utils/storage.js';
 import { modal } from './utils/modal.js';
 import { notifyHeart, notifyKick } from './utils/notifications.js';
