@@ -1888,26 +1888,29 @@ function renderAuctionGame(container, cleanupStack) {
     // Pull latest auction state from cloud
     await storage.pullFromCloud({ skipCelebration: true });
 
-    // Reload state from storage (in case partner updated it)
-    const freshState = storage.get('love_auction_v2', null);
-    if (freshState) {
+    // Check if cloud has new auction state (stored in temp key to avoid race conditions)
+    const cloudState = storage.get('_auction_cloud_temp', null);
+    if (cloudState) {
+      // Clear temp key immediately
+      storage.remove('_auction_cloud_temp');
+
       // Only update if cloud state is NEWER than local state
-      if (!freshState.lastModified || !state.lastModified || freshState.lastModified > state.lastModified) {
+      if (!cloudState.lastModified || !state.lastModified || cloudState.lastModified > state.lastModified) {
         console.log('🔄 Syncing fresh state from cloud:', {
-          andrineCoins: freshState.profiles.andrine.coins,
-          partnerCoins: freshState.profiles.partner.coins,
-          ownedItems: freshState.ownedRewards.length,
-          cloudTimestamp: freshState.lastModified ? new Date(freshState.lastModified).toLocaleTimeString() : 'none',
+          andrineCoins: cloudState.profiles.andrine.coins,
+          partnerCoins: cloudState.profiles.partner.coins,
+          ownedItems: cloudState.ownedRewards.length,
+          cloudTimestamp: cloudState.lastModified ? new Date(cloudState.lastModified).toLocaleTimeString() : 'none',
           localTimestamp: state.lastModified ? new Date(state.lastModified).toLocaleTimeString() : 'none'
         });
 
         // Update state object in-place (don't replace reference)
-        Object.assign(state, freshState);
+        Object.assign(state, cloudState);
       } else {
         console.log('⏭️ Ignoring stale cloud state', {
-          cloudTime: freshState.lastModified ? new Date(freshState.lastModified).toLocaleTimeString() : 'none',
+          cloudTime: cloudState.lastModified ? new Date(cloudState.lastModified).toLocaleTimeString() : 'none',
           localTime: state.lastModified ? new Date(state.lastModified).toLocaleTimeString() : 'none',
-          cloudCoins: freshState.profiles.andrine.coins,
+          cloudCoins: cloudState.profiles.andrine.coins,
           localCoins: state.profiles.andrine.coins
         });
       }

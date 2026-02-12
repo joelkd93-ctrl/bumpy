@@ -373,50 +373,12 @@ export const storage = {
           }
         }
 
-        // Sync Love Auction state (merge balances and items)
+        // Sync Love Auction state - store in temp key for together.js to handle with timestamp checking
+        // DON'T merge directly into love_auction_v2 to prevent race conditions!
         if (auctionState) {
-          const current = this.get('love_auction_v2', null);
-          if (current) {
-            // Merge profiles (keep higher coin balances - prevent loss)
-            if (auctionState.profiles) {
-              Object.keys(auctionState.profiles).forEach(user => {
-                if (!current.profiles[user]) {
-                  current.profiles[user] = auctionState.profiles[user];
-                  hasChanged = true;
-                } else {
-                  // Merge balances - use cloud if different
-                  if (auctionState.profiles[user].coins !== current.profiles[user].coins) {
-                    console.log(`♻️ Syncing ${user} balance: ${current.profiles[user].coins} -> ${auctionState.profiles[user].coins}`);
-                    current.profiles[user] = auctionState.profiles[user];
-                    hasChanged = true;
-                  }
-                }
-              });
-            }
-
-            // Merge purchased items and auctions
-            if (auctionState.ownedRewards && JSON.stringify(current.ownedRewards) !== JSON.stringify(auctionState.ownedRewards)) {
-              console.log('♻️ Syncing purchased items');
-              current.ownedRewards = auctionState.ownedRewards;
-              hasChanged = true;
-            }
-
-            // Sync auctions (make them same on both devices)
-            if (auctionState.auctions && JSON.stringify(current.auctions) !== JSON.stringify(auctionState.auctions)) {
-              console.log('♻️ Syncing auction items');
-              current.auctions = auctionState.auctions;
-              hasChanged = true;
-            }
-
-            if (hasChanged) {
-              this.set('love_auction_v2', current, true);
-            }
-          } else {
-            // No local state, use cloud state
-            console.log('♻️ Initializing auction from cloud');
-            this.set('love_auction_v2', auctionState, true);
-            hasChanged = true;
-          }
+          console.log('♻️ Received auction state from cloud, storing for timestamp-based merge');
+          this.set('_auction_cloud_temp', auctionState, true);
+          hasChanged = true;
         }
 
         if (journal !== undefined) {
