@@ -1,5 +1,5 @@
 /**
- * Kicks Page - Track Baby's Movements ð¦¶
+ * Kicks Page - Track Baby's Movements 🦶
  * Simple counter to track fetal activity sessions.
  */
 import { storage } from '../utils/storage.js';
@@ -10,44 +10,42 @@ export function renderKicks() {
   const role = localStorage.getItem('who_am_i') || 'andrine';
   const displayedSession = (role === 'andrine') ? session : window.app.andrineActiveSession;
 
-  console.log(`ð¦¶ Rendering Kicks: Role=${role}, LocalSession=${!!session}, SyncedSession=${!!window.app.andrineActiveSession}`);
+  console.log(`🦶 Rendering Kicks: Role=${role}, LocalSession=${!!session}, SyncedSession=${!!window.app.andrineActiveSession}`);
 
   const history = storage.getCollection('kicks');
 
   return `
     <div class="page-kicks fade-in">
-      <div class="page-header-hero page-header-kicks" style="margin-bottom:var(--space-5);">
-        <h1 class="page-header-hero-title">Sparketeller 🦶</h1> ð¦¶</h1>
+      <div class="page-header-hero page-header-kicks">
+        <h1 class="page-header-hero-title">Sparketeller 🦶</h1>
         <p class="page-header-hero-sub">Spor babyens små bevegelser</p>
       </div>
 
       <!-- Active Counter -->
-      <div class="kick-hero-card mb-4">
+      <div class="kick-hero-card">
         ${displayedSession ? `
-          <div>
+          <div class="kick-active-display">
             <div class="kick-count-big">${displayedSession.count}</div>
             <div class="kick-count-sub">spark</div>
-          </div>
-          <p style="color:rgba(255,255,255,0.65);font-size:var(--text-sm);margin:var(--space-2) 0 0;">Økt startet ${new Date(displayedSession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-            <p class="text-muted mb-4 text-small">Ãkt startet ${new Date(displayedSession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+            <p class="text-muted mb-4 text-small">Økt startet ${new Date(displayedSession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
             
-          ${role === 'andrine' ? `
-            <button class="kick-btn-big" id="add-kick">🦶 Tell et Spark!</button>
-            <button class="btn btn-soft btn-block mt-4" id="finish-session" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.25);">Avslutt &amp; Lagre</button>
-          ` : `
-            <p style="color:rgba(255,255,255,0.8);font-size:var(--text-base);">Andrine teller spark nå... 🤰</p>
+            ${role === 'andrine' ? `
+              <button class="kick-btn-big" id="add-kick">🦶 Tell et Spark!</button>
+              <button class="btn btn-soft btn-block mt-3" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);" id="finish-session">Avslutt &amp; Lagre</button>
+            ` : `
+              <p class="text-warm font-medium">Andrine teller spark nå... 🤰</p>
             `}
           </div>
         ` : `
-          <div>
-            <div style="font-size:72px;margin-bottom:var(--space-4);filter:drop-shadow(0 4px 12px rgba(0,0,0,0.2));">🦶</div>
+          <div class="kick-start-display">
+            <div class="kick-icon-big">🦶</div>
             ${role === 'andrine' ? `
-              <p style="font-size:var(--text-xl);font-weight:var(--weight-heavy);color:#fff;margin-bottom:var(--space-3);">Klar til å telle?</p>
-              <p style="color:rgba(255,255,255,0.7);font-size:var(--text-sm);margin-bottom:var(--space-6);">Finn et koselig sted og trykk start.</p>
+              <p class="heading-section mb-2">Klar til å telle?</p>
+              <p class="text-warm mb-6">Finn et koselig sted, slapp av, og trykk start når du kjenner det første sparket.</p>
               <button class="kick-btn-big" id="start-kicks">Start Telling 💕</button>
             ` : `
               <p class="heading-section mb-2">Ingen aktiv telling</p>
-              <p class="text-warm mb-6">Yoel, du fÃ¥r beskjed nÃ¥r Andrine begynner Ã¥ telle spark! ð¶ð¦¶</p>
+              <p class="text-warm mb-6">Yoel, du får beskjed når Andrine begynner å telle spark! 👶🦶</p>
             `}
           </div>
         `}
@@ -55,7 +53,7 @@ export function renderKicks() {
 
       <!-- History -->
       <div class="mt-6">
-        <h2 class="heading-section mb-3">Nylige Ãkter</h2>
+        <h2 class="heading-section mb-3">Nylige Økter</h2>
         <div class="kick-history">
           ${history.length > 0 ? history.slice(0, 5).map(s => `
             <div class="card mb-3 p-4 flex-between">
@@ -69,7 +67,7 @@ export function renderKicks() {
               </div>
             </div>
           `).join('') : `
-            <p class="text-muted text-center py-4">Ingen Ã¸kter ennÃ¥. Start en over!</p>
+            <p class="text-muted text-center py-4">Ingen økter ennå. Start en over!</p>
           `}
         </div>
       </div>
@@ -81,14 +79,14 @@ export function renderKicks() {
 async function notifySync(role, session) {
   try {
     const url = `${window.API_BASE}/api/presence`;
-    console.log(`ð¦¶ notifySync sending to ${url}:`, session);
+    console.log(`🦶 notifySync sending to ${url}:`, session);
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role, kickSession: session })
     });
     const data = await res.json();
-    console.log('ð¦¶ notifySync response:', data);
+    console.log('🦶 notifySync response:', data);
   } catch (err) {
     console.warn('Could not sync kick session:', err);
   }
@@ -109,7 +107,7 @@ export function initKicks() {
     storage.set('current_kick_session', newSession);
 
     // Notify partner of start AND send session
-    console.log('ð¦¶ Starting kick session, notifying partner...', newSession);
+    console.log('🦶 Starting kick session, notifying partner...', newSession);
     try {
       await fetch(`${window.API_BASE}/api/presence`, {
         method: 'POST',
@@ -131,7 +129,7 @@ export function initKicks() {
       storage.set('current_kick_session', session);
 
       // Notify partner of update
-      console.log('ð¦¶ Adding kick, notifying partner...', session);
+      console.log('🦶 Adding kick, notifying partner...', session);
       notifySync(role, session);
 
       // Haptic & Visual Feedback

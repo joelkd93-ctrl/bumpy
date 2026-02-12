@@ -1,5 +1,5 @@
 /**
- * Timeline Page - Our Journey Timeline ð
+ * Timeline Page - Our Journey Timeline 💖
  * A combined view of all pregnancy moments
  */
 import { storage } from '../utils/storage.js';
@@ -20,15 +20,15 @@ export function renderTimeline() {
     ? events.map(event => renderEvent(event)).join('')
     : `
         <div class="empty-state">
-          <div class="empty-state-icon">â¨</div>
+          <div class="empty-state-icon">✨</div>
           <p class="heading-section mb-2">Historien deres begynner...</p>
-          <p class="text-muted">Ãyeblikk du lagrer vil vises her i en vakker tidslinje.</p>
+          <p class="text-muted">Øyeblikk du lagrer vil vises her i en vakker tidslinje.</p>
         </div>
       `;
 
   return `
     <div class="page-timeline">
-      <div class="page-header-hero page-header-timeline" style="margin-bottom:var(--space-5);">
+      <div class="page-header-hero page-header-timeline">
         <h1 class="page-header-hero-title">Vår Reise 💖</h1>
         <p class="page-header-hero-sub">Hvert lille øyeblikk, trygt bevart</p>
       </div>
@@ -54,17 +54,17 @@ function renderEvent(event) {
     if (event.isSpecial) {
       content = `
         <div class="text-center py-2">
-          <div class="timeline-special-icon">ð¶ð</div>
+          <div class="timeline-special-icon">👶💙</div>
           <h3 class="timeline-special-heading">Det er en Gutt!</h3>
           <p class="timeline-special-note">${event.note}</p>
         </div>
       `;
       badgeClass = 'badge-boy';
-      typeLabel = 'MilepÃ¦l';
+      typeLabel = 'Milepæl';
     } else {
       content = `
         ${event.photo ? `<img src="${event.photo}" class="timeline-img" loading="lazy" decoding="async" />` : ''}
-        <p class="font-bold">Uke ${event.week} Magebilde! ð¸</p>
+        <p class="font-bold">Uke ${event.week} Magebilde! 📸</p>
         ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
       `;
     }
@@ -73,7 +73,7 @@ function renderEvent(event) {
       <div class="flex items-center gap-4">
         <span class="timeline-mood-icon">${event.mood}</span>
         <div>
-          <p class="font-bold">FÃ¸ler seg ${event.mood}</p>
+          <p class="font-bold">Føler seg ${event.mood}</p>
           ${event.note ? `<p class="text-warm">"${event.note}"</p>` : ''}
         </div>
       </div>
@@ -81,7 +81,7 @@ function renderEvent(event) {
   } else if (event.type === 'kick') {
     content = `
       <div class="flex items-center gap-4">
-        <span class="timeline-kick-icon">ð¦¶</span>
+        <span class="timeline-kick-icon">🦶</span>
         <div>
           <p class="font-bold">${event.count} Spark Talt</p>
           <p class="text-warm">Varte i ${event.duration} minutter</p>
@@ -92,14 +92,14 @@ function renderEvent(event) {
 
   return `
     <div class="timeline-item type-${event.type}" data-id="${event.id}" data-type="${event.type}">
-      <div class="timeline-card type-${event.type}">
+      <div class="card timeline-card">
         <div class="flex-between">
           <div>
             <span class="timeline-date">${dateStr}</span>
             <span class="timeline-type-badge ${badgeClass}">${typeLabel}</span>
           </div>
           <button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="${event.type}" aria-label="Slett">
-            ðï¸
+            🗑️
           </button>
         </div>
         ${content}
@@ -118,7 +118,7 @@ export function initTimeline() {
     const type = deleteBtn.dataset.type;
 
     // Confirm deletion
-    const confirmed = confirm('Er du sikker pÃ¥ at du vil slette dette?');
+    const confirmed = confirm('Er du sikker på at du vil slette dette?');
     if (!confirmed) return;
 
     // Haptic feedback

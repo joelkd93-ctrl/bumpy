@@ -1,5 +1,5 @@
 /**
- * Settings Page âï¸
+ * Settings Page ⚙️
  * Gentle customization options
  */
 import { storage } from '../utils/storage.js';
@@ -21,10 +21,9 @@ export function renderSettings() {
 
   return `
     <div class="page-settings">
-      <!-- Header -->
-      <div class="mb-6">
-        <h1 class="heading-love mb-2">Innstillinger</h1>
-        <p class="text-warm">Tilpass opplevelsen din</p>
+      <div class="page-header-hero page-header-settings">
+        <h1 class="page-header-hero-title">Innstillinger ⚙️</h1>
+        <p class="page-header-hero-sub">Tilpass opplevelsen din</p>
       </div>
       
       <!-- Profile Section -->
@@ -66,7 +65,7 @@ export function renderSettings() {
       <div class="settings-list mb-6">
         <div class="settings-item" id="enable-notifications">
           <span class="settings-label">Push-varsler</span>
-          <span class="settings-icon" id="notification-status">${Notification.permission === 'granted' ? 'â Aktivert' : 'ð Aktiver'}</span>
+          <span class="settings-icon" id="notification-status">${Notification.permission === 'granted' ? '✅ Aktivert' : '🔔 Aktiver'}</span>
         </div>
       </div>
 
@@ -75,15 +74,15 @@ export function renderSettings() {
       <div class="settings-list mb-6">
         <div class="settings-item" id="force-sync">
           <span class="settings-label">Tving Synkronisering</span>
-          <span class="settings-icon">ð</span>
+          <span class="settings-icon">🔄</span>
         </div>
         <div class="settings-item" id="export-data">
           <span class="settings-label">Eksporter Sikkerhetskopi</span>
-          <span class="settings-icon">ð¤</span>
+          <span class="settings-icon">📤</span>
         </div>
         <div class="settings-item settings-item-danger" id="clear-data">
           <span class="settings-label">Slett All Data</span>
-          <span class="settings-icon">ðï¸</span>
+          <span class="settings-icon">🗑️</span>
         </div>
       </div>
       
@@ -96,7 +95,7 @@ export function renderSettings() {
         </div>
         <div class="settings-item settings-item-static">
           <span class="settings-label">Laget med</span>
-          <span class="settings-value">ð</span>
+          <span class="settings-value">💕</span>
         </div>
       </div>
       
@@ -107,8 +106,8 @@ export function renderSettings() {
       
       <!-- Footer Message -->
       <div class="settings-footer">
-        <p>Laget med kjÃ¦rlighet for ${settings.name}</p>
-        <p class="text-muted">Du kommer til Ã¥ bli en fantastisk mamma ð</p>
+        <p>Laget med kjærlighet for ${settings.name}</p>
+        <p class="text-muted">Du kommer til å bli en fantastisk mamma 💕</p>
       </div>
       
     </div>
@@ -137,7 +136,7 @@ export function initSettings() {
     });
 
     // Success feedback
-    saveBtn.textContent = 'Lagret! ð';
+    saveBtn.textContent = 'Lagret! 💕';
     saveBtn.classList.add('btn-success');
 
     setTimeout(() => {
@@ -155,17 +154,17 @@ export function initSettings() {
 
     // If already granted, just show status
     if (Notification.permission === 'granted') {
-      icon.textContent = 'â Aktivert';
+      icon.textContent = '✅ Aktivert';
       if (window.haptic) window.haptic.light();
       return;
     }
 
     // If denied, can't do anything
     if (Notification.permission === 'denied') {
-      icon.textContent = 'â Blokkert';
-      alert('Varsler er blokkert. GÃ¥ til nettleserinnstillinger for Ã¥ aktivere.');
+      icon.textContent = '❌ Blokkert';
+      alert('Varsler er blokkert. Gå til nettleserinnstillinger for å aktivere.');
       setTimeout(() => {
-        icon.textContent = 'ð Aktiver';
+        icon.textContent = '🔔 Aktiver';
       }, 3000);
       return;
     }
@@ -173,18 +172,18 @@ export function initSettings() {
     // Request permission
     try {
       const originalText = icon.textContent;
-      icon.textContent = 'â³ Ber om tillatelse...';
+      icon.textContent = '⏳ Ber om tillatelse...';
       const granted = await requestNotificationPermission();
 
       if (granted) {
-        icon.textContent = 'â Aktivert';
+        icon.textContent = '✅ Aktivert';
         if (window.haptic) window.haptic.medium();
         // Show test notification
         setTimeout(() => {
           if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             navigator.serviceWorker.ready.then(registration => {
-              registration.showNotification('Varsler aktivert! ð', {
-                body: 'Du vil nÃ¥ motta varsler fra Bumpy',
+              registration.showNotification('Varsler aktivert! 💕', {
+                body: 'Du vil nå motta varsler fra Bumpy',
                 icon: '/icons/icon-192.png',
                 vibrate: [200, 100, 200]
               });
@@ -192,14 +191,14 @@ export function initSettings() {
           }
         }, 500);
       } else {
-        icon.textContent = 'â Avvist';
+        icon.textContent = '❌ Avvist';
         setTimeout(() => {
           icon.textContent = originalText;
         }, 3000);
       }
     } catch (err) {
       console.error('Notification permission error:', err);
-      icon.textContent = 'ð Aktiver';
+      icon.textContent = '🔔 Aktiver';
     }
   });
 
@@ -212,9 +211,9 @@ export function initSettings() {
 
     try {
       label.textContent = 'Synkroniserer...';
-      icon.textContent = 'â³';
+      icon.textContent = '⏳';
 
-      console.log('ð Manual sync triggered');
+      console.log('🔄 Manual sync triggered');
 
       // Push local data to cloud
       await storage.syncWithCloud();
@@ -222,10 +221,10 @@ export function initSettings() {
       // Pull cloud data to local
       await storage.pullFromCloud();
 
-      label.textContent = 'Synkronisert! â';
-      icon.textContent = 'â';
+      label.textContent = 'Synkronisert! ✓';
+      icon.textContent = '✅';
 
-      console.log('â Manual sync complete');
+      console.log('✅ Manual sync complete');
 
       setTimeout(() => {
         label.textContent = originalText;
@@ -237,9 +236,9 @@ export function initSettings() {
         }
       }, 2000);
     } catch (err) {
-      console.error('â Manual sync failed:', err);
+      console.error('❌ Manual sync failed:', err);
       label.textContent = 'Sync feilet';
-      icon.textContent = 'â';
+      icon.textContent = '❌';
 
       setTimeout(() => {
         label.textContent = originalText;
@@ -274,7 +273,7 @@ export function initSettings() {
 
     // Feedback
     const originalText = exportBtn.querySelector('.settings-label').textContent;
-    exportBtn.querySelector('.settings-label').textContent = 'Exported! â';
+    exportBtn.querySelector('.settings-label').textContent = 'Exported! ✓';
     setTimeout(() => {
       exportBtn.querySelector('.settings-label').textContent = originalText;
     }, 2000);
@@ -283,12 +282,12 @@ export function initSettings() {
   // Clear data with confirmation
   clearBtn?.addEventListener('click', async () => {
     const confirmed = confirm(
-      'â ï¸ Er du sikker?\n\n' +
+      '⚠️ Er du sikker?\n\n' +
       'Dette sletter permanent:\n' +
-      'â¢ Alle dagbok-innlegg og bilder\n' +
-      'â¢ HumÃ¸r-historikk\n' +
-      'â¢ Babynavn-favoritter\n' +
-      'â¢ Alt annet\n\n' +
+      '• Alle dagbok-innlegg og bilder\n' +
+      '• Humør-historikk\n' +
+      '• Babynavn-favoritter\n' +
+      '• Alt annet\n\n' +
       'Dette kan ikke angres.'
     );
 
@@ -297,7 +296,7 @@ export function initSettings() {
       try {
         const API_URL = (window.API_BASE || 'http://localhost:8787') + '/api';
         await fetch(`${API_URL}/reset`, { method: 'POST' });
-        console.log('âï¸ Cloud data cleared');
+        console.log('☁️ Cloud data cleared');
       } catch (err) {
         console.warn('Could not clear cloud data:', err);
       }

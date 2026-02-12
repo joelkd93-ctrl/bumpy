@@ -1,6 +1,6 @@
 /**
- * Home Page - Main Dashboard ð
- * Masterpiece redesign â full-bleed hero, dramatic depth
+ * Home Page - Main Dashboard 💕
+ * Masterpiece redesign — full-bleed hero, dramatic depth
  */
 import { storage } from '../utils/storage.js';
 import { getPregnancyProgress, getGreeting, getRandomLoveNote } from '../utils/pregnancy.js';
@@ -15,26 +15,26 @@ export function renderHome() {
   const loveNote = getRandomLoveNote();
   const firstName = (settings.name || 'Andrine').split(' ')[0];
 
-  const C = 628; // ring circumference (2Ï Ã 100)
+  const C = 628; // ring circumference (2π × 100)
   const offset = C - (C * progress.percentage / 100);
 
   return `
     <div class="page-home">
 
-      <!-- âââ HERO âââ -->
+      <!-- ═══ HERO ═══ -->
       <div class="home-hero">
 
         <div class="home-topbar">
           <div>
             <p class="home-greeting-label">God dag,</p>
-            <h1 class="home-greeting-name">${firstName} ð</h1>
+            <h1 class="home-greeting-name">${firstName} 💕</h1>
           </div>
-          <button class="home-settings-btn" onclick="window.app.navigate('settings')" aria-label="Innstillinger">âï¸</button>
+          <button class="home-settings-btn" onclick="window.app.navigate('settings')" aria-label="Innstillinger">⚙️</button>
         </div>
 
         <div class="home-week-pill">
           <span class="home-week-num">Uke ${progress.weeksPregnant}</span>
-          <span class="home-week-dot">Â·</span>
+          <span class="home-week-dot">·</span>
           <span class="home-week-sub">${progress.daysIntoWeek} dager inn</span>
         </div>
 
@@ -65,34 +65,34 @@ export function renderHome() {
           </svg>
           <div class="home-ring-center">
             <div class="home-ring-pct">${progress.percentage.toFixed(1)}<span class="home-ring-pct-sym">%</span></div>
-            <div class="home-ring-label">fullfÃ¸rt</div>
+            <div class="home-ring-label">fullført</div>
           </div>
         </div>
 
         <div class="home-days-badge">
           <span class="home-days-num">${progress.daysLeft}</span>
-          <span class="home-days-label">&nbsp;dager igjen Â· Termin ${new Date(settings.dueDate).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}</span>
+          <span class="home-days-label">&nbsp;dager igjen · Termin ${new Date(settings.dueDate).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}</span>
         </div>
 
       </div>
       <!-- end hero -->
 
-      <!-- âââ CONTENT âââ -->
+      <!-- ═══ CONTENT ═══ -->
       <div class="home-content">
 
         <!-- Baby size -->
         <div class="home-baby-card">
           <div class="home-baby-left">
             <p class="home-baby-eyebrow">Babyen er på størrelse med</p>
-            <h2 class="home-baby-name">en ${progress.babySize.name}</h2>
-            <p class="home-baby-sub">Uke ${progress.weeksPregnant} Â· ${progress.trimester}. trimester</p>
+            <h2 class="home-baby-name">${progress.babySize.name}</h2>
+            <p class="home-baby-sub">Uke ${progress.weeksPregnant} · ${progress.trimester}. trimester</p>
           </div>
           <div class="home-baby-emoji">${progress.babySize.emoji}</div>
         </div>
 
         <!-- Baby message -->
         <div class="home-message-card">
-          <div class="home-message-from">ð¬ Fra lille en</div>
+          <div class="home-message-from">💬 Fra lille en</div>
           <p class="home-message-text">"${progress.babyMessage}"</p>
         </div>
 
@@ -105,7 +105,7 @@ export function renderHome() {
           <div class="home-stat-divider"></div>
           <div class="home-stat">
             <div class="home-stat-value">${progress.month}</div>
-            <div class="home-stat-label">MÃ¥ned</div>
+            <div class="home-stat-label">Måned</div>
           </div>
           <div class="home-stat-divider"></div>
           <div class="home-stat">
@@ -125,7 +125,7 @@ export function renderHome() {
 
         <!-- Love note -->
         <div class="home-lovenote-card">
-          <div class="home-lovenote-label">ð Notat til deg</div>
+          <div class="home-lovenote-label">💌 Notat til deg</div>
           <p class="home-lovenote-text">"${loveNote}"</p>
         </div>
 
@@ -144,9 +144,9 @@ export function renderHome() {
           <button class="btn btn-soft btn-small" id="dev-reset">Nullstill</button>
           <button class="btn btn-primary btn-small" id="dev-apply">Bruk</button>
         </div>
-        <button class="btn btn-small" id="dev-celebrate" style="width:100%;background:var(--pink-50);color:var(--pink-600);border:1px solid var(--pink-200);font-weight:bold;">Test Feiring ð</button>
+        <button class="btn btn-small" id="dev-celebrate" style="width:100%;background:var(--pink-50);color:var(--pink-600);border:1px solid var(--pink-200);font-weight:bold;">Test Feiring 💖</button>
       </div>
-      <button class="dev-fab" id="dev-fab">ð ï¸</button>
+      <button class="dev-fab" id="dev-fab">🛠️</button>
     </div>
 
     <style>
