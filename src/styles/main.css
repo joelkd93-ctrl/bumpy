@@ -422,12 +422,14 @@ input, textarea, select {
 
 .app,
 .app-shell {
-  height: 100dvh;
+  min-height: 100%;
+  min-height: 100dvh;
+  height: auto;
   display: flex;
   flex-direction: column;
   background: transparent;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 #modal-root {
