@@ -45,14 +45,14 @@ export function renderFeelings() {
 
   return `
     <div class="page-feelings">
-      <!-- Header -->
-      <div class="text-center mb-6">
-        <h1 class="heading-love mb-2">Mine Følelser</h1>
-        <p class="text-warm">Ingen fasit, bare en sjekk 💕</p>
+      <!-- Hero Header -->
+      <div class="page-header-hero page-header-feelings">
+        <h1 class="page-header-hero-title">Mine Følelser 💜</h1>
+        <p class="page-header-hero-sub">Ingen fasit, bare en sjekk inn</p>
       </div>
-      
+
       <!-- Today's Mood Card -->
-      <div class="card card-soft mb-6">
+      <div class="feelings-today-card mb-4" style="margin-top: var(--space-5);">
         ${todayEntry ? `
           <!-- Already logged today -->
           <div class="text-center">

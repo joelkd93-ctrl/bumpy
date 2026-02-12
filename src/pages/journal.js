@@ -1,5 +1,5 @@
 /**
- * Journal Page - Weekly Bump Photos & Notes 📔
+ * Journal Page - Weekly Bump Photos & Notes ð
  * Capturing precious moments of the journey
  */
 import { storage } from '../utils/storage.js';
@@ -16,7 +16,7 @@ export function renderJournal() {
   const entries = storage.getCollection('journal');
 
   // DEBUG: Log entries to help troubleshoot
-  console.log('📔 Journal rendering with', entries.length, 'entries:', entries.map(e => e.id));
+  console.log('ð Journal rendering with', entries.length, 'entries:', entries.map(e => e.id));
 
   const entriesHTML = entries.length > 0
     ? entries.map(entry => `
@@ -28,10 +28,10 @@ export function renderJournal() {
             </div>
             <div>
               <button class="btn-icon-small edit-journal-entry" data-id="${entry.id}" aria-label="Rediger">
-                ✏️
+                âï¸
               </button>
               <button class="btn-icon-small delete-journal-entry" data-id="${entry.id}" aria-label="Slett">
-                🗑️
+                ðï¸
               </button>
             </div>
           </div>
@@ -44,9 +44,9 @@ export function renderJournal() {
       `).join('')
     : `
         <div class="empty-state">
-          <div class="empty-state-icon">📸</div>
+          <div class="empty-state-icon">ð¸</div>
           <p class="heading-section mb-2">Reisen din starter her</p>
-          <p class="text-muted">Legg til ditt første magebilde over</p>
+          <p class="text-muted">Legg til ditt fÃ¸rste magebilde over</p>
         </div>
       `;
 
@@ -54,8 +54,8 @@ export function renderJournal() {
     <div class="page-journal">
       <!-- Header -->
       <div class="mb-6">
-        <h1 class="heading-love mb-2">Min Dagbok 📔</h1>
-        <p class="text-warm">Fang øyeblikk for ${settings.name}</p>
+        <h1 class="heading-love mb-2">Min Dagbok ð</h1>
+        <p class="text-warm">Fang Ã¸yeblikk for ${settings.name}</p>
       </div>
       
       <!-- Add New Entry Card -->
@@ -79,14 +79,14 @@ export function renderJournal() {
         <!-- Photo Upload Options -->
         <div class="journal-photo-placeholder" id="photo-upload">
           <div class="photo-upload-content">
-            <span class="photo-upload-icon" id="upload-icon">🤍</span>
-            <p class="photo-upload-text" id="upload-text">Legg til et øyeblikk</p>
+            <span class="photo-upload-icon" id="upload-icon">ð¤</span>
+            <p class="photo-upload-text" id="upload-text">Legg til et Ã¸yeblikk</p>
             <div class="photo-upload-buttons">
               <button class="btn btn-soft btn-small" id="camera-btn" type="button">
-                📷 Ta bilde
+                ð· Ta bilde
               </button>
               <button class="btn btn-soft btn-small" id="gallery-btn" type="button">
-                🖼️ Velg fra galleri
+                ð¼ï¸ Velg fra galleri
               </button>
             </div>
           </div>
@@ -103,18 +103,18 @@ export function renderJournal() {
         <textarea
           id="journal-note"
           class="textarea mt-4"
-          placeholder="Hvordan føler du deg denne uken, ${settings.name}? Noen spesielle øyeblikk å huske?"
+          placeholder="Hvordan fÃ¸ler du deg denne uken, ${settings.name}? Noen spesielle Ã¸yeblikk Ã¥ huske?"
           rows="4"
         ></textarea>
         
         <!-- Emoji Picker -->
         <div class="emoji-picker-wrapper mt-2">
-          <button class="btn btn-ghost emoji-picker-toggle" id="emoji-toggle" type="button">😊 Emoji</button>
+          <button class="btn btn-ghost emoji-picker-toggle" id="emoji-toggle" type="button">ð Emoji</button>
         </div>
         
         <!-- Save Button -->
         <button class="btn btn-primary btn-block mt-4" id="save-entry">
-          Lagre Minne 💕
+          Lagre Minne ð
         </button>
       </div>
       
@@ -168,11 +168,11 @@ export function initJournal() {
   function updateUploadButton(hasPhoto) {
     if (uploadIcon && uploadText) {
       if (hasPhoto) {
-        uploadIcon.textContent = '📸';
-        uploadText.textContent = 'Endre øyeblikk';
+        uploadIcon.textContent = 'ð¸';
+        uploadText.textContent = 'Endre Ã¸yeblikk';
       } else {
-        uploadIcon.textContent = '🤍';
-        uploadText.textContent = 'Legg til et øyeblikk';
+        uploadIcon.textContent = 'ð¤';
+        uploadText.textContent = 'Legg til et Ã¸yeblikk';
       }
     }
   }
@@ -248,7 +248,7 @@ export function initJournal() {
     const progress = getPregnancyProgress(settings.dueDate, entryDate);
 
     // Show saving feedback
-    saveBtn.textContent = editingEntryId ? 'Oppdaterer... ☁️' : 'Lagrer... ☁️';
+    saveBtn.textContent = editingEntryId ? 'Oppdaterer... âï¸' : 'Lagrer... âï¸';
     saveBtn.disabled = true;
 
     try {
@@ -261,7 +261,7 @@ export function initJournal() {
           note: note
         });
         await storage.syncWithCloud();
-        saveBtn.textContent = 'Oppdatert! 💕';
+        saveBtn.textContent = 'Oppdatert! ð';
       } else {
         // Create new entry
         await storage.addToCollection('journal', {
@@ -270,7 +270,7 @@ export function initJournal() {
           photo: currentPhoto,
           note: note
         });
-        saveBtn.textContent = 'Lagret! 💕';
+        saveBtn.textContent = 'Lagret! ð';
       }
 
       setTimeout(() => {
@@ -283,7 +283,7 @@ export function initJournal() {
         photoUpload.style.display = 'flex';
         photoInputCamera.value = '';
         photoInputGallery.value = '';
-        saveBtn.textContent = 'Lagre Minne 💕';
+        saveBtn.textContent = 'Lagre Minne ð';
         saveBtn.disabled = false;
         updateUploadButton(false);
 
@@ -294,25 +294,25 @@ export function initJournal() {
       }, 1000);
     } catch (err) {
       console.error('Failed to save journal entry:', err);
-      saveBtn.textContent = 'Feil! Prøv igjen';
+      saveBtn.textContent = 'Feil! PrÃ¸v igjen';
       setTimeout(() => {
-        saveBtn.textContent = 'Lagre Minne 💕';
+        saveBtn.textContent = 'Lagre Minne ð';
         saveBtn.disabled = false;
       }, 2000);
     }
   });
 
-  // ── Emoji Picker ──
+  // ââ Emoji Picker ââ
   const emojiToggle = document.getElementById('emoji-toggle');
   const emojiPopup = document.getElementById('emoji-popup');
   const emojiGrid = document.getElementById('emoji-grid');
 
   const JOURNAL_EMOJIS = [
-    '❤️', '💖', '💗', '💕', '💓', '🥰', '😍', '😊',
-    '😢', '😭', '🥺', '😤', '😴', '🤢', '🤮', '😵‍💫',
-    '🤰', '👶', '🍼', '🧸', '👣', '🎀', '🩵', '💙',
-    '✨', '🌟', '🎉', '🥳', '🎈', '🌸', '🌺', '🦋',
-    '💪', '🤗', '🙏', '😇', '🫶', '🤍', '👨‍👩‍👦', '🏠'
+    'â¤ï¸', 'ð', 'ð', 'ð', 'ð', 'ð¥°', 'ð', 'ð',
+    'ð¢', 'ð­', 'ð¥º', 'ð¤', 'ð´', 'ð¤¢', 'ð¤®', 'ðµâð«',
+    'ð¤°', 'ð¶', 'ð¼', 'ð§¸', 'ð£', 'ð', 'ð©µ', 'ð',
+    'â¨', 'ð', 'ð', 'ð¥³', 'ð', 'ð¸', 'ðº', 'ð¦',
+    'ðª', 'ð¤', 'ð', 'ð', 'ð«¶', 'ð¤', 'ð¨âð©âð¦', 'ð '
   ];
 
   if (emojiGrid) {
@@ -374,7 +374,7 @@ export function initJournal() {
     }
 
     // Update button text
-    saveBtn.textContent = 'Oppdater Minne 💕';
+    saveBtn.textContent = 'Oppdater Minne ð';
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -391,7 +391,7 @@ export function initJournal() {
     const id = deleteBtn.dataset.id;
 
     // Confirm deletion
-    const confirmed = confirm('Er du sikker på at du vil slette dette bildet?');
+    const confirmed = confirm('Er du sikker pÃ¥ at du vil slette dette bildet?');
     if (!confirmed) return;
 
     // Haptic feedback

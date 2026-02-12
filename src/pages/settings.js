@@ -1,5 +1,5 @@
 /**
- * Settings Page ⚙️
+ * Settings Page âï¸
  * Gentle customization options
  */
 import { storage } from '../utils/storage.js';
@@ -66,7 +66,7 @@ export function renderSettings() {
       <div class="settings-list mb-6">
         <div class="settings-item" id="enable-notifications">
           <span class="settings-label">Push-varsler</span>
-          <span class="settings-icon" id="notification-status">${Notification.permission === 'granted' ? '✅ Aktivert' : '🔔 Aktiver'}</span>
+          <span class="settings-icon" id="notification-status">${Notification.permission === 'granted' ? 'â Aktivert' : 'ð Aktiver'}</span>
         </div>
       </div>
 
@@ -75,15 +75,15 @@ export function renderSettings() {
       <div class="settings-list mb-6">
         <div class="settings-item" id="force-sync">
           <span class="settings-label">Tving Synkronisering</span>
-          <span class="settings-icon">🔄</span>
+          <span class="settings-icon">ð</span>
         </div>
         <div class="settings-item" id="export-data">
           <span class="settings-label">Eksporter Sikkerhetskopi</span>
-          <span class="settings-icon">📤</span>
+          <span class="settings-icon">ð¤</span>
         </div>
         <div class="settings-item settings-item-danger" id="clear-data">
           <span class="settings-label">Slett All Data</span>
-          <span class="settings-icon">🗑️</span>
+          <span class="settings-icon">ðï¸</span>
         </div>
       </div>
       
@@ -96,7 +96,7 @@ export function renderSettings() {
         </div>
         <div class="settings-item settings-item-static">
           <span class="settings-label">Laget med</span>
-          <span class="settings-value">💕</span>
+          <span class="settings-value">ð</span>
         </div>
       </div>
       
@@ -107,8 +107,8 @@ export function renderSettings() {
       
       <!-- Footer Message -->
       <div class="settings-footer">
-        <p>Laget med kjærlighet for ${settings.name}</p>
-        <p class="text-muted">Du kommer til å bli en fantastisk mamma 💕</p>
+        <p>Laget med kjÃ¦rlighet for ${settings.name}</p>
+        <p class="text-muted">Du kommer til Ã¥ bli en fantastisk mamma ð</p>
       </div>
       
     </div>
@@ -137,7 +137,7 @@ export function initSettings() {
     });
 
     // Success feedback
-    saveBtn.textContent = 'Lagret! 💕';
+    saveBtn.textContent = 'Lagret! ð';
     saveBtn.classList.add('btn-success');
 
     setTimeout(() => {
@@ -155,17 +155,17 @@ export function initSettings() {
 
     // If already granted, just show status
     if (Notification.permission === 'granted') {
-      icon.textContent = '✅ Aktivert';
+      icon.textContent = 'â Aktivert';
       if (window.haptic) window.haptic.light();
       return;
     }
 
     // If denied, can't do anything
     if (Notification.permission === 'denied') {
-      icon.textContent = '❌ Blokkert';
-      alert('Varsler er blokkert. Gå til nettleserinnstillinger for å aktivere.');
+      icon.textContent = 'â Blokkert';
+      alert('Varsler er blokkert. GÃ¥ til nettleserinnstillinger for Ã¥ aktivere.');
       setTimeout(() => {
-        icon.textContent = '🔔 Aktiver';
+        icon.textContent = 'ð Aktiver';
       }, 3000);
       return;
     }
@@ -173,18 +173,18 @@ export function initSettings() {
     // Request permission
     try {
       const originalText = icon.textContent;
-      icon.textContent = '⏳ Ber om tillatelse...';
+      icon.textContent = 'â³ Ber om tillatelse...';
       const granted = await requestNotificationPermission();
 
       if (granted) {
-        icon.textContent = '✅ Aktivert';
+        icon.textContent = 'â Aktivert';
         if (window.haptic) window.haptic.medium();
         // Show test notification
         setTimeout(() => {
           if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             navigator.serviceWorker.ready.then(registration => {
-              registration.showNotification('Varsler aktivert! 💕', {
-                body: 'Du vil nå motta varsler fra Bumpy',
+              registration.showNotification('Varsler aktivert! ð', {
+                body: 'Du vil nÃ¥ motta varsler fra Bumpy',
                 icon: '/icons/icon-192.png',
                 vibrate: [200, 100, 200]
               });
@@ -192,14 +192,14 @@ export function initSettings() {
           }
         }, 500);
       } else {
-        icon.textContent = '❌ Avvist';
+        icon.textContent = 'â Avvist';
         setTimeout(() => {
           icon.textContent = originalText;
         }, 3000);
       }
     } catch (err) {
       console.error('Notification permission error:', err);
-      icon.textContent = '🔔 Aktiver';
+      icon.textContent = 'ð Aktiver';
     }
   });
 
@@ -212,9 +212,9 @@ export function initSettings() {
 
     try {
       label.textContent = 'Synkroniserer...';
-      icon.textContent = '⏳';
+      icon.textContent = 'â³';
 
-      console.log('🔄 Manual sync triggered');
+      console.log('ð Manual sync triggered');
 
       // Push local data to cloud
       await storage.syncWithCloud();
@@ -222,10 +222,10 @@ export function initSettings() {
       // Pull cloud data to local
       await storage.pullFromCloud();
 
-      label.textContent = 'Synkronisert! ✓';
-      icon.textContent = '✅';
+      label.textContent = 'Synkronisert! â';
+      icon.textContent = 'â';
 
-      console.log('✅ Manual sync complete');
+      console.log('â Manual sync complete');
 
       setTimeout(() => {
         label.textContent = originalText;
@@ -237,9 +237,9 @@ export function initSettings() {
         }
       }, 2000);
     } catch (err) {
-      console.error('❌ Manual sync failed:', err);
+      console.error('â Manual sync failed:', err);
       label.textContent = 'Sync feilet';
-      icon.textContent = '❌';
+      icon.textContent = 'â';
 
       setTimeout(() => {
         label.textContent = originalText;
@@ -274,7 +274,7 @@ export function initSettings() {
 
     // Feedback
     const originalText = exportBtn.querySelector('.settings-label').textContent;
-    exportBtn.querySelector('.settings-label').textContent = 'Exported! ✓';
+    exportBtn.querySelector('.settings-label').textContent = 'Exported! â';
     setTimeout(() => {
       exportBtn.querySelector('.settings-label').textContent = originalText;
     }, 2000);
@@ -283,12 +283,12 @@ export function initSettings() {
   // Clear data with confirmation
   clearBtn?.addEventListener('click', async () => {
     const confirmed = confirm(
-      '⚠️ Er du sikker?\n\n' +
+      'â ï¸ Er du sikker?\n\n' +
       'Dette sletter permanent:\n' +
-      '• Alle dagbok-innlegg og bilder\n' +
-      '• Humør-historikk\n' +
-      '• Babynavn-favoritter\n' +
-      '• Alt annet\n\n' +
+      'â¢ Alle dagbok-innlegg og bilder\n' +
+      'â¢ HumÃ¸r-historikk\n' +
+      'â¢ Babynavn-favoritter\n' +
+      'â¢ Alt annet\n\n' +
       'Dette kan ikke angres.'
     );
 
@@ -297,7 +297,7 @@ export function initSettings() {
       try {
         const API_URL = (window.API_BASE || 'http://localhost:8787') + '/api';
         await fetch(`${API_URL}/reset`, { method: 'POST' });
-        console.log('☁️ Cloud data cleared');
+        console.log('âï¸ Cloud data cleared');
       } catch (err) {
         console.warn('Could not clear cloud data:', err);
       }

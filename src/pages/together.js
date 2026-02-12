@@ -1,56 +1,56 @@
 /**
- * Together Page - Couple Bonding Mini Games 💗
+ * Together Page - Couple Bonding Mini Games ð
  * No competition, no pressure - just connection
  */
 import { storage } from '../utils/storage.js';
 import { modal as modalManager } from '../utils/modal.js';
 
-// ═══════════════════════════════════════════════════════════════
-// 🎮 GAME CONFIGURATION
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð® GAME CONFIGURATION
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const GAMES = [
   {
     id: 'heartbeat',
-    icon: '💓',
+    icon: 'ð',
     title: 'Hjerteslag',
     description: 'Trykk i takt sammen'
   },
   {
     id: 'weekly',
-    icon: '💬',
+    icon: 'ð¬',
     title: 'Oss, Denne Uken',
     description: 'Del tankene deres'
   },
   {
     id: 'guess',
-    icon: '🤍',
-    title: 'Gjett Humøret',
+    icon: 'ð¤',
+    title: 'Gjett HumÃ¸ret',
     description: 'Hvor godt kjenner du henne?'
   },
   {
     id: 'names',
-    icon: '🍼',
+    icon: 'ð¼',
     title: 'Navnelek',
     description: 'Finn favorittnavnene deres'
   },
   {
     id: 'missions',
-    icon: '💌',
-    title: 'Kjærlighets-oppdrag',
-    description: 'Små daglige utfordringer'
+    icon: 'ð',
+    title: 'KjÃ¦rlighets-oppdrag',
+    description: 'SmÃ¥ daglige utfordringer'
   },
   {
     id: 'predictions',
-    icon: '🎲',
+    icon: 'ð²',
     title: 'Gjettelek',
     description: 'Hva tror dere om fremtiden?'
   },
   {
     id: 'auction',
-    icon: '💸',
+    icon: 'ð¸',
     title: 'Love Auction',
-    description: 'Coins + små kjærlighetskjøp'
+    description: 'Coins + smÃ¥ kjÃ¦rlighetskjÃ¸p'
   }
 ];
 
@@ -58,88 +58,88 @@ const GAMES = [
 const WEEKLY_QUESTIONS = [
   "Hva gleder du deg mest til denne uken?",
   "Er det noe du vil jeg skal vite?",
-  "Hva fikk deg til å smile i dag?",
-  "Hva er én ting du trenger akkurat nå?",
-  "Hvordan kan jeg støtte deg bedre?",
+  "Hva fikk deg til Ã¥ smile i dag?",
+  "Hva er Ã©n ting du trenger akkurat nÃ¥?",
+  "Hvordan kan jeg stÃ¸tte deg bedre?",
   "Hva er du takknemlig for i dag?",
-  "Hva har du tenkt på i det siste?",
-  "Hva er ditt håp for babyen vår?",
-  "Hvilket øyeblikk denne uken føltes spesielt?",
-  "Hva trenger du mer av akkurat nå?",
+  "Hva har du tenkt pÃ¥ i det siste?",
+  "Hva er ditt hÃ¥p for babyen vÃ¥r?",
+  "Hvilket Ã¸yeblikk denne uken fÃ¸ltes spesielt?",
+  "Hva trenger du mer av akkurat nÃ¥?",
 ];
 
 // Baby names to swipe through (users can add their own)
 const DEFAULT_NAMES = [
   "Adam", "Aiden", "Albie", "Alexander", "Andrew", "Anton", "Archie", "Arlo",
   "Arthur", "Asher", "August", "Axel", "Benjamin", "Caleb", "Carter", "Charlie",
-  "Christian", "Clément", "Daniel", "David", "Eden", "Eliah", "Elias", "Elijah",
+  "Christian", "ClÃ©ment", "Daniel", "David", "Eden", "Eliah", "Elias", "Elijah",
   "Elliot", "Emil", "Ethan", "Ezra", "Felix", "Filip", "Finley", "Finn",
   "Frans", "Freddie", "Gabriel", "George", "Grayson", "Henry", "Hugo", "Isaac",
   "Isak", "Isaiah", "Jack", "Jakob", "James", "Jeremiah", "Jonah", "Jonathan",
   "Joseph", "Joshua", "Jude", "Jules", "Julian", "Kasper", "Leo", "Leon",
-  "Levi", "Liam", "Logan", "Louis", "Luca", "Lucas", "Lukas", "Maël", "Malte",
+  "Levi", "Liam", "Logan", "Louis", "Luca", "Lucas", "Lukas", "MaÃ«l", "Malte",
   "Marceau", "Markus", "Mason", "Matheo", "Mathis", "Matthew", "Max", "Michael",
-  "Milo", "Nathan", "Nicolas", "Noé", "Noah", "Nolan", "Oliver", "Oskar",
-  "Owen", "Paul", "Peter", "Raphaël", "Reggie", "Reuben", "Rio", "Rowan",
-  "Samuel", "Sacha", "Saül", "Simon", "Sonny", "Teddy", "Theo", "Theodor",
+  "Milo", "Nathan", "Nicolas", "NoÃ©", "Noah", "Nolan", "Oliver", "Oskar",
+  "Owen", "Paul", "Peter", "RaphaÃ«l", "Reggie", "Reuben", "Rio", "Rowan",
+  "Samuel", "Sacha", "SaÃ¼l", "Simon", "Sonny", "Teddy", "Theo", "Theodor",
   "Thomas", "Tiago", "Valentin", "Victor", "William", "Wyatt"
 ];
 
-const MOODS = ['😊', '🥰', '😌', '🤔', '😴', '😢', '🤢', '😤', '😰', '💪'];
+const MOODS = ['ð', 'ð¥°', 'ð', 'ð¤', 'ð´', 'ð¢', 'ð¤¢', 'ð¤', 'ð°', 'ðª'];
 
 // Love Missions
 const MISSIONS = {
   andrine: [
-    "Fortell noe du er stolt av ved Yoel i dag. 👨🏾‍🚀",
-    "Send en ekstra varm melding til Yoel nå. 💌",
-    "Gi Yoel en god klem når du ser ham neste gang. 🤗",
-    "Be Yoel velge kveldens film – uten diskusjon! 🎬",
-    "Skriv ned én ting dere skal gjøre sammen etter fødselen. 🗓️",
-    "Del et morsomt minne fra da dere møttes første gang. 💕",
-    "Fortell Yoel hva du gleder deg mest til når babyen kommer. 👶",
-    "Gi Yoel tre komplimenter – helt ærlige! 🌟",
-    "Send Yoel et bilde av noe som minner deg om ham. 📸",
-    "Planlegg en enkel date-kveld hjemme med Yoel. 🕯️",
-    "Fortell Yoel om en egenskap du håper babyen arver fra ham. 🧬",
-    "Spør Yoel om hans drømmedag – hva ville han gjort? 💭",
-    "Skriv en kort kjærlighetslapp og gjem den et sted han finner den. 💝",
-    "Be Yoel fortelle om favorittminnet deres sammen. 🎞️",
-    "Lag en liste over 5 ting du setter pris på ved Yoel. 📝"
+    "Fortell noe du er stolt av ved Yoel i dag. ð¨ð¾âð",
+    "Send en ekstra varm melding til Yoel nÃ¥. ð",
+    "Gi Yoel en god klem nÃ¥r du ser ham neste gang. ð¤",
+    "Be Yoel velge kveldens film â uten diskusjon! ð¬",
+    "Skriv ned Ã©n ting dere skal gjÃ¸re sammen etter fÃ¸dselen. ðï¸",
+    "Del et morsomt minne fra da dere mÃ¸ttes fÃ¸rste gang. ð",
+    "Fortell Yoel hva du gleder deg mest til nÃ¥r babyen kommer. ð¶",
+    "Gi Yoel tre komplimenter â helt Ã¦rlige! ð",
+    "Send Yoel et bilde av noe som minner deg om ham. ð¸",
+    "Planlegg en enkel date-kveld hjemme med Yoel. ð¯ï¸",
+    "Fortell Yoel om en egenskap du hÃ¥per babyen arver fra ham. ð§¬",
+    "SpÃ¸r Yoel om hans drÃ¸mmedag â hva ville han gjort? ð­",
+    "Skriv en kort kjÃ¦rlighetslapp og gjem den et sted han finner den. ð",
+    "Be Yoel fortelle om favorittminnet deres sammen. ðï¸",
+    "Lag en liste over 5 ting du setter pris pÃ¥ ved Yoel. ð"
   ],
   partner: [
-    "Gi Andrine 10 minutter med fotmassasje i dag. 🦶",
-    "Lag yndlingsmaten hennes eller hent noe hun craver skikkelig. 🥗",
-    "Fortell henne hvor utrolig flink hun er som bærer frem barnet deres. 👑",
-    "Ta alt det praktiske med rydding og matlaging i kveld. 🧹",
-    "Kjøp med en liten overraskelse til henne på vei hjem. 🎁",
-    "Ordne med ekstra puter og teppe slik at hun kan hvile skikkelig. 🛋️",
-    "Les høyt for babyen mens du holder på magen hennes. 📖",
-    "Gjør klart et varmt bad med lys og god musikk for henne. 🛁",
-    "Ta deg av alle husarbeid i dag uten at hun trenger å spørre. 💪",
-    "Send henne en melding midt på dagen som sier hvor glad du er i henne. 📱",
-    "Planlegg en overraskelsesdate hjemme – med mat, lys og musikk. 🕯️",
-    "Gjør favorittdesserten hennes fra bunnen av. 🍰",
-    "Si tre ting du gleder deg til når babyen kommer. 🎈",
-    "Ta initiativ til en kveld hvor dere bare snakker om fremtiden. 💬",
-    "Gi henne en skikkelig god massasje – rygg, skuldre og føtter. 💆‍♀️",
-    "Lag en spilleliste med sanger som minner dere om hverandre. 🎵",
-    "Fortell henne om et øyeblikk hvor du var ekstra stolt av henne. 🏆",
-    "Ordne med en helt vanlig kosekveld – ingen stress, bare dere to. 🌙"
+    "Gi Andrine 10 minutter med fotmassasje i dag. ð¦¶",
+    "Lag yndlingsmaten hennes eller hent noe hun craver skikkelig. ð¥",
+    "Fortell henne hvor utrolig flink hun er som bÃ¦rer frem barnet deres. ð",
+    "Ta alt det praktiske med rydding og matlaging i kveld. ð§¹",
+    "KjÃ¸p med en liten overraskelse til henne pÃ¥ vei hjem. ð",
+    "Ordne med ekstra puter og teppe slik at hun kan hvile skikkelig. ðï¸",
+    "Les hÃ¸yt for babyen mens du holder pÃ¥ magen hennes. ð",
+    "GjÃ¸r klart et varmt bad med lys og god musikk for henne. ð",
+    "Ta deg av alle husarbeid i dag uten at hun trenger Ã¥ spÃ¸rre. ðª",
+    "Send henne en melding midt pÃ¥ dagen som sier hvor glad du er i henne. ð±",
+    "Planlegg en overraskelsesdate hjemme â med mat, lys og musikk. ð¯ï¸",
+    "GjÃ¸r favorittdesserten hennes fra bunnen av. ð°",
+    "Si tre ting du gleder deg til nÃ¥r babyen kommer. ð",
+    "Ta initiativ til en kveld hvor dere bare snakker om fremtiden. ð¬",
+    "Gi henne en skikkelig god massasje â rygg, skuldre og fÃ¸tter. ðââï¸",
+    "Lag en spilleliste med sanger som minner dere om hverandre. ðµ",
+    "Fortell henne om et Ã¸yeblikk hvor du var ekstra stolt av henne. ð",
+    "Ordne med en helt vanlig kosekveld â ingen stress, bare dere to. ð"
   ]
 };
 
 const PREDICTION_QUESTIONS = [
   { id: 'birth_date', label: 'Hvilken dato kommer den lille?', type: 'date' },
-  { id: 'birth_time', label: 'Klokkeslett for fødsel?', type: 'time', placeholder: 'f.eks. 14:30' },
+  { id: 'birth_time', label: 'Klokkeslett for fÃ¸dsel?', type: 'time', placeholder: 'f.eks. 14:30' },
   { id: 'birth_weight', label: 'Estimert vekt (gram)?', type: 'number', placeholder: 'f.eks. 3500' },
   { id: 'birth_length', label: 'Estimert lengde (cm)?', type: 'number', placeholder: 'f.eks. 50' },
-  { id: 'eye_color', label: 'Hvilken øyenfarge får han?', type: 'text', placeholder: 'f.eks. Blå/Brune' },
-  { id: 'hair_color', label: 'Hvilken hårfarge?', type: 'text', placeholder: 'f.eks. Mørk/Lys' },
-  { id: 'hair_amount', label: 'Mye eller lite hår?', type: 'text', placeholder: 'f.eks. Fyldig/Lite' },
-  { id: 'who_looks_like', label: 'Hvem kommer han til å ligne mest på?', type: 'text', placeholder: 'Mamma eller Pappa?' },
-  { id: 'first_word', label: 'Hva blir hans første ord?', type: 'text', placeholder: 'f.eks. Mamma/Pappa' },
-  { id: 'personality', label: 'Hvilken personlighet tror du han får?', type: 'text', placeholder: 'f.eks. Rolig/Aktiv' },
-  { id: 'favorite_activity', label: 'Hva kommer han til å elske å gjøre?', type: 'text', placeholder: 'f.eks. Fotball/Musikk' },
+  { id: 'eye_color', label: 'Hvilken Ã¸yenfarge fÃ¥r han?', type: 'text', placeholder: 'f.eks. BlÃ¥/Brune' },
+  { id: 'hair_color', label: 'Hvilken hÃ¥rfarge?', type: 'text', placeholder: 'f.eks. MÃ¸rk/Lys' },
+  { id: 'hair_amount', label: 'Mye eller lite hÃ¥r?', type: 'text', placeholder: 'f.eks. Fyldig/Lite' },
+  { id: 'who_looks_like', label: 'Hvem kommer han til Ã¥ ligne mest pÃ¥?', type: 'text', placeholder: 'Mamma eller Pappa?' },
+  { id: 'first_word', label: 'Hva blir hans fÃ¸rste ord?', type: 'text', placeholder: 'f.eks. Mamma/Pappa' },
+  { id: 'personality', label: 'Hvilken personlighet tror du han fÃ¥r?', type: 'text', placeholder: 'f.eks. Rolig/Aktiv' },
+  { id: 'favorite_activity', label: 'Hva kommer han til Ã¥ elske Ã¥ gjÃ¸re?', type: 'text', placeholder: 'f.eks. Fotball/Musikk' },
   { id: 'zodiac_trait', label: 'Hvilken stjernetegn-egenskap passer best?', type: 'text', placeholder: 'f.eks. Modig/Omtenksom' }
 ];
 
@@ -152,14 +152,14 @@ function getMission(role) {
   return roleMissions[dayOfYear % roleMissions.length];
 }
 
-// 🪙 Coin Helper
-// 🪙 Coin Helper
+// ðª Coin Helper
+// ðª Coin Helper
 async function awardCoins(role, amount, reason) {
   // Pull latest v2 state
   let state = storage.get('love_auction_v2', null);
 
   if (!state) {
-    console.warn('⚠️ No auction state found, cannot award coins');
+    console.warn('â ï¸ No auction state found, cannot award coins');
     return;
   }
 
@@ -185,12 +185,12 @@ async function awardCoins(role, amount, reason) {
 
   storage.set('love_auction_v2', state);
   await storage.syncWithCloud();
-  console.log(`🪙 Awarded ${amount} coins to ${role} for ${reason}`);
+  console.log(`ðª Awarded ${amount} coins to ${role} for ${reason}`);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 📄 RENDER
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð RENDER
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 export function renderTogether() {
   const gameGrid = GAMES.map(game => `
@@ -206,8 +206,10 @@ export function renderTogether() {
 
   return `
     <div class="page-together">
-      <h1 class="heading-love mb-2">Sammen 💗</h1>
-      <p class="text-warm mb-6">Små øyeblikk å dele med partneren din</p>
+      <div class="page-header-hero page-header-together" style="margin-bottom:var(--space-5);">
+        <h1 class="page-header-hero-title">Sammen 💗</h1>
+        <p class="page-header-hero-sub">Små øyeblikk å dele med partneren din</p>
+      </div>
       
       <div id="together-content">
         <div class="game-grid" id="game-grid">
@@ -218,7 +220,7 @@ export function renderTogether() {
       <!-- Game Modal -->
       <div id="game-modal" class="game-modal" style="display: none;">
         <div class="game-modal-content">
-          <button class="game-modal-close" id="close-modal">✕</button>
+          <button class="game-modal-close" id="close-modal">â</button>
           <div id="game-content"></div>
         </div>
       </div>
@@ -226,13 +228,13 @@ export function renderTogether() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 🎯 INIT & EVENT HANDLERS
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¯ INIT & EVENT HANDLERS
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// ═══════════════════════════════════════════════════════════════
-// 🎯 INIT & EVENT HANDLERS
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¯ INIT & EVENT HANDLERS
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 export function initTogether() {
   const container = document.querySelector('.page-together');
@@ -263,14 +265,14 @@ export function initTogether() {
     if (contentArea) {
       contentArea.innerHTML = `
         <div class="identity-selection text-center fade-in">
-          <h2 class="heading-love mb-6">Hvem er du? 💕</h2>
+          <h2 class="heading-love mb-6">Hvem er du? ð</h2>
           <div class="identity-buttons">
             <button class="btn btn-soft identity-btn mb-4" data-id="andrine">
-              <span>👩</span>
+              <span>ð©</span>
               Jeg er Andrine
             </button>
             <button class="btn btn-soft identity-btn" data-id="partner">
-              <span>👨🏾</span>
+              <span>ð¨ð¾</span>
               Jeg er Yoel
             </button>
           </div>
@@ -296,7 +298,7 @@ export function initTogether() {
     badge.id = 'identity-badge';
     badge.className = 'identity-badge mb-6';
     badge.innerHTML = `
-      <span>Logget inn som ${currentIdentity === 'andrine' ? 'Andrine 👩' : 'Yoel 👨🏾'}</span>
+      <span>Logget inn som ${currentIdentity === 'andrine' ? 'Andrine ð©' : 'Yoel ð¨ð¾'}</span>
       <button id="switch-identity" class="btn-bytt">Bytt</button>
     `;
     header.after(badge);
@@ -339,7 +341,7 @@ export function initTogether() {
     modalCleanupStack = []; // Clear stack
 
     lastPartnerTapReceived = null;
-    console.log('💓 Game closed, cleanup completed');
+    console.log('ð Game closed, cleanup completed');
   }
 
   function openGame(gameId) {
@@ -383,9 +385,9 @@ export function initTogether() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 💓 GAME 1: HEARTBEAT SYNC
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð GAME 1: HEARTBEAT SYNC
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 let heartbeatPollInterval = null;
 let lastPartnerTapReceived = null;
@@ -396,18 +398,18 @@ function renderHeartbeatGame(container, cleanupStack) {
   container.innerHTML = `
     <div class="text-center" style="display: flex; flex-direction: column; min-height: 100%; padding-top: 20px;">
       <div style="flex: 0 0 auto;">
-        <h2 class="heading-section mb-2">Hjerteslag 💓</h2>
-        <p class="text-warm mb-4">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
+        <h2 class="heading-section mb-2">Hjerteslag ð</h2>
+        <p class="text-warm mb-4">Trykk for Ã¥ sende et dunk til ${role === 'andrine' ? 'Yoel ð¨ð¾' : 'Andrine ð©'}.</p>
       </div>
 
       <div class="heartbeat-area" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 200px;">
-        <span id="heart-icon" class="heart-pulse reveal-emoji-big">💗</span>
+        <span id="heart-icon" class="heart-pulse reveal-emoji-big">ð</span>
       </div>
 
       <div style="flex: 0 0 auto; margin-bottom: 16px;">
         <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
         <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px;">
-          Send hjertebank 💕
+          Send hjertebank ð
         </button>
       </div>
     </div>
@@ -428,8 +430,8 @@ function renderHeartbeatGame(container, cleanupStack) {
     const isOnline = window.app.isPartnerOnline();
     if (status) {
       status.textContent = isOnline
-        ? `${role === 'andrine' ? 'Yoel' : 'Andrine'} er pålogget 🟢`
-        : 'Partner er ikke pålogget ⚪';
+        ? `${role === 'andrine' ? 'Yoel' : 'Andrine'} er pÃ¥logget ð¢`
+        : 'Partner er ikke pÃ¥logget âª';
     }
   }, 2000);
 
@@ -451,9 +453,9 @@ function renderHeartbeatGame(container, cleanupStack) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 💬 GAME 2: US, THIS WEEK
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¬ GAME 2: US, THIS WEEK
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function renderWeeklyGame(container) {
   const weekNum = getWeekNumber();
@@ -465,7 +467,7 @@ function renderWeeklyGame(container) {
 
   container.innerHTML = `
     <div class="text-center">
-      <h2 class="heading-section mb-2">Oss, Denne Uken 💬</h2>
+      <h2 class="heading-section mb-2">Oss, Denne Uken ð¬</h2>
       <p class="text-warm mb-8">"${question}"</p>
       
       ${bothAnswered ? `
@@ -493,11 +495,11 @@ function renderWeeklyGame(container) {
         </button>
         
         <div class="locked-state-card">
-          <div class="locked-emoji">🔒</div>
-          <p class="text-tiny opacity-70 mb-2">Svarene avsløres kun når begge har svart</p>
+          <div class="locked-emoji">ð</div>
+          <p class="text-tiny opacity-70 mb-2">Svarene avslÃ¸res kun nÃ¥r begge har svart</p>
           <div class="flex justify-center gap-4">
-            <span class="badge ${answers.andrine ? 'badge-success' : 'badge-soft'}">${answers.andrine ? '✓ Andrine klar' : 'Andrine tenker...'}</span>
-            <span class="badge ${answers.partner ? 'badge-success' : 'badge-soft'}">${answers.partner ? '✓ Yoel klar' : 'Yoel tenker...'}</span>
+            <span class="badge ${answers.andrine ? 'badge-success' : 'badge-soft'}">${answers.andrine ? 'â Andrine klar' : 'Andrine tenker...'}</span>
+            <span class="badge ${answers.partner ? 'badge-success' : 'badge-soft'}">${answers.partner ? 'â Yoel klar' : 'Yoel tenker...'}</span>
           </div>
         </div>
       `}
@@ -518,10 +520,10 @@ function renderWeeklyGame(container) {
           // Check if already awarded for this week
           const awardKey = `weekly_coins_${weekNum}`;
           if (!storage.get(awardKey, false)) {
-            awardCoins(identity === 'andrine' ? 'partner' : 'andrine', 20, 'Ukens Spørsmål'); // Award the OTHER person usually? Or both?
+            awardCoins(identity === 'andrine' ? 'partner' : 'andrine', 20, 'Ukens SpÃ¸rsmÃ¥l'); // Award the OTHER person usually? Or both?
             // Actually let's award BOTH.
-            awardCoins('andrine', 20, 'Ukens Spørsmål');
-            awardCoins('partner', 20, 'Ukens Spørsmål');
+            awardCoins('andrine', 20, 'Ukens SpÃ¸rsmÃ¥l');
+            awardCoins('partner', 20, 'Ukens SpÃ¸rsmÃ¥l');
             storage.set(awardKey, true);
           }
         }
@@ -532,9 +534,9 @@ function renderWeeklyGame(container) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 🤍 GAME 3: GUESS WHAT I'M THINKING
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¤ GAME 3: GUESS WHAT I'M THINKING
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function renderGuessGame(container) {
   const gameState = storage.get('mood_guess_today', { date: null, mood: null, guess: null });
@@ -556,8 +558,8 @@ function renderGuessGame(container) {
     if (currentIdentity === 'partner') {
       container.innerHTML = `
         <div class="text-center">
-          <h2 class="heading-section mb-4">Venter på Andrine... ⏳</h2>
-          <p class="text-muted">Hun velger humøret sitt nå.</p>
+          <h2 class="heading-section mb-4">Venter pÃ¥ Andrine... â³</h2>
+          <p class="text-muted">Hun velger humÃ¸ret sitt nÃ¥.</p>
         </div>
       `;
       // Auto-refresh checker could go here, or just let them wait/refresh
@@ -566,8 +568,8 @@ function renderGuessGame(container) {
 
     container.innerHTML = `
       <div class="text-center">
-        <h2 class="heading-section mb-2">Gjett Humøret 🤍</h2>
-        <p class="text-warm mb-6">Andrine: Velg hvordan du føler deg akkurat nå.<br>Gi så telefonen til partneren din.</p>
+        <h2 class="heading-section mb-2">Gjett HumÃ¸ret ð¤</h2>
+        <p class="text-warm mb-6">Andrine: Velg hvordan du fÃ¸ler deg akkurat nÃ¥.<br>Gi sÃ¥ telefonen til partneren din.</p>
         
         <div class="mood-grid" id="mood-select">
           ${MOODS.map(m => `
@@ -592,8 +594,8 @@ function renderGuessGame(container) {
     if (currentIdentity === 'andrine') {
       container.innerHTML = `
         <div class="text-center">
-          <h2 class="heading-section mb-4">Venter på Yoel... ⏳</h2>
-          <p class="text-muted">Han gjetter humøret ditt nå.</p>
+          <h2 class="heading-section mb-4">Venter pÃ¥ Yoel... â³</h2>
+          <p class="text-muted">Han gjetter humÃ¸ret ditt nÃ¥.</p>
         </div>
       `;
       return;
@@ -601,8 +603,8 @@ function renderGuessGame(container) {
 
     container.innerHTML = `
       <div class="text-center">
-        <h2 class="heading-section mb-2">Partners Tur 🤍</h2>
-        <p class="text-warm mb-6">Hvordan tror du Andrine føler seg akkurat nå?</p>
+        <h2 class="heading-section mb-2">Partners Tur ð¤</h2>
+        <p class="text-warm mb-6">Hvordan tror du Andrine fÃ¸ler seg akkurat nÃ¥?</p>
         
         <div class="mood-grid" id="mood-guess">
           ${MOODS.map(m => `
@@ -634,12 +636,12 @@ function renderGuessGame(container) {
     <div class="text-center">
       <div class="reveal-animation">
         <div class="reveal-emoji-big">${gameState.mood}</div>
-        <p class="heading-love mb-6">${correct ? 'Du klarte det! 💗' : 'Nesten — hun føler seg sett ✨'}</p>
+        <p class="heading-love mb-6">${correct ? 'Du klarte det! ð' : 'Nesten â hun fÃ¸ler seg sett â¨'}</p>
       </div>
       
       <div class="guess-comparison mb-8">
         <div class="guess-item">
-          <p class="text-muted text-tiny mb-2">Andrine følte</p>
+          <p class="text-muted text-tiny mb-2">Andrine fÃ¸lte</p>
           <span class="history-emoji">${gameState.mood}</span>
         </div>
         <div class="guess-item">
@@ -648,16 +650,16 @@ function renderGuessGame(container) {
         </div>
       </div>
       
-      <button class="btn btn-soft btn-block" onclick="this.textContent='Ses i morgen! ✨'">
+      <button class="btn btn-soft btn-block" onclick="this.textContent='Ses i morgen! â¨'">
         Spill Igjen I Morgen
       </button>
     </div>
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 🍼 GAME 4: NAME VIBES
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¼ GAME 4: NAME VIBES
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 // State tracking to prevent flickering
 let lastRenderedState = { name: null, waiting: null, finished: null };
@@ -701,21 +703,21 @@ function renderNamesGame(container, cleanupStack) {
   const content = `
     <div class="text-center" id="name-game-container">
       <div class="header-row mb-4">
-        <h2 class="heading-section">Navnelek 🍼</h2>
-        <button class="btn-text text-small underline" id="view-results">Se Resultater 📜</button>
+        <h2 class="heading-section">Navnelek ð¼</h2>
+        <button class="btn-text text-small underline" id="view-results">Se Resultater ð</button>
       </div>
       
       ${!isFinished ? `
         ${hasVoted ? `
           <!-- WAITING STATE -->
           <div class="waiting-card fade-in">
-            <div class="spinner mb-4">⏳</div>
-            <h3 class="heading-love mb-4">Venter på ${partnerRole === 'andrine' ? 'Andrine' : 'Yoel'}...</h3>
-            <p class="text-muted mb-6">Du har stemt på <strong>${currentName}</strong>.</p>
+            <div class="spinner mb-4">â³</div>
+            <h3 class="heading-love mb-4">Venter pÃ¥ ${partnerRole === 'andrine' ? 'Andrine' : 'Yoel'}...</h3>
+            <p class="text-muted mb-6">Du har stemt pÃ¥ <strong>${currentName}</strong>.</p>
             <p class="text-warm">Gi beskjed til partneren din!</p>
             
             <button class="btn btn-soft btn-block mt-8" id="check-sync">
-              Sjekk igjen 🔄
+              Sjekk igjen ð
             </button>
           </div>
         ` : `
@@ -726,15 +728,15 @@ function renderNamesGame(container, cleanupStack) {
           
           <div class="swipe-buttons">
             <button class="swipe-btn nope" data-vote="nope" data-name="${currentName}">
-              <span>❌</span>
+              <span>â</span>
               <small>Nei</small>
             </button>
             <button class="swipe-btn maybe" data-vote="maybe" data-name="${currentName}">
-              <span>😐</span>
+              <span>ð</span>
               <small>Kanskje</small>
             </button>
             <button class="swipe-btn love" data-vote="love" data-name="${currentName}">
-              <span>💗</span>
+              <span>ð</span>
               <small>Elsker</small>
             </button>
           </div>
@@ -742,7 +744,7 @@ function renderNamesGame(container, cleanupStack) {
       ` : `
         <!-- FINISHED STATE -->
         <div class="finished-card fade-in">
-          <p class="heading-love mb-4">Dere er ferdige! 🎉</p>
+          <p class="heading-love mb-4">Dere er ferdige! ð</p>
           <p class="text-muted mb-6">Ingen flere navn igjen.</p>
           
           <button class="btn btn-soft btn-block mb-3" id="add-name-btn">
@@ -761,8 +763,8 @@ function renderNamesGame(container, cleanupStack) {
 
       <!-- Presence Indicator -->
       <div id="presence-indicator" class="presence-badge ${currentPlayer === 'andrine' ? 'partner-status' : 'andrine-status'} mt-8 fade-in">
-        <span class="status-dot">⚪</span>
-        <span class="status-text">Venter på partner...</span>
+        <span class="status-dot">âª</span>
+        <span class="status-text">Venter pÃ¥ partner...</span>
       </div>
     </div>
   `;
@@ -818,7 +820,7 @@ function renderNamesGame(container, cleanupStack) {
   document.getElementById('check-sync')?.addEventListener('click', async () => {
     // FORCE A FULL SYNC (Push + Pull) to heal any lost data
     const btn = document.getElementById('check-sync');
-    if (btn) btn.textContent = 'Synkroniserer... 🔄';
+    if (btn) btn.textContent = 'Synkroniserer... ð';
 
     await storage.syncWithCloud();
     await storage.pullFromCloud();
@@ -877,32 +879,32 @@ function renderNameStats(container, cleanupStack) {
   container.innerHTML = `
     <div class="stats-page fade-in">
       <div class="header-row mb-6">
-        <button class="btn-text btn-back-arrow" id="back-to-game">←</button>
-        <h2 class="heading-section">Resultater 📜</h2>
+        <button class="btn-text btn-back-arrow" id="back-to-game">â</button>
+        <h2 class="heading-section">Resultater ð</h2>
       </div>
 
       <div class="stats-section mb-10">
-        <h3 class="heading-love mb-4">Vi Elsker! 💗</h3>
+        <h3 class="heading-love mb-4">Vi Elsker! ð</h3>
         ${matches.length ? `
           <div class="tag-cloud">
             ${matches.map(n => `<span class="tag match">${n}</span>`).join('')}
           </div>
-        ` : `<p class="text-muted text-center">Ingen fulltreffere ennå...</p>`}
+        ` : `<p class="text-muted text-center">Ingen fulltreffere ennÃ¥...</p>`}
       </div>
 
       <div class="stats-section mb-10">
-        <h3 class="heading-love mb-4 text-primary">Kanskje-listen 🤔</h3>
+        <h3 class="heading-love mb-4 text-primary">Kanskje-listen ð¤</h3>
         <p class="text-muted mb-4 text-small">Navn vi begge liker litt</p>
         ${maybes.length ? `
           <div class="tag-cloud">
             ${maybes.map(n => `<span class="tag maybe">${n}</span>`).join('')}
           </div>
-        ` : `<p class="text-muted text-center">Ingenting her ennå.</p>`}
+        ` : `<p class="text-muted text-center">Ingenting her ennÃ¥.</p>`}
       </div>
 
       <div class="stats-section">
-        <h3 class="heading-love mb-4 text-primary">Mine Favoritter 👤</h3>
-        <p class="text-muted mb-4 text-small">Navn jeg elsker (men vi ikke har matchet på)</p>
+        <h3 class="heading-love mb-4 text-primary">Mine Favoritter ð¤</h3>
+        <p class="text-muted mb-4 text-small">Navn jeg elsker (men vi ikke har matchet pÃ¥)</p>
         ${myLoves.length ? `
           <div class="tag-cloud">
             ${myLoves.map(n => `<span class="tag mine">${n}</span>`).join('')}
@@ -917,9 +919,9 @@ function renderNameStats(container, cleanupStack) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 💌 GAME 5: LOVE MISSIONS
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð GAME 5: LOVE MISSIONS
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function renderMissions(container) {
   const role = localStorage.getItem('who_am_i') || 'andrine';
@@ -929,22 +931,22 @@ function renderMissions(container) {
 
   container.innerHTML = `
     <div class="text-center">
-      <h2 class="heading-love mb-4">Dagens Oppdrag 💌</h2>
-      <p class="text-muted mb-8">En liten ting du kan gjøre for ${role === 'andrine' ? 'Yoel 👨🏾‍🚀' : 'Andrine 👩'} i dag.</p>
+      <h2 class="heading-love mb-4">Dagens Oppdrag ð</h2>
+      <p class="text-muted mb-8">En liten ting du kan gjÃ¸re for ${role === 'andrine' ? 'Yoel ð¨ð¾âð' : 'Andrine ð©'} i dag.</p>
       
       <div class="card card-soft mb-8">
-        <div class="game-chip mb-4">Mål for dagen</div>
+        <div class="game-chip mb-4">MÃ¥l for dagen</div>
         <p class="heading-card mb-4 mission-text">"${mission}"</p>
-        ${completed ? '<span class="text-love font-bold">✓ Fullført med kjærlighet!</span>' : ''}
+        ${completed ? '<span class="text-love font-bold">â FullfÃ¸rt med kjÃ¦rlighet!</span>' : ''}
       </div>
 
       ${!completed ? `
         <button class="btn btn-primary btn-block" id="complete-mission">
-          Jeg har gjort det! ✨
+          Jeg har gjort det! â¨
         </button>
       ` : `
-        <div class="animate-heartbeat reveal-emoji-big">❤️</div>
-        <p class="text-warm italic">Godt jobba! Din omtanke betyr alt. ❤️</p>
+        <div class="animate-heartbeat reveal-emoji-big">â¤ï¸</div>
+        <p class="text-warm italic">Godt jobba! Din omtanke betyr alt. â¤ï¸</p>
       `}
     </div>
   `;
@@ -957,9 +959,9 @@ function renderMissions(container) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 🎲 GAME 6: BABY PREDICTIONS
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð² GAME 6: BABY PREDICTIONS
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function renderPredictionsGame(container) {
   const role = localStorage.getItem('who_am_i') || 'andrine';
@@ -968,7 +970,7 @@ function renderPredictionsGame(container) {
 
   container.innerHTML = `
     <div class="text-center">
-      <h2 class="heading-section mb-2">Gjettelek 🎲</h2>
+      <h2 class="heading-section mb-2">Gjettelek ð²</h2>
       <p class="text-muted mb-10">Hva tror du om fremtiden? Dine gjetninger lagres i hvelvet.</p>
       
       <div class="prediction-form text-left">
@@ -986,10 +988,10 @@ function renderPredictionsGame(container) {
         `).join('')}
         
         <button class="btn btn-primary btn-block mb-4" id="save-predictions">
-          Lagre i Hvelvet 🔒
+          Lagre i Hvelvet ð
         </button>
         <button class="btn btn-soft btn-block" id="view-vault">
-          Se alle gjetninger 👀
+          Se alle gjetninger ð
         </button>
       </div>
     </div>
@@ -1005,9 +1007,9 @@ function renderPredictionsGame(container) {
 
     container.innerHTML = `
       <div class="text-center fade-in">
-        <div class="reveal-emoji-big">🔒</div>
+        <div class="reveal-emoji-big">ð</div>
         <h2 class="heading-love mb-4">Lagret!</h2>
-        <p class="text-warm mb-6">Dine gjetninger er trygt lagret. Vi sjekker dem når den lille kommer!</p>
+        <p class="text-warm mb-6">Dine gjetninger er trygt lagret. Vi sjekker dem nÃ¥r den lille kommer!</p>
         <button class="btn btn-soft btn-block" id="back-to-together">Ferdig</button>
       </div>
     `;
@@ -1027,8 +1029,8 @@ function renderVault(container) {
 
   container.innerHTML = `
     <div class="text-center">
-      <h2 class="heading-love mb-2">Babyhvelvet 🔒✨</h2>
-      <p class="text-muted mb-8 text-small">Våre gjetninger om den lille</p>
+      <h2 class="heading-love mb-2">Babyhvelvet ðâ¨</h2>
+      <p class="text-muted mb-8 text-small">VÃ¥re gjetninger om den lille</p>
       
       <div class="vault-grid">
         ${PREDICTION_QUESTIONS.map(q => `
@@ -1056,104 +1058,104 @@ function renderVault(container) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 💸 GAME 7: LOVE AUCTION
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¸ GAME 7: LOVE AUCTION
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// ═══════════════════════════════════════════════════════════════
-// 💸 GAME 7: LOVE AUCTION V2
-// ═══════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ð¸ GAME 7: LOVE AUCTION V2
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const SEED_ITEMS = [
   // KOS & RELAX (Cheap/Medium)
   { id: 'item_back_massage', title: '15 min Ryggmassasje', desc: 'Du gir en god og avslappende massasje.', cost: 15, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_foot_massage', title: 'Fotmassasje', desc: '10 minutter med full fokus på slitne føtter.', cost: 15, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_foot_massage', title: 'Fotmassasje', desc: '10 minutter med full fokus pÃ¥ slitne fÃ¸tter.', cost: 15, category: 'Kos', payer: 'BEGGE' },
   { id: 'item_head_scratch', title: 'Hodebunnskos', desc: '5 minutter med ren nytelse.', cost: 10, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_scratch_back', title: 'Kile på ryggen', desc: 'Lett kiling/kløing til man sovner.', cost: 10, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_movie_pick', title: 'Velg Filmkveld 🎬', desc: 'Du bestemmer kveldens film (ingen veto).', cost: 30, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_series_ep', title: 'Én episode til', desc: 'Vi ser en episode til, selv om det er sent.', cost: 10, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_back_scratch_20', title: '20 min Rygge-kløing 😌', desc: 'Perfekt for kos.', cost: 35, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_game_night', title: 'Spillkveld av Ditt Valg 🎮', desc: 'Brett- eller videospill!', cost: 45, category: 'Kos', payer: 'BEGGE' },
-  { id: 'item_music_choice', title: 'Velg Musikk i Bilen 🎵', desc: 'Full kontroll på spillelisten!', cost: 25, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_scratch_back', title: 'Kile pÃ¥ ryggen', desc: 'Lett kiling/klÃ¸ing til man sovner.', cost: 10, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_movie_pick', title: 'Velg Filmkveld ð¬', desc: 'Du bestemmer kveldens film (ingen veto).', cost: 30, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_series_ep', title: 'Ãn episode til', desc: 'Vi ser en episode til, selv om det er sent.', cost: 10, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_back_scratch_20', title: '20 min Rygge-klÃ¸ing ð', desc: 'Perfekt for kos.', cost: 35, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_game_night', title: 'Spillkveld av Ditt Valg ð®', desc: 'Brett- eller videospill!', cost: 45, category: 'Kos', payer: 'BEGGE' },
+  { id: 'item_music_choice', title: 'Velg Musikk i Bilen ðµ', desc: 'Full kontroll pÃ¥ spillelisten!', cost: 25, category: 'Kos', payer: 'BEGGE' },
 
   // MAT & CRAVINGS
-  { id: 'item_breakfast_bed', title: 'Frokost på senga', desc: 'Luksusstart på dagen servert av partner.', cost: 50, category: 'Mat', payer: 'BEGGE' },
-  { id: 'item_dinner_chef', title: 'Du lager middag', desc: 'Partneren slipper å løfte en finger.', cost: 20, category: 'Mat', payer: 'BEGGE' },
-  { id: 'item_water_fetch', title: 'Hente vann', desc: 'Hent iskaldt vann til meg (når som helst).', cost: 5, category: 'Mat', payer: 'BEGGE' },
-  { id: 'item_snack_run', title: 'Snack Levering', desc: 'Gå og hent cravings fra butikken/skapet.', cost: 15, category: 'Mat', payer: 'BEGGE' },
-  { id: 'item_coffee_bed', title: 'Kaffe på senga', desc: 'Nylaget kaffe servert før man står opp.', cost: 10, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_breakfast_bed', title: 'Frokost pÃ¥ senga', desc: 'Luksusstart pÃ¥ dagen servert av partner.', cost: 50, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_dinner_chef', title: 'Du lager middag', desc: 'Partneren slipper Ã¥ lÃ¸fte en finger.', cost: 20, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_water_fetch', title: 'Hente vann', desc: 'Hent iskaldt vann til meg (nÃ¥r som helst).', cost: 5, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_snack_run', title: 'Snack Levering', desc: 'GÃ¥ og hent cravings fra butikken/skapet.', cost: 15, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_coffee_bed', title: 'Kaffe pÃ¥ senga', desc: 'Nylaget kaffe servert fÃ¸r man stÃ¥r opp.', cost: 10, category: 'Mat', payer: 'BEGGE' },
   { id: 'item_pizza_night', title: 'Pizza-kveld', desc: 'Vi bestiller pizza (spleisepott).', cost: 30, category: 'Mat', payer: 'BEGGE', requiresBoth: true, requiresBothConfirm: true },
-  { id: 'item_takeout', title: 'Takeaway etter Eget Valg 🍕', desc: 'Bestill akkurat det du vil ha!', cost: 70, category: 'Mat', payer: 'BEGGE' },
-  { id: 'item_dessert', title: 'Hjemmelaget Dessert 🍰', desc: 'Partneren baker din favoritt.', cost: 55, category: 'Mat', payer: 'BEGGE' },
-  { id: 'item_champagne_breakfast', title: 'Champagne-frokost 🥂', desc: 'Luksus morgen for dere begge.', cost: 120, category: 'Mat', payer: 'BEGGE', requiresBoth: true },
-  { id: 'item_weekend_brunch', title: 'Weekend Brunch-laging 🍳', desc: 'Lag stor brunch sammen!', cost: 95, category: 'Mat', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_takeout', title: 'Takeaway etter Eget Valg ð', desc: 'Bestill akkurat det du vil ha!', cost: 70, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_dessert', title: 'Hjemmelaget Dessert ð°', desc: 'Partneren baker din favoritt.', cost: 55, category: 'Mat', payer: 'BEGGE' },
+  { id: 'item_champagne_breakfast', title: 'Champagne-frokost ð¥', desc: 'Luksus morgen for dere begge.', cost: 120, category: 'Mat', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_weekend_brunch', title: 'Weekend Brunch-laging ð³', desc: 'Lag stor brunch sammen!', cost: 95, category: 'Mat', payer: 'BEGGE', requiresBoth: true },
 
   // DATE & ROMANTIKK
-  { id: 'item_date_night_luxury', title: 'Luksus Date Night ✨', desc: 'Begge må være med på denne!', cost: 150, category: 'Date', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_date_night_luxury', title: 'Luksus Date Night â¨', desc: 'Begge mÃ¥ vÃ¦re med pÃ¥ denne!', cost: 150, category: 'Date', payer: 'BEGGE', requiresBoth: true },
   { id: 'item_date_night', title: 'Date Night', desc: 'Barnevakt (eller hjemmedate) med full fokus.', cost: 50, category: 'Date', payer: 'BEGGE', requiresBoth: true, requiresBothConfirm: true },
-  { id: 'item_walk_together', title: 'Gåtur sammen', desc: '30 min luftetur hånd i hånd.', cost: 15, category: 'Date', payer: 'BEGGE' },
+  { id: 'item_walk_together', title: 'GÃ¥tur sammen', desc: '30 min luftetur hÃ¥nd i hÃ¥nd.', cost: 15, category: 'Date', payer: 'BEGGE' },
   { id: 'item_board_games', title: 'Brettspillkveld', desc: 'Vi legger bort mobilen og spiller.', cost: 20, category: 'Date', payer: 'BEGGE' },
-  { id: 'item_cinema', title: 'Kinotur', desc: 'Vi drar på kino (du spanderer billettene).', cost: 60, category: 'Date', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_cinema', title: 'Kinotur', desc: 'Vi drar pÃ¥ kino (du spanderer billettene).', cost: 60, category: 'Date', payer: 'BEGGE', requiresBoth: true },
   { id: 'item_mini_date', title: 'Minidate hjemme', desc: 'Levende lys og god musikk i stua.', cost: 25, category: 'Date', payer: 'BEGGE' },
-  { id: 'item_photo_shoot', title: 'Par-Fotoshoot 📷', desc: 'Lag fine minner sammen!', cost: 180, category: 'Date', payer: 'BEGGE', requiresBoth: true },
-  { id: 'item_stargazing', title: 'Stjernekikking-date 🌟', desc: 'Ute eller på balkongen.', cost: 85, category: 'Date', payer: 'BEGGE', requiresBoth: true },
-  { id: 'item_coffee_date_out', title: 'Kaffe-date ute ☕', desc: 'Koselig tur til favorittcaféen.', cost: 65, category: 'Date', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_photo_shoot', title: 'Par-Fotoshoot ð·', desc: 'Lag fine minner sammen!', cost: 180, category: 'Date', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_stargazing', title: 'Stjernekikking-date ð', desc: 'Ute eller pÃ¥ balkongen.', cost: 85, category: 'Date', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_coffee_date_out', title: 'Kaffe-date ute â', desc: 'Koselig tur til favorittcafÃ©en.', cost: 65, category: 'Date', payer: 'BEGGE', requiresBoth: true },
 
   // HJELP & PRAKTISK
   { id: 'item_dishes', title: 'Ta oppvasken', desc: 'Du tar alt oppvasken i dag.', cost: 20, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_trash_out', title: 'Gå ut med søpla', desc: 'Du tar søpla, uten å klage.', cost: 10, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_diaper_free', title: '1 bleie-fritak', desc: 'Slipp unna én bæsjebleie (fremtidig).', cost: 15, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_kitchen_clean', title: 'Rydd kjøkkenet', desc: 'Shine kjøkkenet mens jeg slapper av.', cost: 20, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_laundry_fold', title: 'Brette klær', desc: 'Du bretter stativet som står fremme.', cost: 20, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_sleep_in', title: 'Sove lenge', desc: 'Du står opp, jeg sover til 10:00.', cost: 40, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_chore_pass', title: 'Slipp unna Oppvask 🧼', desc: 'Et "get out of jail" kort for kjedelig arbeid.', cost: 40, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_lazy_day', title: 'Ingen Forventninger-dag 😴', desc: 'Dagen din, null stress!', cost: 90, category: 'Hjelp', payer: 'BEGGE' },
-  { id: 'item_no_phone', title: 'Telefonfri Kveld 📵', desc: 'Bare dere to, ingen skjermer.', cost: 110, category: 'Hjelp', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_trash_out', title: 'GÃ¥ ut med sÃ¸pla', desc: 'Du tar sÃ¸pla, uten Ã¥ klage.', cost: 10, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_diaper_free', title: '1 bleie-fritak', desc: 'Slipp unna Ã©n bÃ¦sjebleie (fremtidig).', cost: 15, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_kitchen_clean', title: 'Rydd kjÃ¸kkenet', desc: 'Shine kjÃ¸kkenet mens jeg slapper av.', cost: 20, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_laundry_fold', title: 'Brette klÃ¦r', desc: 'Du bretter stativet som stÃ¥r fremme.', cost: 20, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_sleep_in', title: 'Sove lenge', desc: 'Du stÃ¥r opp, jeg sover til 10:00.', cost: 40, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_chore_pass', title: 'Slipp unna Oppvask ð§¼', desc: 'Et "get out of jail" kort for kjedelig arbeid.', cost: 40, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_lazy_day', title: 'Ingen Forventninger-dag ð´', desc: 'Dagen din, null stress!', cost: 90, category: 'Hjelp', payer: 'BEGGE' },
+  { id: 'item_no_phone', title: 'Telefonfri Kveld ðµ', desc: 'Bare dere to, ingen skjermer.', cost: 110, category: 'Hjelp', payer: 'BEGGE', requiresBoth: true },
 
   // OVERRASKELSER & GAVER
-  { id: 'item_small_gift', title: 'Liten gave', desc: 'Noe smått jeg ønsker meg (maks 100kr).', cost: 30, category: 'Overraskelse', payer: 'BEGGE' },
-  { id: 'item_surprise_gift', title: 'Liten Overraskelse 🎁', desc: 'Partneren din må kjøpe noe lite (under 100,-).', cost: 80, category: 'Overraskelse', payer: 'BEGGE' },
-  { id: 'item_flowers', title: 'Blomster', desc: 'En fin bukett på døra eller bordet.', cost: 35, category: 'Overraskelse', payer: 'BEGGE' },
+  { id: 'item_small_gift', title: 'Liten gave', desc: 'Noe smÃ¥tt jeg Ã¸nsker meg (maks 100kr).', cost: 30, category: 'Overraskelse', payer: 'BEGGE' },
+  { id: 'item_surprise_gift', title: 'Liten Overraskelse ð', desc: 'Partneren din mÃ¥ kjÃ¸pe noe lite (under 100,-).', cost: 80, category: 'Overraskelse', payer: 'BEGGE' },
+  { id: 'item_flowers', title: 'Blomster', desc: 'En fin bukett pÃ¥ dÃ¸ra eller bordet.', cost: 35, category: 'Overraskelse', payer: 'BEGGE' },
   { id: 'item_chocolate', title: 'Sjokoladeplate', desc: 'Min favorittsjokolade.', cost: 15, category: 'Overraskelse', payer: 'BEGGE' },
-  { id: 'item_love_letter', title: 'Kjærlighetsbrev', desc: 'Et håndskrevet kort/brev fra deg.', cost: 20, category: 'Overraskelse', payer: 'BEGGE' },
+  { id: 'item_love_letter', title: 'KjÃ¦rlighetsbrev', desc: 'Et hÃ¥ndskrevet kort/brev fra deg.', cost: 20, category: 'Overraskelse', payer: 'BEGGE' },
 
-  // SPA & VELVÆRE
-  { id: 'item_massage_15', title: '15 min Massasje 💆‍♀️', desc: 'Valgfritt område!', cost: 60, category: 'Velvære', payer: 'BEGGE' },
-  { id: 'item_spa_night', title: 'Hjemmespa-kveld 🧼', desc: 'Ansiktsmasker og hygge.', cost: 100, category: 'Velvære', payer: 'BEGGE', requiresBoth: true },
+  // SPA & VELVÃRE
+  { id: 'item_massage_15', title: '15 min Massasje ðââï¸', desc: 'Valgfritt omrÃ¥de!', cost: 60, category: 'VelvÃ¦re', payer: 'BEGGE' },
+  { id: 'item_spa_night', title: 'Hjemmespa-kveld ð§¼', desc: 'Ansiktsmasker og hygge.', cost: 100, category: 'VelvÃ¦re', payer: 'BEGGE', requiresBoth: true },
 
   // PARENT PREP (Baby)
   { id: 'item_baby_name_veto', title: 'Navn Veto-kort', desc: 'Jeg kan legge ned veto mot ett navneforslag.', cost: 50, category: 'Baby', payer: 'BEGGE' },
-  { id: 'item_name_truce', title: 'Navne-fred 🍼', desc: 'Ingen krangling om favorittnavn i 24t.', cost: 200, category: 'Baby', payer: 'BEGGE', requiresBoth: true },
-  { id: 'item_pack_bag', title: 'Pakke Fødebag', desc: 'Vi pakker bagen sammen i kveld.', cost: 15, category: 'Baby', payer: 'BEGGE', requiresBoth: true },
-  { id: 'item_belly_oil', title: 'Smøre magen', desc: 'Olje/krem på magen med massasje.', cost: 10, category: 'Baby', payer: 'BEGGE' },
-  { id: 'item_playlist', title: 'Føde-spilleliste', desc: 'Du lager en liste med sanger til fødselen.', cost: 20, category: 'Baby', payer: 'BEGGE' }
+  { id: 'item_name_truce', title: 'Navne-fred ð¼', desc: 'Ingen krangling om favorittnavn i 24t.', cost: 200, category: 'Baby', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_pack_bag', title: 'Pakke FÃ¸debag', desc: 'Vi pakker bagen sammen i kveld.', cost: 15, category: 'Baby', payer: 'BEGGE', requiresBoth: true },
+  { id: 'item_belly_oil', title: 'SmÃ¸re magen', desc: 'Olje/krem pÃ¥ magen med massasje.', cost: 10, category: 'Baby', payer: 'BEGGE' },
+  { id: 'item_playlist', title: 'FÃ¸de-spilleliste', desc: 'Du lager en liste med sanger til fÃ¸dselen.', cost: 20, category: 'Baby', payer: 'BEGGE' }
 ];
 
 const SEED_AUCTION_REWARDS = [
   { id: 'auc_full_massage', title: '60 min Full Kroppsmassasje', desc: 'Den ultimate spaopplevelsen hjemme.', startPrice: 40, minIncrement: 5, category: 'Luksus' },
   { id: 'auc_remote_master', title: 'Master of Remote', desc: 'Full kontroll over TV-en en hel kveld.', startPrice: 20, minIncrement: 2, category: 'Makt' },
   { id: 'auc_weekend_off', title: 'Helg uten planer', desc: 'Vi sier nei til alt og bare er hjemme.', startPrice: 50, minIncrement: 10, category: 'Frihet' },
-  { id: 'auc_yes_day', title: 'Ja-dag', desc: 'Du må si ja til (nesten) alt jeg foreslår.', startPrice: 80, minIncrement: 10, category: 'Makt' },
+  { id: 'auc_yes_day', title: 'Ja-dag', desc: 'Du mÃ¥ si ja til (nesten) alt jeg foreslÃ¥r.', startPrice: 80, minIncrement: 10, category: 'Makt' },
   { id: 'auc_fancy_dinner', title: '3-retters middag', desc: 'Du lager forrett, hovedrett og dessert.', startPrice: 60, minIncrement: 5, category: 'Mat' },
   { id: 'auc_free_pass', title: 'Fri-kort', desc: 'Slipp unna en valgfri kjedelig oppgave.', startPrice: 30, minIncrement: 5, category: 'Frihet' },
   { id: 'auc_breakfast_week', title: 'Frokost-uke', desc: 'Du lager frokost hver dag i en uke.', startPrice: 70, minIncrement: 10, category: 'Mat' },
-  { id: 'auc_chauffeur', title: 'Privatsjåfør', desc: 'Du kjører og henter meg hvor som helst en kveld.', startPrice: 25, minIncrement: 5, category: 'Praktisk' },
+  { id: 'auc_chauffeur', title: 'PrivatsjÃ¥fÃ¸r', desc: 'Du kjÃ¸rer og henter meg hvor som helst en kveld.', startPrice: 25, minIncrement: 5, category: 'Praktisk' },
   { id: 'auc_tech_free', title: 'Teknologifri kveld', desc: 'Ingen skjermer, bare oss i 4 timer.', startPrice: 40, minIncrement: 5, category: 'Kos' },
-  { id: 'auc_baby_morning', title: '3 x Morgenskift', desc: 'Jeg tar de tre første morgenene med babyen.', startPrice: 90, minIncrement: 10, category: 'Baby' },
+  { id: 'auc_baby_morning', title: '3 x Morgenskift', desc: 'Jeg tar de tre fÃ¸rste morgenene med babyen.', startPrice: 90, minIncrement: 10, category: 'Baby' },
   { id: 'auc_chef_week', title: 'Personal Chef-uke', desc: 'Jeg lager middag hele uken.', startPrice: 100, minIncrement: 10, category: 'Mat' },
-  { id: 'auc_clean_month', title: 'Månedlig Storrengjøring', desc: 'Jeg tar hovedrengjøringen én gang.', startPrice: 80, minIncrement: 10, category: 'Praktisk' },
+  { id: 'auc_clean_month', title: 'MÃ¥nedlig StorrengjÃ¸ring', desc: 'Jeg tar hovedrengjÃ¸ringen Ã©n gang.', startPrice: 80, minIncrement: 10, category: 'Praktisk' },
   { id: 'auc_spa_package', title: 'Hjemme-spa Pakke', desc: 'Bad, massasje, ansiktsmaske - alt sammen.', startPrice: 120, minIncrement: 15, category: 'Luksus' },
   { id: 'auc_night_owl', title: 'Nattevakt-pass', desc: '3 netter hvor jeg tar alt med babyen.', startPrice: 150, minIncrement: 20, category: 'Baby' },
   { id: 'auc_adventure_day', title: 'Eventyrdag', desc: 'Jeg planlegger en hel dag med aktiviteter.', startPrice: 60, minIncrement: 10, category: 'Date' },
   { id: 'auc_morning_routine', title: 'Morgenrutine-hjelp', desc: 'Jeg ordner alt om morgenen i 5 dager.', startPrice: 55, minIncrement: 5, category: 'Praktisk' },
-  { id: 'auc_gaming_marathon', title: 'Gaming Marathon', desc: '4 timer uten avbrytelser på favorittspillet.', startPrice: 35, minIncrement: 5, category: 'Fritid' },
-  { id: 'auc_movie_marathon', title: 'Film-maraton', desc: 'Velg 3 filmer på rad, ingen protester.', startPrice: 40, minIncrement: 5, category: 'Kos' },
-  { id: 'auc_laundry_month', title: 'Vaskehjelp-måned', desc: 'All vask og bretting i en måned.', startPrice: 110, minIncrement: 15, category: 'Praktisk' },
+  { id: 'auc_gaming_marathon', title: 'Gaming Marathon', desc: '4 timer uten avbrytelser pÃ¥ favorittspillet.', startPrice: 35, minIncrement: 5, category: 'Fritid' },
+  { id: 'auc_movie_marathon', title: 'Film-maraton', desc: 'Velg 3 filmer pÃ¥ rad, ingen protester.', startPrice: 40, minIncrement: 5, category: 'Kos' },
+  { id: 'auc_laundry_month', title: 'Vaskehjelp-mÃ¥ned', desc: 'All vask og bretting i en mÃ¥ned.', startPrice: 110, minIncrement: 15, category: 'Praktisk' },
   { id: 'auc_romantic_evening', title: 'Romantisk Aften', desc: 'Lys, musikk, god mat - alt planlagt.', startPrice: 75, minIncrement: 10, category: 'Date' },
-  { id: 'auc_sleep_weekend', title: 'Søvn-helg', desc: 'Du får sove så lenge du vil begge dager.', startPrice: 90, minIncrement: 10, category: 'Frihet' },
+  { id: 'auc_sleep_weekend', title: 'SÃ¸vn-helg', desc: 'Du fÃ¥r sove sÃ¥ lenge du vil begge dager.', startPrice: 90, minIncrement: 10, category: 'Frihet' },
   { id: 'auc_delivery_week', title: 'Takeaway-uke', desc: 'Vi bestiller mat hver dag i en uke.', startPrice: 200, minIncrement: 20, category: 'Mat' },
   { id: 'auc_photo_album', title: 'Lag Fotoalbum', desc: 'Jeg setter sammen et album med minner.', startPrice: 50, minIncrement: 5, category: 'Overraskelse' },
-  { id: 'auc_car_detail', title: 'Totalvask av Bil', desc: 'Full vask, støvsuging, og rens innvendig.', startPrice: 65, minIncrement: 10, category: 'Praktisk' },
+  { id: 'auc_car_detail', title: 'Totalvask av Bil', desc: 'Full vask, stÃ¸vsuging, og rens innvendig.', startPrice: 65, minIncrement: 10, category: 'Praktisk' },
   { id: 'auc_surprise_date', title: 'Hemmelig Date', desc: 'En helt planlagt date du ikke vet noe om.', startPrice: 85, minIncrement: 10, category: 'Date' }
 ];
 
@@ -1209,10 +1211,10 @@ function renderAuctionGame(container, cleanupStack) {
           <div class="flex justify-center mb-4">
              <div class="wallet-switcher">
                <button class="switch-btn ${activeUser === 'andrine' ? 'active-andrine' : ''}" id="switch-andrine">
-                 Andrine 💗
+                 Andrine ð
                </button>
                <button class="switch-btn ${activeUser === 'partner' ? 'active-partner' : ''}" id="switch-partner">
-                 Partner 💙
+                 Partner ð
                </button>
              </div>
           </div>
@@ -1220,7 +1222,7 @@ function renderAuctionGame(container, cleanupStack) {
           <div class="flex flex-col items-center animate-fade-in">
              <span class="text-tiny text-muted uppercase mb-1">Saldo</span>
              <div class="wallet-balance">
-               🪙 ${profile.coins}
+               ðª ${profile.coins}
              </div>
              ${profile.weeklyEarned > 0 ? `<span class="wallet-weekly">+${profile.weeklyEarned} i uken</span>` : ''}
           </div>
@@ -1228,10 +1230,10 @@ function renderAuctionGame(container, cleanupStack) {
 
         <!-- NAVIGATION TABS -->
         <div class="auction-nav">
-          <button class="nav-tab ${currentTab === 'earn' ? 'active' : ''}" data-tab="earn">Tjen 💰</button>
-          <button class="nav-tab ${currentTab === 'shop' ? 'active' : ''}" data-tab="shop">Butikk 🛒</button>
-          <button class="nav-tab ${currentTab === 'auction' ? 'active' : ''}" data-tab="auction">Auksjon 🔨</button>
-          <button class="nav-tab ${currentTab === 'inventory' ? 'active' : ''}" data-tab="inventory">Meg 🎒</button>
+          <button class="nav-tab ${currentTab === 'earn' ? 'active' : ''}" data-tab="earn">Tjen ð°</button>
+          <button class="nav-tab ${currentTab === 'shop' ? 'active' : ''}" data-tab="shop">Butikk ð</button>
+          <button class="nav-tab ${currentTab === 'auction' ? 'active' : ''}" data-tab="auction">Auksjon ð¨</button>
+          <button class="nav-tab ${currentTab === 'inventory' ? 'active' : ''}" data-tab="inventory">Meg ð</button>
         </div>
 
         <!-- CONTENT AREA -->
@@ -1260,7 +1262,7 @@ function renderAuctionGame(container, cleanupStack) {
 
     return `
       <div class="animate-fade-in">
-        <h3 class="earn-section-title">Daglige Muligheter ✨</h3>
+        <h3 class="earn-section-title">Daglige Muligheter â¨</h3>
         
         <div class="card card-soft daily-claim-card">
           <div>
@@ -1268,13 +1270,13 @@ function renderAuctionGame(container, cleanupStack) {
             <p class="text-xs text-muted">Kom tilbake hver dag!</p>
           </div>
           <button class="btn-daily ${!canClaim ? 'btn-disabled' : ''}" id="btn-daily-claim" ${!canClaim ? 'disabled' : ''}>
-            ${canClaim ? 'Hent +10 🪙' : 'Hentet ✅'}
+            ${canClaim ? 'Hent +10 ðª' : 'Hentet â'}
           </button>
         </div>
 
         <h3 class="earn-section-title mt-8">Innsats</h3>
         <div class="soft-task-list">
-          ${renderSoftTask(user, 'hug', 'Klem / Omsorg', 'Gitt god klem eller trøst', 3)}
+          ${renderSoftTask(user, 'hug', 'Klem / Omsorg', 'Gitt god klem eller trÃ¸st', 3)}
           ${renderSoftTask(user, 'letter', 'Skrevet Babybrev', 'Skrevet noen ord til babyen', 5)}
           ${renderSoftTask(user, 'tidy', 'Ryddet en ting', 'Ryddet noe uoppfordret', 4)}
         </div>
@@ -1295,7 +1297,7 @@ function renderAuctionGame(container, cleanupStack) {
         </div>
         <button class="btn btn-xs ${done ? 'btn-soft' : 'btn-primary'}" 
           onclick="window.handleSoftTask('${user}', '${id}', ${amount})" ${done ? 'disabled' : ''}>
-          ${done ? 'Bra! 🌟' : `+${amount} 🪙`}
+          ${done ? 'Bra! ð' : `+${amount} ðª`}
         </button>
       </div>
     `;
@@ -1327,12 +1329,12 @@ function renderAuctionGame(container, cleanupStack) {
                  <p class="shop-desc">${item.desc}</p>
                  <div class="shop-footer">
                    <div class="shop-price-row">
-                     <span class="heading-card">🪙 ${item.cost}</span>
-                     ${item.requiresBoth ? '<span class="badge badge-soft">Begge Må</span>' : ''}
+                     <span class="heading-card">ðª ${item.cost}</span>
+                     ${item.requiresBoth ? '<span class="badge badge-soft">Begge MÃ¥</span>' : ''}
                    </div>
                    <button class="btn btn-sm btn-block ${canAfford ? 'btn-soft' : 'btn-soft btn-disabled'}" 
                      onclick="window.buyShopItem('${user}', '${item.id}')" ${!canAfford ? 'disabled' : ''}>
-                     Kjøp
+                     KjÃ¸p
                    </button>
                  </div>
                </div>
@@ -1348,7 +1350,7 @@ function renderAuctionGame(container, cleanupStack) {
     const activeAuctions = state.auctions.filter(a => !a.settled && new Date(a.endTs) > new Date());
 
     if (activeAuctions.length === 0) {
-      return `<div class="p-8 text-center text-muted">Ingen aktive auksjoner akkurat nå. <br>Nye kommer snart! 🔨</div>`;
+      return `<div class="p-8 text-center text-muted">Ingen aktive auksjoner akkurat nÃ¥. <br>Nye kommer snart! ð¨</div>`;
     }
 
     return `
@@ -1373,8 +1375,8 @@ function renderAuctionGame(container, cleanupStack) {
                
                <div class="bid-box">
                  <div>
-                   <p class="text-xs text-muted uppercase">Høyeste bud</p>
-                   <p class="bid-value">🪙 ${auc.highestBid || auc.startPrice}</p>
+                   <p class="text-xs text-muted uppercase">HÃ¸yeste bud</p>
+                   <p class="bid-value">ðª ${auc.highestBid || auc.startPrice}</p>
                  </div>
                  <div class="text-right">
                    <p class="text-xs text-muted">Leder</p>
@@ -1385,12 +1387,12 @@ function renderAuctionGame(container, cleanupStack) {
                </div>
 
                ${isLeader ?
-          `<button class="btn btn-soft btn-block btn-leader" disabled>Du leder! 🎉</button>`
+          `<button class="btn btn-soft btn-block btn-leader" disabled>Du leder! ð</button>`
           :
           `<div class="flex gap-2">
                     <button class="btn btn-primary flex-1 text-sm" 
                       onclick="window.placeBid('${user}', '${auc.id}', ${minBid})" ${!canAfford ? 'disabled' : ''}>
-                      By ${minBid} 🪙
+                      By ${minBid} ðª
                     </button>
                     ${canAfford && profile.coins >= minBid + 5 ? `
                       <button class="btn btn-soft px-3" onclick="window.placeBid('${user}', '${auc.id}', ${minBid + 5})">+5</button>
@@ -1419,8 +1421,8 @@ function renderAuctionGame(container, cleanupStack) {
       <div class="animate-fade-in">
         <!-- SUB TABS -->
         <div class="inventory-tabs">
-          <button class="inventory-tab ${inventoryDetail === 'ready' ? 'active' : ''}" onclick="window.setInvTab('ready')">Klar ✨</button>
-          <button class="inventory-tab ${inventoryDetail === 'redeemed' ? 'active' : ''}" onclick="window.setInvTab('redeemed')">Historikk 📜</button>
+          <button class="inventory-tab ${inventoryDetail === 'ready' ? 'active' : ''}" onclick="window.setInvTab('ready')">Klar â¨</button>
+          <button class="inventory-tab ${inventoryDetail === 'redeemed' ? 'active' : ''}" onclick="window.setInvTab('redeemed')">Historikk ð</button>
         </div>
 
         <div class="inventory-list">
@@ -1438,17 +1440,17 @@ function renderAuctionGame(container, cleanupStack) {
                  ${item.status !== 'REDEEMED' ? `
                    ${item.requiresBothConfirm && !item.confirmations?.[user] ? `
                      <button class="btn btn-primary btn-block btn-sm" onclick="window.redeemItem('${user}', '${item.id}')">
-                       Jeg bekrefter 🤝
+                       Jeg bekrefter ð¤
                      </button>
-                     ${item.confirmations && Object.values(item.confirmations).some(v => v) ? '<p class="text-xs text-center text-blue-500 mt-2">Venter på den andre...</p>' : ''}
+                     ${item.confirmations && Object.values(item.confirmations).some(v => v) ? '<p class="text-xs text-center text-blue-500 mt-2">Venter pÃ¥ den andre...</p>' : ''}
                    ` : item.requiresBothConfirm && item.confirmations?.[user] ? `
-                      <button class="btn btn-soft btn-block btn-sm" disabled>Venter på partner... ⏳</button>
+                      <button class="btn btn-soft btn-block btn-sm" disabled>Venter pÃ¥ partner... â³</button>
                    ` : `
                      <button class="btn btn-primary btn-block btn-sm" onclick="window.redeemItem('${user}', '${item.id}')">
-                       Bruk nå ✨
+                       Bruk nÃ¥ â¨
                      </button>
                    `}
-                 ` : '<p class="text-xs text-center text-success font-bold">Innløst ☑️</p>'}
+                 ` : '<p class="text-xs text-center text-success font-bold">InnlÃ¸st âï¸</p>'}
                </div>
              `;
     }).join('')}
@@ -1473,8 +1475,8 @@ function renderAuctionGame(container, cleanupStack) {
         <div class="mt-8 mb-8 text-center animate-fade-in">
            <p class="text-xs text-muted mb-3 opacity-60">Data lagres lokalt i nettleseren.</p>
            <div class="flex gap-3 justify-center">
-             <button class="btn-backup" onclick="window.exportAuctionJSON()">Lagre Backup 💾</button>
-             <button class="btn-backup" onclick="window.importAuctionJSON()">Gjenopprett 📥</button>
+             <button class="btn-backup" onclick="window.exportAuctionJSON()">Lagre Backup ð¾</button>
+             <button class="btn-backup" onclick="window.importAuctionJSON()">Gjenopprett ð¥</button>
            </div>
         </div>
       </div>
@@ -1553,7 +1555,7 @@ function renderAuctionGame(container, cleanupStack) {
 
       if (item.payer === 'BEGGE') {
         if (state.profiles[p1].coins < Math.floor(item.cost / 2) || state.profiles[p2].coins < Math.floor(item.cost / 2)) {
-          alert('Begge må ha nok coins til å spleise!');
+          alert('Begge mÃ¥ ha nok coins til Ã¥ spleise!');
           return;
         }
         // Deduct
@@ -1566,12 +1568,12 @@ function renderAuctionGame(container, cleanupStack) {
       } else {
         // Single payer
         state.profiles[user].coins -= item.cost;
-        addLedger(state, 'BUY', user, -item.cost, { desc: `Kjøp: ${item.title}` });
+        addLedger(state, 'BUY', user, -item.cost, { desc: `KjÃ¸p: ${item.title}` });
       }
     } else {
       // Normal Buy
       state.profiles[user].coins -= item.cost;
-      addLedger(state, 'BUY', user, -item.cost, { desc: `Kjøp: ${item.title}` });
+      addLedger(state, 'BUY', user, -item.cost, { desc: `KjÃ¸p: ${item.title}` });
     }
 
     // Add to inventory
@@ -1651,7 +1653,7 @@ function renderAuctionGame(container, cleanupStack) {
   cleanupStack.push(() => clearInterval(interval));
 }
 
-// ════ HELPERS ════
+// ââââ HELPERS ââââ
 function addLedger(state, kind, profileId, amount, meta) {
   state.ledger.unshift({
     id: Date.now().toString(36) + Math.random().toString(36).substr(2),
@@ -1732,12 +1734,12 @@ function tickAuctions(state) {
 
 window.exportAuctionJSON = () => {
   const state = storage.get('love_auction_v2', null);
-  if (!state) return alert('Ingen data å eksportere.');
+  if (!state) return alert('Ingen data Ã¥ eksportere.');
 
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
   const downloadAnchorNode = document.createElement('a');
   downloadAnchorNode.setAttribute("href", dataStr);
-  downloadAnchorNode.setAttribute("download", "kjærlighets_kreditt_backup.json");
+  downloadAnchorNode.setAttribute("download", "kjÃ¦rlighets_kreditt_backup.json");
   document.body.appendChild(downloadAnchorNode);
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
@@ -1755,7 +1757,7 @@ window.importAuctionJSON = () => {
         const content = JSON.parse(readerEvent.target.result);
         if (content.version !== 2) throw new Error('Feil versjon');
         storage.set('love_auction_v2', content);
-        alert('Importert! Last siden på nytt.');
+        alert('Importert! Last siden pÃ¥ nytt.');
         location.reload();
       } catch (err) {
         alert('Kunne ikke importere filen. Sjekk format.');
@@ -1799,12 +1801,12 @@ function startPresenceHeartbeat(role, container, cleanupStack) {
       const indicator = document.getElementById('presence-indicator');
       if (indicator && data.partnerOnline) {
         indicator.classList.add('online');
-        indicator.querySelector('.status-dot').textContent = '🟢';
+        indicator.querySelector('.status-dot').textContent = 'ð¢';
         indicator.querySelector('.status-text').textContent = `${role === 'andrine' ? 'Yoel' : 'Andrine'} er her!`;
       } else if (indicator) {
         indicator.classList.remove('online');
-        indicator.querySelector('.status-dot').textContent = '⚪';
-        indicator.querySelector('.status-text').textContent = 'Venter på partner...';
+        indicator.querySelector('.status-dot').textContent = 'âª';
+        indicator.querySelector('.status-text').textContent = 'Venter pÃ¥ partner...';
       }
     } catch (err) {
       console.warn('Presence check failed', err);
