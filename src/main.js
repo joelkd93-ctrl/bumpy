@@ -22,6 +22,7 @@ import { renderFeelings, initFeelings } from './pages/feelings.js';
 import { renderTogether, initTogether } from './pages/together.js';
 import { renderKicks, initKicks } from './pages/kicks.js';
 import { renderSettings, initSettings } from './pages/settings.js';
+import { getPregnancyProgress } from './utils/pregnancy.js';
 
 // Keep a stable visual viewport unit for iOS standalone/PWA modal geometry
 function setVV() {
@@ -634,8 +635,7 @@ function initNightMode() {
   if (hour >= 21 || hour < 7) document.body.classList.add('night-mode');
 }
 
-async function checkWeeklyCelebration() {
-  const { getPregnancyProgress } = await import('./utils/pregnancy.js');
+function checkWeeklyCelebration() {
   const settings = storage.get('settings', { dueDate: '2026-06-29' });
   const progress = getPregnancyProgress(settings.dueDate);
   const currentWeek = progress.weeksPregnant;
