@@ -586,22 +586,11 @@ input, textarea, select {
 }
 
 .nav-item::before {
-  content: '';
-  position: absolute;
-  inset: 4px 6px;
-  background: var(--pink-50);
-  border-radius: var(--radius-sm);
-  opacity: 0;
-  transform: scale(0.85);
-  transition:
-    opacity var(--duration-normal) var(--ease-out),
-    transform var(--duration-normal) var(--ease-spring);
-  z-index: -1;
+  display: none;
 }
 
 .nav-item.active::before {
-  opacity: 1;
-  transform: scale(1);
+  display: none;
 }
 
 .nav-item:active {
@@ -611,11 +600,11 @@ input, textarea, select {
 .nav-icon {
   font-size: 22px;
   transition: transform var(--duration-normal) var(--ease-bounce);
-  opacity: 0.55;
+  opacity: 0.45;
 }
 
 .nav-item.active .nav-icon {
-  transform: scale(1.05);
+  transform: translateY(-1px) scale(1.08);
   opacity: 1;
 }
 
@@ -629,6 +618,22 @@ input, textarea, select {
 
 .nav-item.active .nav-label {
   color: var(--pink-500);
+}
+
+.nav-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pink-500);
+  opacity: 0;
+  transform: scale(0);
+  transition: all var(--duration-normal) var(--ease-spring);
+  margin-top: 2px;
+}
+
+.nav-item.active .nav-dot {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4237,11 +4242,4 @@ body.night-mode::after {
   justify-content: center;
   transition: all 0.2s;
 }
-/* MODAL DIAGNOSTIC � FORCE VISIBILITY */
-.game-modal-content,
-.game-modal-content *,
-.modal-card,
-.modal-card * {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
+

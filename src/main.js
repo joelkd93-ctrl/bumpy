@@ -153,6 +153,7 @@ function initApp() {
         <button class="nav-item ${tab.id === currentTab ? 'active' : ''}" data-tab="${tab.id}">
           <span class="nav-icon">${tab.icon}</span>
           <span class="nav-label">${tab.label}</span>
+          <span class="nav-dot"></span>
         </button>
       `).join('')}
     </nav>

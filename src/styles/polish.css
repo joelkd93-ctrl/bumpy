@@ -133,13 +133,15 @@
   transition: opacity var(--duration-normal) var(--ease-out);
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+@media (hover: hover) {
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
 
-.btn:hover::before {
-  opacity: 1;
+  .btn:hover::before {
+    opacity: 1;
+  }
 }
 
 .btn:active {
@@ -233,13 +235,15 @@
   transition: opacity var(--duration-normal);
 }
 
-.card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: var(--shadow-lg);
-}
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--shadow-lg);
+  }
 
-.card:hover::after {
-  opacity: 1;
+  .card:hover::after {
+    opacity: 1;
+  }
 }
 
 .card:active {
@@ -274,7 +278,7 @@
 }
 
 .nav-item.active .nav-icon {
-  transform: scale(1.1);
+  transform: translateY(-1px) scale(1.08);
   filter: drop-shadow(0 2px 6px rgba(255, 77, 166, 0.25));
 }
 
@@ -282,16 +286,9 @@
   transform: scale(0.9);
 }
 
-.nav-item::before {
-  transition: 
-    opacity var(--duration-normal) var(--ease-out),
-    transform var(--duration-normal) var(--ease-out);
-  transform: scale(0.8);
-}
-
+.nav-item::before,
 .nav-item.active::before {
-  opacity: 1;
-  transform: scale(1);
+  display: none;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -416,15 +413,17 @@
   transition: opacity var(--duration-normal);
 }
 
-.game-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow:
-    var(--shadow-lg),
-    0 8px 32px rgba(255, 77, 166, 0.15);
-}
+@media (hover: hover) {
+  .game-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow:
+      var(--shadow-lg),
+      0 8px 32px rgba(255, 77, 166, 0.15);
+  }
 
-.game-card:hover::before {
-  opacity: 1;
+  .game-card:hover::before {
+    opacity: 1;
+  }
 }
 
 .game-card:active {
@@ -440,10 +439,12 @@
   display: inline-block;
 }
 
-.game-card:hover .game-icon {
-  transform: scale(1.15) rotate(-8deg);
-  filter: drop-shadow(0 4px 8px rgba(255, 77, 166, 0.2));
-  animation: iconBounce 0.6s var(--ease-spring);
+@media (hover: hover) {
+  .game-card:hover .game-icon {
+    transform: scale(1.15) rotate(-8deg);
+    filter: drop-shadow(0 4px 8px rgba(255, 77, 166, 0.2));
+    animation: iconBounce 0.6s var(--ease-spring);
+  }
 }
 
 @keyframes iconBounce {
