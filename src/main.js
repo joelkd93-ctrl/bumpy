@@ -454,8 +454,26 @@ async function startGlobalHeartbeatPoller() {
         }
       }
 
-      // If reset happened, clear lists too
+      // If reset happened, persist the just-finished session locally for partner view
       if (wasReset && role === 'partner') {
+        if (prevSession && typeof prevSession.count === 'number' && prevSession.count > 0) {
+          const endTimeIso = new Date().toISOString();
+          const startMs = new Date(prevSession.startTime).getTime();
+          const endMs = new Date(endTimeIso).getTime();
+          const duration = Math.max(0, Math.round((endMs - startMs) / 60000));
+          const id = String(Date.now() + Math.floor(Math.random() * 1000));
+
+          storage.set(`kicks:${id}`, {
+            startTime: prevSession.startTime,
+            count: prevSession.count,
+            endTime: endTimeIso,
+            duration,
+            date: prevSession.startTime
+          }, true);
+
+          console.log('🦶 Mirrored finished kick session locally for partner:', { id, count: prevSession.count, duration });
+        }
+
         console.log('🧹 Session cleared, pulling fresh data...');
         storage.pullFromCloud().then(() => {
           window.app.refreshCurrentPage();
