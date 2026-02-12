@@ -3,6 +3,7 @@
  * No competition, no pressure - just connection
  */
 import { storage } from '../utils/storage.js';
+import { modal as modalManager } from '../utils/modal.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 🎮 GAME CONFIGURATION
@@ -318,24 +319,8 @@ export function initTogether() {
   let modalCleanupStack = [];
 
   function closeModal() {
-    // Hide modal
-    modal.style.display = 'none';
-
-    // Unlock scroll (app-content is the real scroll root)
-    const body = document.body;
-    const html = document.documentElement;
-    const mainContent = document.getElementById('content');
-    const storedScroll = Number((mainContent?.dataset.modalScrollTop) || 0);
-
-    body.classList.remove('modal-active');
-    html.classList.remove('modal-active');
-
-    if (mainContent) {
-      mainContent.classList.remove('modal-active');
-      mainContent.style.overflow = '';
-      mainContent.scrollTop = storedScroll;
-      delete mainContent.dataset.modalScrollTop;
-    }
+    // Delegate all modal visibility/scroll state to modal manager
+    modalManager.close(modal);
 
     // Show nav bar again
     const navBar = document.getElementById('nav-bar');
@@ -357,29 +342,6 @@ export function initTogether() {
     if (navBar) navBar.style.display = 'none';
 
     const content = document.getElementById('game-content');
-
-    // Lock scroll on background (.app-content is the scroll root)
-    const body = document.body;
-    const html = document.documentElement;
-    const mainContent = document.getElementById('content');
-
-    body.classList.add('modal-active');
-    html.classList.add('modal-active');
-
-    if (mainContent) {
-      mainContent.dataset.modalScrollTop = String(mainContent.scrollTop || 0);
-      mainContent.classList.add('modal-active');
-      mainContent.style.overflow = 'hidden';
-    }
-
-    // Show modal
-    modal.style.display = 'flex';
-
-    // Force scroll to top of modal content
-    const modalContent = modal.querySelector('.game-modal-content');
-    if (modalContent) {
-      modalContent.scrollTop = 0;
-    }
 
     // Add generic close-on-click for buttons that should explicitly exit
     modalCleanupStack.push(() => {
@@ -409,6 +371,9 @@ export function initTogether() {
         renderAuctionGame(content, modalCleanupStack);
         break;
     }
+
+    // Single authority: modal manager controls visibility + scroll lock
+    modalManager.open(modal);
   }
 }
 
