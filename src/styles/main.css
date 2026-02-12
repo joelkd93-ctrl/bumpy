@@ -1726,8 +1726,8 @@ body.modal-active {
 
 .game-modal-close {
   position: absolute;
-  top: max(14px, env(safe-area-inset-top, 8px));
-  right: max(14px, env(safe-area-inset-right, 8px));
+  top: 14px;
+  right: 14px;
   width: 44px;
   height: 44px;
   display: flex;
