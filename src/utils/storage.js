@@ -48,7 +48,10 @@ export const storage = {
 
   remove(key) {
     localStorage.removeItem(PREFIX + key);
-    this.syncWithCloud();
+    // Don't sync for temp keys or daily keys
+    if (!key.startsWith('_') && !key.startsWith('daily_')) {
+      this.syncWithCloud({ only: [key] });
+    }
   },
 
   // Get all entries for a collection (e.g., journal entries)
