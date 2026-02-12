@@ -454,31 +454,26 @@ function renderHeartbeatGame(container, cleanupStack) {
   console.log('✅ Heartbeat initialized, button found:', tapBtn);
 
   tapBtn.addEventListener('click', async () => {
+    console.log('💓 Heart button clicked!');
+
     try {
       pulse();
-
-      if (window.app && window.app.triggerHeartbeat) {
-        window.app.triggerHeartbeat();
-      }
-
+      if (window.app?.triggerHeartbeat) window.app.triggerHeartbeat();
       const response = await fetch(`${window.API_BASE}/api/presence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role, tap: true })
       });
-
       if (response.ok && status) {
         status.textContent = '💕 Sendt!';
         setTimeout(() => {
-          const isOnline = window.app?.isPartnerOnline?.();
-          if (status) status.textContent = isOnline
+          if (status) status.textContent = window.app?.isPartnerOnline?.()
             ? `${role === 'andrine' ? 'Yoel' : 'Andrine'} er pålogget 🟢`
             : 'Partner er ikke pålogget ⚪';
         }, 2000);
       }
     } catch (err) {
       if (status) status.textContent = '⚠️ Ikke tilkoblet – prøv igjen';
-      console.warn('Heartbeat send failed:', err);
     }
   });
 }
@@ -547,14 +542,15 @@ function renderWeeklyGame(container) {
       if (answer) {
         answers[identity] = answer;
         storage.set(storageKey, answers);
-
-        // Sync to cloud so partner sees the update
         storage.syncWithCloud({ only: [storageKey] });
 
         // Award coins if both answered
         if (answers.andrine && answers.partner) {
+          // Check if already awarded for this week
           const awardKey = `weekly_coins_${weekNum}`;
           if (!storage.get(awardKey, false)) {
+            awardCoins(identity === 'andrine' ? 'partner' : 'andrine', 20, 'Ukens Spørsmål'); // Award the OTHER person usually? Or both?
+            // Actually let's award BOTH.
             awardCoins('andrine', 20, 'Ukens Spørsmål');
             awardCoins('partner', 20, 'Ukens Spørsmål');
             storage.set(awardKey, true);
@@ -562,15 +558,6 @@ function renderWeeklyGame(container) {
         }
 
         renderWeeklyGame(container);
-
-        // If both answered now, also trigger a pull shortly after
-        // so partner's device auto-refreshes to see the reveal
-        if (answers.andrine && answers.partner) {
-          setTimeout(async () => {
-            await storage.pullFromCloud();
-            renderWeeklyGame(container);
-          }, 3000);
-        }
       }
     });
   }
@@ -604,11 +591,7 @@ function renderGuessGame(container) {
           <p class="text-muted">Hun velger humøret sitt nå.</p>
         </div>
       `;
-      // Auto-poll until Andrine picks
-      const guessWaitTimer = setTimeout(async () => {
-        await storage.pullFromCloud({ skipCelebration: true });
-        renderGuessGame(container);
-      }, 5000);
+      setTimeout(async () => { await storage.pullFromCloud({ skipCelebration: true }); renderGuessGame(container); }, 5000);
       return;
     }
 
@@ -629,7 +612,6 @@ function renderGuessGame(container) {
       btn.addEventListener('click', () => {
         gameState.mood = btn.dataset.mood;
         storage.set('mood_guess_today', gameState);
-        // Sync to cloud so partner's device can see Andrine picked
         storage.syncWithCloud({ only: ['mood_guess_today'] });
         renderGuessGame(container);
       });
@@ -646,11 +628,7 @@ function renderGuessGame(container) {
           <p class="text-muted">Han gjetter humøret ditt nå.</p>
         </div>
       `;
-      // Auto-poll until partner guesses
-      setTimeout(async () => {
-        await storage.pullFromCloud({ skipCelebration: true });
-        renderGuessGame(container);
-      }, 5000);
+      setTimeout(async () => { await storage.pullFromCloud({ skipCelebration: true }); renderGuessGame(container); }, 5000);
       return;
     }
 
@@ -671,13 +649,12 @@ function renderGuessGame(container) {
       btn.addEventListener('click', () => {
         gameState.guess = btn.dataset.mood;
         storage.set('mood_guess_today', gameState);
+        storage.syncWithCloud({ only: ['mood_guess_today'] });
         storage.addToCollection('mood_guesses', {
           date: today,
           actual: gameState.mood,
           guess: gameState.guess
         });
-        // Sync to cloud so Andrine's device auto-reveals
-        storage.syncWithCloud({ only: ['mood_guess_today'] });
         renderGuessGame(container);
       });
     });
@@ -686,15 +663,12 @@ function renderGuessGame(container) {
 
   // Phase 3: Reveal
   const correct = gameState.mood === gameState.guess;
-
-  // Award coins if not already awarded today
   const guessAwardKey = `guess_coins_${today}`;
   if (!storage.get(guessAwardKey, false)) {
     awardCoins('andrine', 10, 'Gjett Humøret');
     awardCoins('partner', 10, 'Gjett Humøret');
     storage.set(guessAwardKey, true);
   }
-
   container.innerHTML = `
     <div class="text-center">
       <div class="reveal-animation">
@@ -740,8 +714,8 @@ function renderNamesGame(container, cleanupStack) {
   // Check if any name just became a match (both voted love)
   const matches = storage.get('matched_names', []);
 
-  // Silently save any matches found in votes that aren't in matched_names yet
-  // WITHOUT triggering the modal — prevents spam after a cloud pull
+  // Silently save any matches found in votes WITHOUT showing modal
+  // This prevents spam after cloud pulls restore old matches
   const allMatchedInVotes = allNames.filter(name => {
     const v = votes[name] || {};
     return v.andrine === 'love' && v.partner === 'love';
@@ -754,10 +728,10 @@ function renderNamesGame(container, cleanupStack) {
     }
   });
   if (silentlyAdded) {
-    storage.set('matched_names', matches, true); // skipSync — don't cause a loop
+    storage.set('matched_names', matches, true); // skipSync
   }
 
-  // Only show match modal if pendingMatch is set (current player JUST cast the deciding vote)
+  // Only show match modal if pendingMatch is set (THIS session cast deciding vote)
   if (pendingMatch && matches.includes(pendingMatch)) {
     const matchToShow = pendingMatch;
     setTimeout(() => {
@@ -887,13 +861,12 @@ function renderNamesGame(container, cleanupStack) {
       votes[name][currentPlayer] = vote;
       storage.set('name_votes', votes);
 
-      // Check if THIS vote just created a match — set pendingMatch so modal shows
+      // If THIS vote created a match, set pendingMatch so modal shows
       const partnerVote = votes[name][partnerRole];
       if (vote === 'love' && partnerVote === 'love') {
-        pendingMatch = name; // This session triggered the match — show modal
+        pendingMatch = name;
       }
 
-      // Re-render after animation
       const namesTimeout = setTimeout(() => {
         renderNamesGame(container, cleanupStack);
       }, 300);
@@ -1056,16 +1029,13 @@ function renderNameStats(container, cleanupStack) {
     const confirmed = confirm('Er du sikker på at du vil nullstille alle stemmer? Dette kan ikke angres!');
     if (!confirmed) return;
 
-    // Clear all votes, matches, AND custom names locally
-    storage.set('name_votes', {}, true); // skipSync
-    storage.set('matched_names', [], true); // skipSync
-    storage.set('custom_names', [], true); // skipSync
+    // Clear all votes, matches, AND custom names
+    storage.set('name_votes', {}, true);
+    storage.set('matched_names', [], true);
+    storage.set('custom_names', [], true);
     pendingMatch = null;
 
-    // Sync cleared state to cloud FIRST so cloud also has empty data
     await storage.syncWithCloud({ only: ['name_votes', 'matched_names', 'custom_names'] });
-
-    // Prevent the next pullFromCloud from restoring old data
     localStorage.setItem('bumpy:skip_pull', 'true');
 
     // Show feedback
@@ -1117,7 +1087,6 @@ function renderMissions(container) {
   document.getElementById('complete-mission')?.addEventListener('click', () => {
     storage.set(`mission_completed_${today}`, true);
     awardCoins(role, 15, 'Dagens Oppdrag');
-    // Sync completion so partner knows
     storage.syncWithCloud({ only: [`mission_completed_${today}`] });
     renderMissions(container);
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
@@ -1169,7 +1138,6 @@ function renderPredictionsGame(container) {
     });
     predictions[role] = myPredictions;
     storage.set('baby_predictions', predictions);
-    // Sync to cloud so partner can see in vault
     storage.syncWithCloud({ only: ['baby_predictions'] });
 
     container.innerHTML = `
@@ -1187,7 +1155,6 @@ function renderPredictionsGame(container) {
   });
 
   document.getElementById('view-vault')?.addEventListener('click', async () => {
-    // Pull latest predictions from cloud before showing vault
     await storage.pullFromCloud({ skipCelebration: true });
     renderVault(container);
   });
@@ -1483,7 +1450,7 @@ function renderAuctionGame(container, cleanupStack) {
            <p class="text-xs text-muted">${desc}</p>
         </div>
         <button class="btn btn-xs ${done ? 'btn-soft' : 'btn-primary'}" 
-          data-task-user="${user}" data-task-id="${id}" data-task-amount="${amount}" ${done ? 'disabled' : ''}>
+          onclick="window.handleSoftTask('${user}', '${id}', ${amount})" ${done ? 'disabled' : ''}>
           ${done ? 'Bra! 🌟' : `+${amount} 🪙`}
         </button>
       </div>
@@ -1520,7 +1487,7 @@ function renderAuctionGame(container, cleanupStack) {
                      ${item.requiresBoth ? '<span class="badge badge-soft">Begge Må</span>' : ''}
                    </div>
                    <button class="btn btn-sm btn-block ${canAfford ? 'btn-soft' : 'btn-soft btn-disabled'}" 
-                     data-buy-user="${user}" data-buy-id="${item.id}" ${!canAfford ? 'disabled' : ''}>
+                     onclick="window.buyShopItem('${user}', '${item.id}')" ${!canAfford ? 'disabled' : ''}>
                      Kjøp
                    </button>
                  </div>
@@ -1578,11 +1545,11 @@ function renderAuctionGame(container, cleanupStack) {
           :
           `<div class="flex gap-2">
                     <button class="btn btn-primary flex-1 text-sm" 
-                      data-bid-user="${user}" data-bid-id="${auc.id}" data-bid-amount="${minBid}" ${!canAfford ? 'disabled' : ''}>
+                      onclick="window.placeBid('${user}', '${auc.id}', ${minBid})" ${!canAfford ? 'disabled' : ''}>
                       By ${minBid} 🪙
                     </button>
                     ${canAfford && profile.coins >= minBid + 5 ? `
-                      <button class="btn btn-soft px-3" data-bid-user="${user}" data-bid-id="${auc.id}" data-bid-amount="${minBid + 5}">+5</button>
+                      <button class="btn btn-soft px-3" onclick="window.placeBid('${user}', '${auc.id}', ${minBid + 5})">+5</button>
                     ` : ''}
                   </div>`
         }
@@ -1633,14 +1600,14 @@ function renderAuctionGame(container, cleanupStack) {
                    ${!isOwner ? `
                      <p class="text-xs text-center text-muted">Dette tilhører ${ownerName}</p>
                    ` : item.requiresBothConfirm && !item.confirmations?.[user] ? `
-                     <button class="btn btn-primary btn-block btn-sm" data-redeem-user="${user}" data-redeem-id="${item.id}">
+                     <button class="btn btn-primary btn-block btn-sm" onclick="window.redeemItem('${user}', '${item.id}')">
                        Jeg bekrefter 🤝
                      </button>
                      ${item.confirmations && Object.values(item.confirmations).some(v => v) ? '<p class="text-xs text-center text-blue-500 mt-2">Venter på den andre...</p>' : ''}
                    ` : item.requiresBothConfirm && item.confirmations?.[user] ? `
                       <button class="btn btn-soft btn-block btn-sm" disabled>Venter på partner... ⏳</button>
                    ` : `
-                     <button class="btn btn-primary btn-block btn-sm" data-redeem-user="${user}" data-redeem-id="${item.id}">
+                     <button class="btn btn-primary btn-block btn-sm" onclick="window.redeemItem('${user}', '${item.id}')">
                        Bruk nå ✨
                      </button>
                    `}
@@ -1733,90 +1700,6 @@ function renderAuctionGame(container, cleanupStack) {
       if (navigator.vibrate) navigator.vibrate(50);
     });
 
-    // EVENT DELEGATION for data-attribute action buttons
-    container.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-task-user], button[data-buy-user], button[data-bid-user], button[data-redeem-user]');
-      if (!btn) return;
-
-      if (btn.dataset.taskUser) {
-        const user = btn.dataset.taskUser, taskId = btn.dataset.taskId, amount = parseInt(btn.dataset.taskAmount);
-        const today = new Date().toDateString();
-        const key = 'task_' + taskId + '_' + user + '_' + today;
-        if (storage.get(key, false)) return;
-        storage.set(key, true);
-        lastSaveTime = Date.now();
-        state.profiles[user].coins += amount;
-        addLedger(state, 'TASK', user, amount, { desc: taskId });
-        saveAndRender();
-        if (navigator.vibrate) navigator.vibrate([30, 30]);
-        return;
-      }
-
-      if (btn.dataset.buyUser) {
-        const user = btn.dataset.buyUser, itemId = btn.dataset.buyId;
-        const item = state.shopItems.find(i => i.id === itemId);
-        if (!item || state.profiles[user].coins < item.cost) return;
-        btn.disabled = true; btn.textContent = 'Kjøper... ⏳';
-        if (item.requiresBothConfirm && item.payer === 'BEGGE') {
-          const p2 = user === 'andrine' ? 'partner' : 'andrine';
-          const cost1 = user === 'andrine' ? Math.floor(item.cost / 2) : Math.ceil(item.cost / 2);
-          const cost2 = item.cost - cost1;
-          if (state.profiles[user].coins < cost1 || state.profiles[p2].coins < cost2) { alert('Begge må ha nok coins!'); return; }
-          state.profiles[user].coins -= cost1; state.profiles[p2].coins -= cost2;
-          addLedger(state, 'BUY_SPLIT', user, -cost1, { desc: 'Spleis: ' + item.title });
-          addLedger(state, 'BUY_SPLIT', p2, -cost2, { desc: 'Spleis: ' + item.title });
-        } else {
-          state.profiles[user].coins -= item.cost;
-          addLedger(state, 'BUY', user, -item.cost, { desc: 'Kjøp: ' + item.title });
-        }
-        const actualPayer = (item.payer === 'BEGGE' && item.requiresBothConfirm) ? 'BEGGE' : user;
-        state.ownedRewards.push({ id: crypto.randomUUID(), title: item.title, source: 'SHOP', payer: actualPayer, requiresBothConfirm: item.requiresBothConfirm || false, status: 'READY', acquiredTs: new Date().toISOString(), confirmations: {} });
-        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-        setTimeout(() => saveAndRender(), 500);
-        return;
-      }
-
-      if (btn.dataset.bidUser) {
-        const user = btn.dataset.bidUser, aucId = btn.dataset.bidId, amount = parseInt(btn.dataset.bidAmount);
-        const aucIdx = state.auctions.findIndex(a => a.id === aucId);
-        if (aucIdx < 0) return;
-        const auc = state.auctions[aucIdx];
-        if (auc.highestBidder) {
-          state.profiles[auc.highestBidder].coins += auc.highestBid;
-          addLedger(state, 'REFUND', auc.highestBidder, auc.highestBid, { desc: 'Overbydd: ' + auc.title });
-        }
-        state.profiles[user].coins -= amount;
-        state.auctions[aucIdx].highestBid = amount;
-        state.auctions[aucIdx].highestBidder = user;
-        state.auctions[aucIdx].updatedTs = new Date().toISOString();
-        saveAndRender();
-        if (navigator.vibrate) navigator.vibrate(50);
-        return;
-      }
-
-      if (btn.dataset.redeemUser) {
-        const user = btn.dataset.redeemUser, itemId = btn.dataset.redeemId;
-        const itemIdx = state.ownedRewards.findIndex(i => i.id === itemId);
-        if (itemIdx < 0) return;
-        const item = state.ownedRewards[itemIdx];
-        if (item.requiresBothConfirm) {
-          if (!item.confirmations) item.confirmations = {};
-          item.confirmations[user] = true;
-          if (item.confirmations.andrine && item.confirmations.partner) {
-            item.status = 'REDEEMED';
-            addLedger(state, 'REDEEM', 'BEGGE', 0, { desc: 'Brukt: ' + item.title });
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-          }
-        } else {
-          item.status = 'REDEEMED';
-          addLedger(state, 'REDEEM', user, 0, { desc: 'Brukt: ' + item.title });
-          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        }
-        saveAndRender();
-        return;
-      }
-    });
-
     // Reset Auction
     container.querySelector('#reset-auction')?.addEventListener('click', async () => {
       const confirmed = confirm('Er du SIKKER? Dette sletter alle coins, kjøp og auksjonsoversikt. Kan ikke angres!');
@@ -1844,7 +1727,6 @@ function renderAuctionGame(container, cleanupStack) {
 
       console.log('🔄 Auction reset to default state');
       saveAndRender();
-      // Sync reset to cloud so partner also gets cleared state
       await storage.syncWithCloud({ only: ['love_auction_v2'] });
       localStorage.setItem('bumpy:skip_pull', 'true');
       alert('✅ Alt er nullstilt! Begge har 50 coins.');
@@ -1855,13 +1737,160 @@ function renderAuctionGame(container, cleanupStack) {
   window.setShopFilter = (cat) => { shopFilter = cat; renderUI(); };
   window.setInvTab = (tab) => { inventoryDetail = tab; renderUI(); };
 
-  // window.handleSoftTask — handled by event delegation
+  window.handleSoftTask = (user, taskId, amount) => {
+    const today = new Date().toDateString();
+    const key = `task_${taskId}_${user}_${today}`;
+    if (storage.get(key, false)) {
+      console.log(`⚠️ Task ${taskId} already claimed today`);
+      return;
+    }
 
-  // window.buyShopItem — handled by event delegation
+    console.log(`💰 Task ${taskId} for ${user}: +${amount} coins`);
 
-  // window.placeBid — handled by event delegation
+    // Mark as claimed FIRST (prevent double-click)
+    storage.set(key, true);
+    lastSaveTime = Date.now(); // Prevent immediate pull
 
-  // window.redeemItem — handled by event delegation
+    // Update state
+    state.profiles[user].coins += amount;
+    addLedger(state, 'TASK', user, amount, { desc: taskId });
+
+    saveAndRender();
+    if (navigator.vibrate) navigator.vibrate([30, 30]);
+  };
+
+  window.buyShopItem = (user, itemId) => {
+    const item = state.shopItems.find(i => i.id === itemId);
+    if (!item || state.profiles[user].coins < item.cost) return;
+
+    // Disable button immediately to prevent double-click
+    const btn = document.querySelector(`button[onclick*="${itemId}"]`);
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Kjøper... ⏳';
+    }
+
+    if (item.requiresBothConfirm) {
+      // Logic for split pay is tricky with instant buy. Simpler: One buys, other confirms later?
+      // User requested: "BEGGE items: if requiresBothConfirm: needs both confirmations... once both confirmed -> status REDEEMED"
+      // User also said: "Payer types: BEGGE (split 50/50)".
+      // Implementation:
+      // 1. Check if both have coins? Complex UI.
+      // Simpler: User A buys "Share". It goes to inventory as "Waiting for Partner". Cost is deducted from A? Or split?
+      // Let's do: Cost is deducted immediately from Buyer? Or Ledger holds it?
+      // User Spec: "BEGGE items ... if requiresBothConfirm: needs both confirmations to REDEEM".
+      // Impl: Buy -> Inventory (Status READY, confirmations: {buyer: true}).
+      // If Payer=Begge, Cost is split when buying?
+      // Let's simplify: Buyer pays FULL cost if they click buy?
+      // Re-read spec: "BEGGE (split 50/50; if odd cost, partner pays +1)"
+      // So when buying a BEGGE item:
+      // Valid only if BOTH have coins.
+      const half = Math.ceil(item.cost / 2); // Partner pays more on odd
+      const p1 = user;
+      const p2 = user === 'andrine' ? 'partner' : 'andrine';
+
+      if (item.payer === 'BEGGE') {
+        if (state.profiles[p1].coins < Math.floor(item.cost / 2) || state.profiles[p2].coins < Math.floor(item.cost / 2)) {
+          alert('Begge må ha nok coins til å spleise!');
+          return;
+        }
+        // Deduct
+        const cost1 = user === 'andrine' ? Math.floor(item.cost / 2) : Math.ceil(item.cost / 2);
+        const cost2 = item.cost - cost1;
+        state.profiles[p1].coins -= cost1;
+        state.profiles[p2].coins -= cost2;
+        addLedger(state, 'BUY_SPLIT', p1, -cost1, { desc: `Spleis: ${item.title}` });
+        addLedger(state, 'BUY_SPLIT', p2, -cost2, { desc: `Spleis: ${item.title}` });
+      } else {
+        // Single payer
+        state.profiles[user].coins -= item.cost;
+        addLedger(state, 'BUY', user, -item.cost, { desc: `Kjøp: ${item.title}` });
+      }
+    } else {
+      // Normal Buy
+      state.profiles[user].coins -= item.cost;
+      addLedger(state, 'BUY', user, -item.cost, { desc: `Kjøp: ${item.title}` });
+    }
+
+    // Add to inventory
+    // Determine actual payer: if BEGGE item was split-paid, mark as BEGGE, otherwise mark as buyer
+    const actualPayer = (item.payer === 'BEGGE' && item.requiresBothConfirm) ? 'BEGGE' : user;
+
+    state.ownedRewards.push({
+      id: crypto.randomUUID(),
+      title: item.title,
+      source: 'SHOP',
+      payer: actualPayer,
+      requiresBothConfirm: item.requiresBothConfirm || false,
+      status: 'READY',
+      acquiredTs: new Date().toISOString(),
+      confirmations: {}
+    });
+
+    console.log(`🛒 ${user} bought ${item.title} (payer: ${actualPayer})`);
+
+    // Show success feedback
+    if (btn) {
+      btn.textContent = '✅ Kjøpt!';
+      btn.style.background = '#4ade80';
+      setTimeout(() => {
+        saveAndRender(); // Render after showing success
+      }, 500);
+    } else {
+      saveAndRender();
+    }
+
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+  };
+
+  window.placeBid = (user, aucId, amount) => {
+    const aucIdx = state.auctions.findIndex(a => a.id === aucId);
+    if (aucIdx < 0) return;
+    const auc = state.auctions[aucIdx];
+
+    // Refund previous leader
+    if (auc.highestBidder) {
+      state.profiles[auc.highestBidder].coins += auc.highestBid;
+      addLedger(state, 'REFUND', auc.highestBidder, auc.highestBid, { desc: `Overbydd: ${auc.title}` });
+    }
+
+    // Deduct new bid
+    state.profiles[user].coins -= amount;
+    // addLedger(state, 'BID_ESCROW', user, -amount, { desc: `Bud: ${auc.title}` });
+
+    // Update Auction
+    state.auctions[aucIdx].highestBid = amount;
+    state.auctions[aucIdx].highestBidder = user;
+    state.auctions[aucIdx].updatedTs = new Date().toISOString();
+
+    saveAndRender();
+    if (navigator.vibrate) navigator.vibrate(50);
+  };
+
+  window.redeemItem = (user, itemId) => {
+    const itemIdx = state.ownedRewards.findIndex(i => i.id === itemId);
+    if (itemIdx < 0) return;
+    const item = state.ownedRewards[itemIdx];
+
+    if (item.requiresBothConfirm) {
+      if (!item.confirmations) item.confirmations = {};
+      item.confirmations[user] = true;
+      // Check if both
+      if (item.confirmations.andrine && item.confirmations.partner) {
+        item.status = 'REDEEMED';
+        addLedger(state, 'REDEEM', 'BEGGE', 0, { desc: `Brukt: ${item.title}` });
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      } else {
+        saveAndRender();
+        return;
+      }
+    } else {
+      item.status = 'REDEEMED';
+      addLedger(state, 'REDEEM', user, 0, { desc: `Brukt: ${item.title}` });
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    }
+    saveAndRender();
+  };
 
   // 7. INITIAL RENDER
   renderUI();
@@ -2070,8 +2099,16 @@ function startPresenceHeartbeat(role, container, cleanupStack) {
         indicator.querySelector('.status-text').textContent = 'Venter på partner...';
       }
 
-      // Pull latest votes from cloud (skip confetti during game)
-      await storage.pullFromCloud({ skipCelebration: true });
+      // Pull latest votes from cloud - but only if not already pulling
+      // Prevents cascade: pull→hasChanged→autoRefresh→sync→pull→...
+      if (!window._nameGamePullInProgress) {
+        window._nameGamePullInProgress = true;
+        try {
+          await storage.pullFromCloud({ skipCelebration: true });
+        } finally {
+          window._nameGamePullInProgress = false;
+        }
+      }
 
       // Check if game state changed (partner voted or we can advance)
       const votes = storage.get('name_votes', {});
@@ -2098,7 +2135,7 @@ function startPresenceHeartbeat(role, container, cleanupStack) {
 
   // Run immediately then interval
   check();
-  presenceInterval = setInterval(check, 5000);
+  presenceInterval = setInterval(check, 8000); // 8s — reduced to prevent subrequest overload
   cleanupStack.push(() => clearInterval(presenceInterval));
 }
 
