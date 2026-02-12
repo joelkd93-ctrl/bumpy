@@ -4881,3 +4881,28 @@ body.night-mode::after {
 }
 .naughty-saved-dare { font-size: 15px; color: var(--text-primary); margin: 8px 0 4px; font-style: italic; }
 .naughty-saved-meta { font-size: 12px; color: var(--text-muted); margin: 0; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   3D NAV ICONS
+   ═══════════════════════════════════════════════════════════════ */
+.nav-icon-img {
+  width: 28px !important;
+  height: 28px !important;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.15s var(--ease-bounce), filter 0.15s ease;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.15));
+}
+.nav-bar .nav-item.active .nav-icon-img {
+  transform: scale(1.2) translateY(-2px);
+  filter: drop-shadow(0 3px 8px rgba(255,77,166,0.4));
+}
+.nav-bar .nav-item:active .nav-icon-img {
+  transform: scale(0.88);
+}
+/* Hide the old emoji span font-size when img is present */
+.nav-bar .nav-item .nav-icon:has(img) {
+  font-size: 0 !important;
+  line-height: 0;
+}

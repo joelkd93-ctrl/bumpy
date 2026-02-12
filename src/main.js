@@ -127,13 +127,13 @@ function handleSwipe() {
 // ═══════════════════════════════════════════════════════════════
 
 const TABS = [
-  { id: 'home', icon: '🏠', label: 'Hjem', render: renderHome, init: initHome },
-  { id: 'timeline', icon: '💖', label: 'Reise', render: renderTimeline, init: initTimeline },
-  { id: 'kicks', icon: '🦶', label: 'Spark', render: renderKicks, init: initKicks },
-  { id: 'feelings', icon: '😊', label: 'Følelser', render: renderFeelings, init: initFeelings },
-  { id: 'journal', icon: '📔', label: 'Dagbok', render: renderJournal, init: initJournal },
-  { id: 'together', icon: '🥰', label: 'Sammen', render: renderTogether, init: initTogether },
-  { id: 'settings', icon: '⚙️', label: 'Innstillinger', render: renderSettings, init: initSettings }
+  { id: 'home',     icon: '<img src="/icons/nav/nav-hjem.png" class="nav-icon-img" alt="Hjem">', label: 'Hjem', render: renderHome, init: initHome },
+  { id: 'timeline', icon: '<img src="/icons/nav/nav-reise.png" class="nav-icon-img" alt="Reise">', label: 'Reise', render: renderTimeline, init: initTimeline },
+  { id: 'kicks',    icon: '<img src="/icons/nav/nav-spark.png" class="nav-icon-img" alt="Spark">', label: 'Spark', render: renderKicks, init: initKicks },
+  { id: 'feelings', icon: '<img src="/icons/nav/nav-folelser.png" class="nav-icon-img" alt="Følelser">', label: 'Følelser', render: renderFeelings, init: initFeelings },
+  { id: 'journal',  icon: '<img src="/icons/nav/nav-dagbok.png" class="nav-icon-img" alt="Dagbok">', label: 'Dagbok', render: renderJournal, init: initJournal },
+  { id: 'together', icon: '<img src="/icons/nav/nav-sammen.png" class="nav-icon-img" alt="Sammen">', label: 'Sammen', render: renderTogether, init: initTogether },
+  { id: 'settings', icon: '<img src="/icons/nav/nav-innstilling.png" class="nav-icon-img" alt="Innstillinger">', label: 'Innstillinger', render: renderSettings, init: initSettings }
 ];
 
 // ═══════════════════════════════════════════════════════════════

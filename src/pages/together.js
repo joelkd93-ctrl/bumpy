@@ -707,15 +707,15 @@ function renderNamesGame(container, cleanupStack) {
   });
 
   // Debug logging for voting state
-  const currentName = allNames.find(name => {
+  const debugCurrentName = allNames.find(name => {
     const v = votes[name] || {};
     return !v.andrine || !v.partner;
   });
-  if (currentName && votes[currentName]) {
-    console.log(`🗳️ Voting status for ${currentName}:`, {
-      andrine: votes[currentName].andrine || 'not voted',
-      partner: votes[currentName].partner || 'not voted',
-      bothVoted: !!(votes[currentName].andrine && votes[currentName].partner)
+  if (debugCurrentName && votes[debugCurrentName]) {
+    console.log(`🗳️ Voting status for ${debugCurrentName}:`, {
+      andrine: votes[debugCurrentName].andrine || 'not voted',
+      partner: votes[debugCurrentName].partner || 'not voted',
+      bothVoted: !!(votes[debugCurrentName].andrine && votes[debugCurrentName].partner)
     });
   }
 
