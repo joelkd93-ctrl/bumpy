@@ -242,7 +242,13 @@ export function initTogether() {
 
   // Portal mount: keep game modal outside scroll container to avoid fixed-position anchoring bugs
   const modalRoot = document.getElementById('modal-root');
-  if (modal && modalRoot && modal.parentElement !== modalRoot) {
+  if (modalRoot) {
+    const staleModal = modalRoot.querySelector('#game-modal');
+    if (staleModal && staleModal !== modal) {
+      staleModal.remove();
+    }
+  }
+  if (modal && modalRoot) {
     modalRoot.appendChild(modal);
   }
 
