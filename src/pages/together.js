@@ -981,11 +981,44 @@ function renderNameStats(container, cleanupStack) {
           </div>
         ` : `<p class="text-muted text-center">Du har ikke favorittmarkert noen andre navn.</p>`}
       </div>
+
+      <!-- Reset Button -->
+      <div class="mt-10 pt-6" style="border-top: 1px solid rgba(255,143,171,0.2);">
+        <button class="btn btn-ghost btn-block" id="reset-votes" style="color: rgba(255,143,171,0.7);">
+          🔄 Start på nytt
+        </button>
+        <p class="text-xs text-muted text-center mt-2">Nullstiller alle stemmer</p>
+      </div>
     </div>
   `;
 
   document.getElementById('back-to-game')?.addEventListener('click', () => {
     renderNamesGame(container, cleanupStack);
+  });
+
+  document.getElementById('reset-votes')?.addEventListener('click', async () => {
+    const confirmed = confirm('Er du sikker på at du vil nullstille alle stemmer? Dette kan ikke angres!');
+    if (!confirmed) return;
+
+    // Clear all votes and matches
+    storage.set('name_votes', {});
+    storage.set('matched_names', []);
+    pendingMatch = null;
+
+    // Sync to cloud so both devices reset
+    await storage.syncWithCloud();
+
+    // Show feedback
+    const btn = document.getElementById('reset-votes');
+    if (btn) {
+      btn.textContent = '✅ Nullstilt!';
+      btn.disabled = true;
+    }
+
+    // Return to game after 1 second
+    setTimeout(() => {
+      renderNamesGame(container, cleanupStack);
+    }, 1000);
   });
 }
 
