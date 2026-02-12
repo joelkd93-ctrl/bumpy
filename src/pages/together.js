@@ -1295,6 +1295,10 @@ function renderAuctionGame(container, cleanupStack) {
       ownedRewards: []
     };
     storage.set('love_auction_v2', state);
+  } else if (!state.lastModified) {
+    // Initialize timestamp for existing state
+    state.lastModified = Date.now();
+    storage.set('love_auction_v2', state);
   }
 
   // Ensure active auctions exist
@@ -1304,11 +1308,15 @@ function renderAuctionGame(container, cleanupStack) {
   // 2. HELPER: Save & Render
   const saveAndRender = () => {
     lastSaveTime = Date.now(); // Track when we saved
+    state.lastModified = lastSaveTime; // Timestamp the state
+
     console.log('💾 Saving auction state:', {
       andrineCoins: state.profiles.andrine.coins,
       partnerCoins: state.profiles.partner.coins,
-      ownedItems: state.ownedRewards.length
+      ownedItems: state.ownedRewards.length,
+      timestamp: new Date(state.lastModified).toLocaleTimeString()
     });
+
     storage.set('love_auction_v2', state);
     storage.syncWithCloud().then(() => {
       console.log('✅ Auction state synced to cloud');
@@ -1883,14 +1891,26 @@ function renderAuctionGame(container, cleanupStack) {
     // Reload state from storage (in case partner updated it)
     const freshState = storage.get('love_auction_v2', null);
     if (freshState) {
-      console.log('🔄 Syncing fresh state from cloud:', {
-        andrineCoins: freshState.profiles.andrine.coins,
-        partnerCoins: freshState.profiles.partner.coins,
-        ownedItems: freshState.ownedRewards.length
-      });
+      // Only update if cloud state is NEWER than local state
+      if (!freshState.lastModified || !state.lastModified || freshState.lastModified > state.lastModified) {
+        console.log('🔄 Syncing fresh state from cloud:', {
+          andrineCoins: freshState.profiles.andrine.coins,
+          partnerCoins: freshState.profiles.partner.coins,
+          ownedItems: freshState.ownedRewards.length,
+          cloudTimestamp: freshState.lastModified ? new Date(freshState.lastModified).toLocaleTimeString() : 'none',
+          localTimestamp: state.lastModified ? new Date(state.lastModified).toLocaleTimeString() : 'none'
+        });
 
-      // Update state object in-place (don't replace reference)
-      Object.assign(state, freshState);
+        // Update state object in-place (don't replace reference)
+        Object.assign(state, freshState);
+      } else {
+        console.log('⏭️ Ignoring stale cloud state', {
+          cloudTime: freshState.lastModified ? new Date(freshState.lastModified).toLocaleTimeString() : 'none',
+          localTime: state.lastModified ? new Date(state.lastModified).toLocaleTimeString() : 'none',
+          cloudCoins: freshState.profiles.andrine.coins,
+          localCoins: state.profiles.andrine.coins
+        });
+      }
     }
 
     tickAuctions(state); // Check settlements
