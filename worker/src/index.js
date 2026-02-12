@@ -228,6 +228,7 @@ async function handleSyncGet(env) {
     loveNotes,
     predictions,
     kicks,
+    auctionStateRow,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
     client.execute('SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries ORDER BY COALESCE(entry_date, created_at) DESC'),
@@ -238,6 +239,7 @@ async function handleSyncGet(env) {
     client.execute('SELECT * FROM love_notes').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM predictions').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM kick_sessions ORDER BY start_time DESC LIMIT 20').catch(() => ({ rows: [] })),
+    client.execute("SELECT value FROM app_state WHERE key = 'love_auction_v2'").catch(() => ({ rows: [] })),
   ]);
 
   // Transform predictions to { andrine: {}, partner: {} } format
@@ -245,6 +247,16 @@ async function handleSyncGet(env) {
   for (const row of (predictions.rows || [])) {
     if (!predictionsMap[row.role]) predictionsMap[row.role] = {};
     predictionsMap[row.role][row.question_id] = row.answer;
+  }
+
+  // Parse auction state from JSON
+  let auctionState = null;
+  if (auctionStateRow.rows?.[0]?.value) {
+    try {
+      auctionState = JSON.parse(auctionStateRow.rows[0].value);
+    } catch (err) {
+      console.error('Failed to parse auction state:', err);
+    }
   }
 
   // Debug: Count total rows and check schema
@@ -267,6 +279,7 @@ async function handleSyncGet(env) {
       loveNotes: loveNotes.rows || [],
       predictions: predictionsMap,
       kicks: kicks.rows || [],
+      auctionState: auctionState,
     },
   });
 }
@@ -276,7 +289,7 @@ async function handleSyncPost(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { settings, journal, moods, together, nameVotes, predictions, kicks } = body;
+  const { settings, journal, moods, together, nameVotes, predictions, kicks, auctionState } = body;
 
   // 1) Settings
   if (settings) {
@@ -426,6 +439,16 @@ async function handleSyncPost(env, request) {
         console.error(`❌ Failed to insert kick session ${session.id}:`, err.message);
       }
     }
+  }
+
+  // 8) Auction State (store as JSON blob)
+  if (auctionState) {
+    console.log(`💾 Syncing auction state`);
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO app_state (key, value, updated_at)
+            VALUES ('love_auction_v2', ?, CURRENT_TIMESTAMP)`,
+      args: [JSON.stringify(auctionState)],
+    });
   }
 
   return json({ success: true, message: 'Sync complete' });

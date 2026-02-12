@@ -155,6 +155,7 @@ export const storage = {
       }));
 
       const predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
+      const auctionState = this.get('love_auction_v2', null);
 
       // Transform journal entries to backend format
       const journalForBackend = journal.map(entry => ({
@@ -187,9 +188,10 @@ export const storage = {
       const payload = {
         journal: journalForBackend,
         moods: moodsForBackend,
-        nameVotes: nameVotes,  // ADD: Name votes (was missing!)
-        kicks: kicksForBackend,  // ADD: Kick sessions
-        predictions: predictions  // ADD: Predictions
+        nameVotes: nameVotes,
+        kicks: kicksForBackend,
+        predictions: predictions,
+        auctionState: auctionState  // Love Auction game state
       };
 
       const apiUrl = getApiUrl();
@@ -313,7 +315,7 @@ export const storage = {
       console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
-        const { settings, journal, moods, together, nameVotes, predictions, kicks } = result.data;
+        const { settings, journal, moods, together, nameVotes, predictions, kicks, auctionState } = result.data;
         let hasChanged = false;
 
         if (settings) {
@@ -367,6 +369,52 @@ export const storage = {
           if (JSON.stringify(current) !== JSON.stringify(predictions)) {
             console.log('♻️ Syncing baby predictions');
             this.set('baby_predictions', predictions, true);
+            hasChanged = true;
+          }
+        }
+
+        // Sync Love Auction state (merge balances and items)
+        if (auctionState) {
+          const current = this.get('love_auction_v2', null);
+          if (current) {
+            // Merge profiles (keep higher coin balances - prevent loss)
+            if (auctionState.profiles) {
+              Object.keys(auctionState.profiles).forEach(user => {
+                if (!current.profiles[user]) {
+                  current.profiles[user] = auctionState.profiles[user];
+                  hasChanged = true;
+                } else {
+                  // Merge balances - use cloud if different
+                  if (auctionState.profiles[user].coins !== current.profiles[user].coins) {
+                    console.log(`♻️ Syncing ${user} balance: ${current.profiles[user].coins} -> ${auctionState.profiles[user].coins}`);
+                    current.profiles[user] = auctionState.profiles[user];
+                    hasChanged = true;
+                  }
+                }
+              });
+            }
+
+            // Merge purchased items and auctions
+            if (auctionState.ownedRewards && JSON.stringify(current.ownedRewards) !== JSON.stringify(auctionState.ownedRewards)) {
+              console.log('♻️ Syncing purchased items');
+              current.ownedRewards = auctionState.ownedRewards;
+              hasChanged = true;
+            }
+
+            // Sync auctions (make them same on both devices)
+            if (auctionState.auctions && JSON.stringify(current.auctions) !== JSON.stringify(auctionState.auctions)) {
+              console.log('♻️ Syncing auction items');
+              current.auctions = auctionState.auctions;
+              hasChanged = true;
+            }
+
+            if (hasChanged) {
+              this.set('love_auction_v2', current, true);
+            }
+          } else {
+            // No local state, use cloud state
+            console.log('♻️ Initializing auction from cloud');
+            this.set('love_auction_v2', auctionState, true);
             hasChanged = true;
           }
         }

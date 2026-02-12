@@ -1748,11 +1748,20 @@ function renderAuctionGame(container, cleanupStack) {
   // 7. INITIAL RENDER
   renderUI();
 
-  // 8. CLOCK (Cleanup)
-  const interval = setInterval(() => {
-    renderUI(); // Update timers
+  // 8. CLOCK & SYNC (Cleanup)
+  const interval = setInterval(async () => {
+    // Pull latest auction state from cloud
+    await storage.pullFromCloud({ skipCelebration: true });
+
+    // Reload state from storage (in case partner updated it)
+    const freshState = storage.get('love_auction_v2', null);
+    if (freshState) {
+      state = freshState;
+    }
+
     tickAuctions(state); // Check settlements
-  }, 10000); // 10s is enough for minute updates
+    renderUI(); // Update timers and UI
+  }, 10000); // 10s sync interval
   cleanupStack.push(() => clearInterval(interval));
 }
 
