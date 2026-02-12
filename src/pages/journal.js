@@ -422,8 +422,13 @@ export function initJournal() {
       // Haptic feedback
       if (window.haptic) window.haptic.medium();
 
-      // Delete entry
+      // Delete entry locally
       await storage.removeFromCollection('journal', id);
+
+      // Sync deletion to cloud so it deletes on all devices
+      console.log(`🗑️ Syncing journal deletion to cloud: ${id}`);
+      await storage.syncWithCloud();
+      console.log(`✅ Journal deletion synced to cloud`);
 
       // Refresh page
       if (window.app?.refreshCurrentPage) {

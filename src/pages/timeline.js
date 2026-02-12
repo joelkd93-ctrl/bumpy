@@ -132,7 +132,13 @@ export function initTimeline() {
                      type === 'kick' ? 'kicks' : null;
 
       if (prefix) {
+        // Delete locally
         await storage.removeFromCollection(prefix, id);
+
+        // Sync deletion to cloud so it deletes on all devices
+        console.log(`🗑️ Syncing deletion to cloud: ${type} ${id}`);
+        await storage.syncWithCloud();
+        console.log(`✅ Deletion synced to cloud`);
 
         // Refresh page
         if (window.app?.refreshCurrentPage) {
