@@ -525,7 +525,7 @@
 }
 
 .game-modal-content {
-  animation: sheetSlideUp 0.45s var(--ease-out);
+  animation: none !important;
   border-radius: 28px 28px 0 0;
 }
 
