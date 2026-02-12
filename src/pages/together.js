@@ -806,6 +806,13 @@ function renderNamesGame(container, cleanupStack) {
       votes[name][currentPlayer] = vote;
       storage.set('name_votes', votes);
 
+      // Sync vote to cloud IMMEDIATELY
+      storage.syncWithCloud().then(() => {
+        console.log(`✅ Vote synced: ${name} = ${vote}`);
+      }).catch(err => {
+        console.warn('Failed to sync vote:', err);
+      });
+
       // Check for match IMMEDIATELY to celebrate
       if (votes[name].andrine === 'love' && votes[name].partner === 'love') {
         // Find existing matches to avoid duplicates
@@ -1823,6 +1830,28 @@ function startPresenceHeartbeat(role, container, cleanupStack) {
         indicator.classList.remove('online');
         indicator.querySelector('.status-dot').textContent = '⚪';
         indicator.querySelector('.status-text').textContent = 'Venter på partner...';
+      }
+
+      // Pull latest votes from cloud and check if we need to re-render
+      await storage.pullFromCloud();
+
+      // Check if game state changed (partner voted or we can advance)
+      const votes = storage.get('name_votes', {});
+      const customNames = storage.get('custom_names', []);
+      const allNames = [...DEFAULT_NAMES, ...customNames];
+      const currentPlayer = localStorage.getItem('who_am_i') || 'andrine';
+
+      // Find first incomplete name
+      const nextName = allNames.find(name => {
+        const v = votes[name] || {};
+        return !v.andrine || !v.partner;
+      });
+
+      // If current displayed name is different from what it should be, re-render
+      if (lastRenderedState.name !== nextName ||
+          (lastRenderedState.waiting && nextName && votes[nextName]?.andrine && votes[nextName]?.partner)) {
+        console.log('🔄 Partner voted! Auto-refreshing game...');
+        renderNamesGame(container, cleanupStack);
       }
     } catch (err) {
       console.warn('Presence check failed', err);
