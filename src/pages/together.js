@@ -1284,6 +1284,7 @@ function renderAuctionGame(container, cleanupStack) {
     state = {
       version: 2,
       activeProfileId: role,
+      lastModified: Date.now(), // Track when state was last changed
       profiles: {
         andrine: { coins: v1?.coins?.andrine || 50, weeklyEarned: 0, streak: 0 },
         partner: { coins: v1?.coins?.partner || 50, weeklyEarned: 0, streak: 0 }
@@ -2124,14 +2125,14 @@ const NAUGHTY_DARES = {
     "Slow control – ingen hastverk tillatt 🔥",
     "Ta kommando og bestem alt i 10 minutter 👑",
     "Tease & Pause – stopp akkurat i det gode øyeblikket 😏",
-    "Lek med lys og skygger – kun stearinlys 🕯️",
-    "Iscenesjett favorittsituasjonen din 🎭",
-    "Lås opp et 'hemmelig ord' som gir bonuskyss 🔐",
-    "Tempo-lek: super sakte i 3 min, så pause ⏳",
-    "Gi partneren en utfordring med 3 regler 📜",
-    "Speil-lek: kopier hverandres bevegelser i 2 min 🪞",
-    "Bytt på å lede: 5 min hver, ingen avbrytelser 🔁",
-    "Bruk bare berøring og blikk i 4 minutter 👁️",
+    "Kantkontroll i 8 minutter: tett på, så pause ⏱️",
+    "Hands behind back + kun munn i 5 minutter 💋",
+    "Dominant bytte: én leder 7 min, så bytte rolle 🔁",
+    "Dirty talk only: ingen stillhet i 4 minutter 🫦",
+    "Tempo-lek: ultrsakte i 3 min, så intens i 1 min 🔥",
+    "Bruk timer: 60 sek tease / 20 sek pause x 6 ⌛",
+    "Velg 3 regler partneren må følge i kveld 📜",
+    "Stopp akkurat før klimaks to ganger, så fortsett 😈",
   ],
   extra: [
     "Wrist cuffs + blindfold = full overraskelse 😈🔥",
@@ -2139,13 +2140,17 @@ const NAUGHTY_DARES = {
     "Rule Roulette – terningen bestemmer reglene 🎲",
     "Tease i 10 minutter – absolutt ingenting mer 😈",
     "Partneren din bestemmer alt – du har null valg 👑",
-    "Skriv en regel dere MÅ følge i kveld 📜🔥",
     "Edging-lek: stopp rett før, pust, start igjen ⏱️",
     "Dominant/soft switch halvveis i leken 🔄",
     "Blindfold + musikk + slow tease i 8 min 🎶",
-    "Lag en 'forbudt liste' med 3 ting – bryt én med vilje 😈",
-    "Skriv en dirty beskjed til partneren mens dere er i samme rom 📱",
     "Kun én får snakke i 5 min – den andre adlyder 🖤",
+    "Power round: 12 min hvor leder styrer alt 🔥",
+    "3-stegs game: tease, deny, reward 😏",
+    "No hands challenge i 4 min – bruk kreativitet 💋",
+    "Dress code challenge: ett plagg beholdes hele leken 👀",
+    "Bygg opp i 15 min før noe 'main event' er lovt 🕯️",
+    "Safeword + kontrollert rollespill i 10 min 🎭",
+    "Etter ordre: fullfør 5 små kommandoer uten stopp 👑",
   ]
 };
 

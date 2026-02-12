@@ -3,7 +3,7 @@
 // Offline-first PWA with intelligent caching + Push Notifications
 // ═══════════════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'bumpy-v3.5.12';
+const CACHE_VERSION = 'bumpy-v3.5.13';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const FONT_CACHE = `${CACHE_VERSION}-fonts`;
