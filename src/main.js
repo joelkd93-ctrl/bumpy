@@ -81,8 +81,11 @@ let touchStartX = 0;
 let touchEndX = 0;
 let touchStartY = 0;
 let touchEndY = 0;
-const SWIPE_THRESHOLD = 50;
-const SWIPE_VELOCITY_THRESHOLD = 0.3;
+
+// Swipe sensitivity settings (less sensitive = better UX)
+const SWIPE_THRESHOLD = 120; // Minimum horizontal distance (increased from 50px)
+const MAX_VERTICAL_MOVEMENT = 80; // Max vertical allowed before rejecting
+const MIN_HORIZONTAL_RATIO = 2.5; // Horizontal must be 2.5x vertical
 
 function handleSwipe() {
   const deltaX = touchEndX - touchStartX;
@@ -90,8 +93,19 @@ function handleSwipe() {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Only process horizontal swipes (ignore vertical scrolling)
-  if (absDeltaX < SWIPE_THRESHOLD || absDeltaY > absDeltaX) {
+  // Strict swipe detection to prevent accidental page switches
+  // 1. Must move at least 120px horizontally
+  if (absDeltaX < SWIPE_THRESHOLD) {
+    return;
+  }
+
+  // 2. Vertical movement must be less than 80px (otherwise it's scrolling)
+  if (absDeltaY > MAX_VERTICAL_MOVEMENT) {
+    return;
+  }
+
+  // 3. Horizontal movement must be at least 2.5x the vertical (clear horizontal intent)
+  if (absDeltaX < absDeltaY * MIN_HORIZONTAL_RATIO) {
     return;
   }
 
