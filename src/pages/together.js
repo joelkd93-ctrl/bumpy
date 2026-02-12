@@ -1265,6 +1265,9 @@ const SEED_AUCTION_REWARDS = [
 function renderAuctionGame(container, cleanupStack) {
   const role = localStorage.getItem('who_am_i') || 'andrine';
 
+  // Track last save time to prevent overwriting fresh changes
+  let lastSaveTime = 0;
+
   // 1. INIT STATE (Migration V1 -> V2 if needed)
   let state = storage.get('love_auction_v2', null);
   if (!state) {
@@ -1290,6 +1293,7 @@ function renderAuctionGame(container, cleanupStack) {
 
   // 2. HELPER: Save & Render
   const saveAndRender = () => {
+    lastSaveTime = Date.now(); // Track when we saved
     console.log('💾 Saving auction state:', {
       andrineCoins: state.profiles.andrine.coins,
       partnerCoins: state.profiles.partner.coins,
@@ -1699,17 +1703,21 @@ function renderAuctionGame(container, cleanupStack) {
     }
 
     // Add to inventory
+    // Determine actual payer: if BEGGE item was split-paid, mark as BEGGE, otherwise mark as buyer
+    const actualPayer = (item.payer === 'BEGGE' && item.requiresBothConfirm) ? 'BEGGE' : user;
+
     state.ownedRewards.push({
       id: crypto.randomUUID(),
       title: item.title,
       source: 'SHOP',
-      payer: item.payer,
+      payer: actualPayer,
       requiresBothConfirm: item.requiresBothConfirm || false,
       status: 'READY',
       acquiredTs: new Date().toISOString(),
       confirmations: {}
     });
 
+    console.log(`🛒 ${user} bought ${item.title} (payer: ${actualPayer})`);
     saveAndRender();
     if (navigator.vibrate) navigator.vibrate(50);
   };
@@ -1769,6 +1777,15 @@ function renderAuctionGame(container, cleanupStack) {
 
   // 8. CLOCK & SYNC (Cleanup)
   const interval = setInterval(async () => {
+    // Don't pull immediately after saving (give cloud time to update)
+    const timeSinceLastSave = Date.now() - lastSaveTime;
+    if (timeSinceLastSave < 3000) {
+      console.log(`⏭️ Skipping pull - just saved ${Math.round(timeSinceLastSave / 1000)}s ago`);
+      tickAuctions(state);
+      renderUI();
+      return;
+    }
+
     // Pull latest auction state from cloud
     await storage.pullFromCloud({ skipCelebration: true });
 
