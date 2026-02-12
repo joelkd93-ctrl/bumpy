@@ -701,9 +701,16 @@ function renderNamesGame(container, cleanupStack) {
 
   // Check if any name just became a match (both voted love)
   const matches = storage.get('matched_names', []);
+  console.log('💾 Matched names in storage:', matches);
+
   const newMatch = allNames.find(name => {
     const v = votes[name] || {};
-    return v.andrine === 'love' && v.partner === 'love' && !matches.includes(name);
+    const isMatch = v.andrine === 'love' && v.partner === 'love';
+    const alreadySaved = matches.includes(name);
+    if (isMatch && !alreadySaved) {
+      console.log(`🔍 Found potential new match: ${name} (not in saved matches)`);
+    }
+    return isMatch && !alreadySaved;
   });
 
   // Debug logging for voting state
