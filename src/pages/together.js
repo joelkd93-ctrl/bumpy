@@ -701,7 +701,15 @@ function renderNamesGame(container, cleanupStack) {
 
   // Check if any name just became a match (both voted love)
   const matches = storage.get('matched_names', []);
+
+  // DEBUG: Show all current matches in votes
+  const allMatchedInVotes = allNames.filter(name => {
+    const v = votes[name] || {};
+    return v.andrine === 'love' && v.partner === 'love';
+  });
   console.log('💾 Matched names in storage:', matches);
+  console.log('🗳️ All names currently matched in votes:', allMatchedInVotes);
+  console.log('⚠️ Matches in votes but NOT in storage:', allMatchedInVotes.filter(n => !matches.includes(n)));
 
   const newMatch = allNames.find(name => {
     const v = votes[name] || {};
@@ -729,15 +737,23 @@ function renderNamesGame(container, cleanupStack) {
   // If we found a new match, save it and show overlay
   if (newMatch && newMatch !== pendingMatch) {
     console.log(`💕 NEW MATCH DETECTED: ${newMatch}`);
+    console.log(`   📝 pendingMatch was: ${pendingMatch}`);
+    console.log(`   📦 Saving to storage. Before:`, [...matches]);
     pendingMatch = newMatch;
     matches.push(newMatch);
+    console.log(`   📦 After push:`, [...matches]);
     storage.set('matched_names', matches);
+
+    // Verify it was saved
+    const verifyMatches = storage.get('matched_names', []);
+    console.log(`   ✅ Verified in storage:`, verifyMatches);
 
     // Show match overlay
     setTimeout(() => {
       showMatchOverlay(newMatch);
       // After match animation, clear pending and continue
       setTimeout(() => {
+        console.log(`   🔄 Match overlay closed. Clearing pendingMatch and re-rendering...`);
         pendingMatch = null;
         renderNamesGame(container, cleanupStack);
       }, 2500);
