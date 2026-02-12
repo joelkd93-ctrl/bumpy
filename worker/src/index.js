@@ -180,37 +180,58 @@ async function handleInit(env) {
     }
   }
 
-  // FIX: Remove UNIQUE(week_number) constraint to allow multiple entries per week
-  // Check if migration already completed by checking if journal_entries exists
+  // FIX: Ensure journal_entries table exists (handle broken migration state)
   try {
+    // Check if journal_entries exists
     const tableCheck = await client.execute(`
       SELECT name FROM sqlite_master WHERE type='table' AND name='journal_entries'
     `);
 
     if (tableCheck.rows.length > 0) {
-      console.log('✅ journal_entries table exists - migration already complete');
+      console.log('✅ journal_entries table exists');
     } else {
-      console.log('🔧 Migrating journal_entries table to remove UNIQUE constraint...');
-      await client.execute(`ALTER TABLE journal_entries RENAME TO journal_entries_old`);
-      await client.execute(`
-        CREATE TABLE journal_entries (
-          id TEXT PRIMARY KEY,
-          week_number INTEGER,
-          photo_blob TEXT,
-          note TEXT,
-          entry_date TEXT,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
+      // Check if old table exists (partial migration)
+      const oldTableCheck = await client.execute(`
+        SELECT name FROM sqlite_master WHERE type='table' AND name='journal_entries_old'
       `);
-      await client.execute(`
-        INSERT INTO journal_entries (id, week_number, photo_blob, note, entry_date, created_at)
-        SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries_old
-      `);
-      await client.execute(`DROP TABLE journal_entries_old`);
-      console.log('✅ Migration complete - UNIQUE constraint removed');
+
+      if (oldTableCheck.rows.length > 0) {
+        // Old table exists, complete the migration
+        console.log('🔧 Completing partial migration...');
+        await client.execute(`
+          CREATE TABLE journal_entries (
+            id TEXT PRIMARY KEY,
+            week_number INTEGER,
+            photo_blob TEXT,
+            note TEXT,
+            entry_date TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        await client.execute(`
+          INSERT INTO journal_entries (id, week_number, photo_blob, note, entry_date, created_at)
+          SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries_old
+        `);
+        await client.execute(`DROP TABLE journal_entries_old`);
+        console.log('✅ Migration completed');
+      } else {
+        // Neither table exists, create fresh
+        console.log('🆕 Creating fresh journal_entries table...');
+        await client.execute(`
+          CREATE TABLE journal_entries (
+            id TEXT PRIMARY KEY,
+            week_number INTEGER,
+            photo_blob TEXT,
+            note TEXT,
+            entry_date TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        console.log('✅ Fresh table created');
+      }
     }
   } catch (e) {
-    console.warn('⚠️ Migration skipped (table already migrated or error):', e.message);
+    console.warn('⚠️ Table setup error:', e.message);
   }
 
   // Initialize auction profiles
