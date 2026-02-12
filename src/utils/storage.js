@@ -30,8 +30,11 @@ export const storage = {
       localStorage.setItem(PREFIX + key, JSON.stringify(value));
       console.log(`💾 Saved locally: ${key}`, skipSync ? '(skipped sync)' : '(will sync)');
 
-      // Auto-sync non-transient data
-      if (!skipSync && !key.startsWith('daily_')) {
+      // Auto-sync non-transient data (skip temp keys, daily keys, task records, claim records)
+      const skipPatterns = ['_', 'daily_', 'last_', 'task_', 'current_'];
+      const shouldSkipSync = skipSync || skipPatterns.some(pattern => key.startsWith(pattern));
+
+      if (!shouldSkipSync) {
         console.log('☁️ Triggering cloud sync for:', key);
         // Only sync what changed to avoid huge payloads
         const syncOptions = { only: [key] };
