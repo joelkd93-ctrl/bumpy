@@ -768,10 +768,10 @@ img {
    🔋 PERFORMANCE OPTIMIZATIONS
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* Reduce paint on scroll */
+/* Reduce paint on scroll (avoid contain/will-change on iOS standalone scroll root) */
 .app-content {
-  contain: layout style;
-  will-change: scroll-position;
+  contain: none;
+  will-change: auto;
 }
 
 /* GPU acceleration for animations */
