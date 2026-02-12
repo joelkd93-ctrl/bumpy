@@ -304,6 +304,13 @@ export const storage = {
     const { skipCelebration = false } = options;
     console.log('🔽 Starting pullFromCloud...');
 
+    // Check if pull should be skipped (e.g., after reset)
+    if (localStorage.getItem('bumpy:skip_pull') === 'true') {
+      console.log('⏭️ Skipping pull - reset flag set');
+      localStorage.removeItem('bumpy:skip_pull'); // Clear flag
+      return false;
+    }
+
     // Prevent pulling immediately after pushing to avoid race condition
     const timeSinceLastPush = Date.now() - lastPushSyncTime;
     if (timeSinceLastPush < 5000) {
