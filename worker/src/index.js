@@ -276,7 +276,7 @@ async function handleSyncPost(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { settings, journal, moods, together, nameVotes, predictions } = body;
+  const { settings, journal, moods, together, nameVotes, predictions, kicks } = body;
 
   // 1) Settings
   if (settings) {
@@ -396,6 +396,34 @@ async function handleSyncPost(env, request) {
                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
           args: [id, role, questionId, answer],
         });
+      }
+    }
+  }
+
+  // 7) Kick Sessions
+  if (Array.isArray(kicks)) {
+    console.log(`💾 Syncing ${kicks.length} kick sessions`);
+    for (const session of kicks) {
+      if (!session || !session.id) {
+        console.warn(`⚠️ Skipping invalid kick session:`, session);
+        continue;
+      }
+      console.log(`💾 Inserting kick session ${session.id}`);
+      try {
+        await client.execute({
+          sql: `INSERT OR REPLACE INTO kick_sessions (id, start_time, end_time, count, duration_minutes)
+                VALUES (?, ?, ?, ?, ?)`,
+          args: [
+            session.id,
+            session.startTime || session.start_time,
+            session.endTime || session.end_time || null,
+            session.count || 0,
+            session.duration || session.duration_minutes || null,
+          ],
+        });
+        console.log(`✅ Kick session ${session.id} saved`);
+      } catch (err) {
+        console.error(`❌ Failed to insert kick session ${session.id}:`, err.message);
       }
     }
   }

@@ -152,18 +152,27 @@ export function initKicks() {
   });
 
   // Finish Session
-  finishBtn?.addEventListener('click', () => {
+  finishBtn?.addEventListener('click', async () => {
     const session = storage.get('current_kick_session');
     if (session) {
       const endTime = new Date();
       const startTime = new Date(session.startTime);
-      const durationIdx = Math.round((endTime - startTime) / 60000); // minutes
+      const durationMinutes = Math.round((endTime - startTime) / 60000); // minutes
 
-      storage.addToCollection('kicks', {
+      // Save to local collection with unique ID
+      const savedSession = {
+        id: `kick_${Date.now()}`,
         ...session,
         endTime: endTime.toISOString(),
-        duration: durationIdx
-      });
+        duration: durationMinutes
+      };
+
+      storage.addToCollection('kicks', savedSession);
+
+      // Sync to cloud backend
+      console.log('💾 Syncing kick session to cloud...', savedSession);
+      await storage.syncWithCloud();
+      console.log('✅ Kick session synced to cloud');
 
       storage.remove('current_kick_session');
 
