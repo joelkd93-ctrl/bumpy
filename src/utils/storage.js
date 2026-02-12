@@ -33,7 +33,9 @@ export const storage = {
       // Auto-sync non-transient data
       if (!skipSync && !key.startsWith('daily_')) {
         console.log('☁️ Triggering cloud sync for:', key);
-        this.syncWithCloud().then(success => {
+        // Only sync what changed to avoid huge payloads
+        const syncOptions = { only: [key] };
+        this.syncWithCloud(syncOptions).then(success => {
           console.log(success ? '✅ Cloud sync succeeded' : '❌ Cloud sync failed');
         });
       }
@@ -135,75 +137,82 @@ export const storage = {
   /**
    * Cloud Sync Logic
    */
-  async syncWithCloud() {
+  async syncWithCloud(options = {}) {
+    const { only = null } = options;
+
     // Show syncing indicator
     this.updateSyncIndicator('syncing', 'Syncing...');
 
     try {
-      const settings = this.get('settings');
-      const journal = this.getCollection('journal');
-      const moods = this.getCollection('mood_entries');
-      const together = this.getCollection('weekly');
+      // Determine what to sync based on 'only' option
+      const shouldSync = (key) => !only || only.includes(key);
 
-      // Convert name_votes map to array for sync
-      const votesMap = this.get('name_votes', {});
-      const nameVotes = Object.entries(votesMap).map(([name, votes]) => ({
-        name,
-        andrine_vote: votes.andrine,
-        partner_vote: votes.partner,
-        is_custom: false
-      }));
+      const payload = {};
 
-      const predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
-      const auctionState = this.get('love_auction_v2', null);
+      // Only include data that needs syncing
+      if (shouldSync('settings')) {
+        payload.settings = this.get('settings');
+      }
 
-      // Transform journal entries to backend format
-      const journalForBackend = journal.map(entry => ({
-        id: entry.id,
-        week_number: entry.week,
-        photo_blob: entry.photo,
-        note: entry.note,
-        entry_date: entry.date
-      }));
+      if (shouldSync('journal')) {
+        const journal = this.getCollection('journal');
+        payload.journal = journal.map(entry => ({
+          id: entry.id,
+          week_number: entry.week,
+          photo_blob: entry.photo,
+          note: entry.note,
+          entry_date: entry.date
+        }));
+      }
 
-      // Transform mood entries to backend format
-      const moodsForBackend = moods.map(entry => ({
-        id: entry.id,
-        mood_emoji: entry.mood,
-        note: entry.note,
-        date: entry.date
-      }));
+      if (shouldSync('mood_entries')) {
+        const moods = this.getCollection('mood_entries');
+        payload.moods = moods.map(entry => ({
+          id: entry.id,
+          mood_emoji: entry.mood,
+          note: entry.note,
+          date: entry.date
+        }));
+      }
 
-      // Get kicks for sync
-      const kicks = this.getCollection('kicks');
-      const kicksForBackend = kicks.map(session => ({
-        id: session.id,
-        start_time: session.startTime,
-        end_time: session.endTime,
-        count: session.count || 0,
-        duration_minutes: session.duration || 0
-      }));
+      if (shouldSync('name_votes')) {
+        const votesMap = this.get('name_votes', {});
+        payload.nameVotes = Object.entries(votesMap).map(([name, votes]) => ({
+          name,
+          andrine_vote: votes.andrine,
+          partner_vote: votes.partner,
+          is_custom: false
+        }));
+      }
 
-      // Send all data to backend
-      const payload = {
-        journal: journalForBackend,
-        moods: moodsForBackend,
-        nameVotes: nameVotes,
-        kicks: kicksForBackend,
-        predictions: predictions,
-        auctionState: auctionState  // Love Auction game state
-      };
+      if (shouldSync('kicks')) {
+        const kicks = this.getCollection('kicks');
+        payload.kicks = kicks.map(session => ({
+          id: session.id,
+          start_time: session.startTime,
+          end_time: session.endTime,
+          count: session.count || 0,
+          duration_minutes: session.duration || 0
+        }));
+      }
+
+      if (shouldSync('baby_predictions')) {
+        payload.predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
+      }
+
+      if (shouldSync('love_auction_v2')) {
+        payload.auctionState = this.get('love_auction_v2', null);
+      }
 
       const apiUrl = getApiUrl();
 
       console.log('☁️ Syncing to cloud...', {
-        journalCount: journal.length,
-        moodsCount: moods.length,
+        keys: Object.keys(payload),
+        journalCount: payload.journal?.length || 0,
+        moodsCount: payload.moods?.length || 0,
+        hasAuction: !!payload.auctionState,
         api: apiUrl
       });
-      console.log('☁️ Journal entries (original):', journal);
-      console.log('☁️ Journal entries (transformed for backend):', journalForBackend);
-      console.log('☁️ FULL PAYLOAD BEING SENT:', JSON.stringify(payload, null, 2));
 
       const response = await fetch(`${apiUrl}/sync`, {
         method: 'POST',
@@ -226,13 +235,6 @@ export const storage = {
 
       const result = await response.json();
       console.log('☁️ Cloud sync result:', result);
-
-      // Immediately check what was actually saved
-      console.log('🔍 Verifying what was saved to cloud...');
-      const verifyResponse = await fetch(`${apiUrl}/sync?t=${Date.now()}`);
-      const verifyData = await verifyResponse.json();
-      console.log('🔍 Cloud now has:', verifyData.data?.journal?.length, 'journal entries');
-      console.log('🔍 Entry IDs in cloud:', verifyData.data?.journal?.map(e => e.id));
 
       if (result.success) {
         console.log('✅ Cloud synchronization complete');
