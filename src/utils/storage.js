@@ -173,10 +173,23 @@ export const storage = {
         date: entry.date
       }));
 
-      // Send ONLY journal and moods - other fields break the backend
+      // Get kicks for sync
+      const kicks = this.getCollection('kicks');
+      const kicksForBackend = kicks.map(session => ({
+        id: session.id,
+        start_time: session.startTime,
+        end_time: session.endTime,
+        count: session.count || 0,
+        duration_minutes: session.duration || 0
+      }));
+
+      // Send all data to backend
       const payload = {
         journal: journalForBackend,
-        moods: moodsForBackend
+        moods: moodsForBackend,
+        nameVotes: nameVotes,  // ADD: Name votes (was missing!)
+        kicks: kicksForBackend,  // ADD: Kick sessions
+        predictions: predictions  // ADD: Predictions
       };
 
       const apiUrl = getApiUrl();
