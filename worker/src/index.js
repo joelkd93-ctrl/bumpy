@@ -145,6 +145,13 @@ async function handleInit(env) {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
 
+    // App state storage (for complex objects like auction state)
+    `CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Journal and mood entries tables
     `CREATE TABLE IF NOT EXISTS journal_entries (
       id TEXT PRIMARY KEY,
