@@ -299,7 +299,7 @@ export const storage = {
       console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
-        const { settings, journal, moods, together, nameVotes, predictions } = result.data;
+        const { settings, journal, moods, together, nameVotes, predictions, kicks } = result.data;
         let hasChanged = false;
 
         if (settings) {
@@ -435,6 +435,50 @@ export const storage = {
               hasChanged = true;
             }
           });
+        }
+
+        // Handle kicks sync
+        if (kicks !== undefined && Array.isArray(kicks)) {
+          console.log(`🔽 Processing ${kicks.length} kick sessions from cloud`);
+          const localKicks = this.getCollection('kicks');
+          const localKickIds = new Set(localKicks.map(e => e.id));
+          const cloudKickIds = new Set(kicks.map(e => e.id));
+
+          // Add kick sessions that don't exist locally
+          let newKicksCount = 0;
+          kicks.forEach(session => {
+            if (!localKickIds.has(session.id)) {
+              console.log(`🦶 Adding kick session from cloud: ${session.id}`);
+              this.set(`kicks:${session.id}`, {
+                id: session.id,
+                startTime: session.start_time || session.startTime,
+                endTime: session.end_time || session.endTime,
+                count: session.count || 0,
+                duration: session.duration_minutes || session.duration || 0,
+                date: session.start_time || session.startTime
+              }, true);
+              hasChanged = true;
+              newKicksCount++;
+            }
+          });
+
+          // Remove local kick sessions that no longer exist in cloud
+          let deletedKicksCount = 0;
+          localKicks.forEach(local => {
+            if (!cloudKickIds.has(local.id)) {
+              console.log(`🔽 Removing deleted kick session from local: ${local.id}`);
+              localStorage.removeItem(PREFIX + `kicks:${local.id}`);
+              hasChanged = true;
+              deletedKicksCount++;
+            }
+          });
+
+          if (newKicksCount > 0) {
+            console.log(`✅ Synced ${newKicksCount} new kick sessions from cloud`);
+          }
+          if (deletedKicksCount > 0) {
+            console.log(`🗑️ Removed ${deletedKicksCount} deleted kick sessions`);
+          }
         }
 
         console.log(`🔽 hasChanged: ${hasChanged}`);
