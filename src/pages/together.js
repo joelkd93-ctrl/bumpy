@@ -2098,6 +2098,12 @@ const NAUGHTY_DARES = {
     "Kyss i 30 sekunder – ingen rush 💋",
     "Gi hverandre en skikkelig klem – hold i 20 sekunder 🤗",
     "Skriv ett ord som beskriver kvelden du vil ha 🌙",
+    "Hold øyekontakt i 60 sekunder uten å le 👀",
+    "Gi fem myke kyss på forskjellige steder 💋",
+    "Bytt på å gi 3 komplimenter hver ✨",
+    "Skriv en mini-date-plan på 2 minutter 📝",
+    "Legg telefonene bort i 20 minutter og kos 🕯️",
+    "Gi en rolig håndmassasje i 3 minutter 🤲",
   ],
   naughty: [
     "Hvisk noe frekk i øret 😏",
@@ -2106,6 +2112,12 @@ const NAUGHTY_DARES = {
     "Fortell en fantasi du aldri har delt 😈",
     "Kysse-konkurranse: den som stopper taper 💋",
     "Blind taste test – ett kyss, øynene lukket 👁️",
+    "La partneren bestemme neste trekk i 5 minutter 🫦",
+    "Gi en langsom striptease-light med favorittsang 🎶",
+    "Hvisk tre ting du vil gjøre senere i kveld 🔥",
+    "Hands-off tease i 2 minutter – bare ord og blikk 😏",
+    "Bytt roller: den stille tar styring i 10 min 👑",
+    "Kysse-runde: hals, kinn, lepper, gjenta 💋",
   ],
   bold: [
     "Blindfold partneren og overrask dem 😈",
@@ -2114,6 +2126,12 @@ const NAUGHTY_DARES = {
     "Tease & Pause – stopp akkurat i det gode øyeblikket 😏",
     "Lek med lys og skygger – kun stearinlys 🕯️",
     "Iscenesjett favorittsituasjonen din 🎭",
+    "Lås opp et 'hemmelig ord' som gir bonuskyss 🔐",
+    "Tempo-lek: super sakte i 3 min, så pause ⏳",
+    "Gi partneren en utfordring med 3 regler 📜",
+    "Speil-lek: kopier hverandres bevegelser i 2 min 🪞",
+    "Bytt på å lede: 5 min hver, ingen avbrytelser 🔁",
+    "Bruk bare berøring og blikk i 4 minutter 👁️",
   ],
   extra: [
     "Wrist cuffs + blindfold = full overraskelse 😈🔥",
@@ -2122,6 +2140,12 @@ const NAUGHTY_DARES = {
     "Tease i 10 minutter – absolutt ingenting mer 😈",
     "Partneren din bestemmer alt – du har null valg 👑",
     "Skriv en regel dere MÅ følge i kveld 📜🔥",
+    "Edging-lek: stopp rett før, pust, start igjen ⏱️",
+    "Dominant/soft switch halvveis i leken 🔄",
+    "Blindfold + musikk + slow tease i 8 min 🎶",
+    "Lag en 'forbudt liste' med 3 ting – bryt én med vilje 😈",
+    "Skriv en dirty beskjed til partneren mens dere er i samme rom 📱",
+    "Kun én får snakke i 5 min – den andre adlyder 🖤",
   ]
 };
 
