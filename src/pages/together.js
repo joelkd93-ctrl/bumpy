@@ -190,7 +190,7 @@ async function awardCoins(role, amount, reason) {
   if (state.ledger.length > 50) state.ledger.pop();
 
   storage.set('love_auction_v2', state);
-  await storage.syncWithCloud();
+  // Note: storage.set() already syncs to cloud
   console.log(`🪙 Awarded ${amount} coins to ${role} for ${reason}`);
 }
 
@@ -842,13 +842,8 @@ function renderNamesGame(container, cleanupStack) {
       if (!votes[name]) votes[name] = {};
       votes[name][currentPlayer] = vote;
       storage.set('name_votes', votes);
-
-      // Sync vote to cloud IMMEDIATELY
-      storage.syncWithCloud().then(() => {
-        console.log(`✅ Vote synced: ${name} = ${vote}`);
-      }).catch(err => {
-        console.warn('Failed to sync vote:', err);
-      });
+      // Note: storage.set() already syncs to cloud
+      console.log(`✅ Vote saved: ${name} = ${vote}`);
 
       // Re-render after animation (match check will happen in render function)
       const namesTimeout = setTimeout(() => {
@@ -1010,12 +1005,12 @@ function renderNameStats(container, cleanupStack) {
     if (!confirmed) return;
 
     // Clear all votes and matches
-    storage.set('name_votes', {});
-    storage.set('matched_names', []);
+    storage.set('name_votes', {}, true); // skipSync
+    storage.set('matched_names', [], true); // skipSync
     pendingMatch = null;
 
-    // Sync to cloud so both devices reset
-    await storage.syncWithCloud();
+    // Sync both keys to cloud so both devices reset
+    await storage.syncWithCloud({ only: ['name_votes', 'matched_names'] });
 
     // Show feedback
     const btn = document.getElementById('reset-votes');
@@ -1318,11 +1313,7 @@ function renderAuctionGame(container, cleanupStack) {
     });
 
     storage.set('love_auction_v2', state);
-    storage.syncWithCloud().then(() => {
-      console.log('✅ Auction state synced to cloud');
-    }).catch(err => {
-      console.error('❌ Auction sync failed:', err);
-    });
+    // Note: storage.set() already syncs to cloud
     renderUI();
   };
 

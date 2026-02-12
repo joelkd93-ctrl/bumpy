@@ -258,8 +258,8 @@ export function initJournal() {
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
           note: note
-        });
-        await storage.syncWithCloud();
+        }, true); // skipSync - we'll sync manually below
+        await storage.syncWithCloud({ only: ['journal'] });
         saveBtn.textContent = 'Oppdatert! 💕';
       } else {
         // Create new entry
@@ -427,7 +427,7 @@ export function initJournal() {
 
       // Sync deletion to cloud so it deletes on all devices
       console.log(`🗑️ Syncing journal deletion to cloud: ${id}`);
-      await storage.syncWithCloud();
+      await storage.syncWithCloud({ only: ['journal'] });
       console.log(`✅ Journal deletion synced to cloud`);
 
       // Refresh page

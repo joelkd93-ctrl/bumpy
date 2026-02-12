@@ -137,7 +137,7 @@ export function initTimeline() {
 
         // Sync deletion to cloud so it deletes on all devices
         console.log(`🗑️ Syncing deletion to cloud: ${type} ${id}`);
-        await storage.syncWithCloud();
+        await storage.syncWithCloud({ only: [prefix] });
         console.log(`✅ Deletion synced to cloud`);
 
         // Refresh page

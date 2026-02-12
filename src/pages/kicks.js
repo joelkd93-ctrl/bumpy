@@ -182,11 +182,7 @@ export function initKicks() {
       };
 
       storage.addToCollection('kicks', savedSession);
-
-      // Sync to cloud backend
-      console.log('💾 Syncing kick session to cloud...', savedSession);
-      await storage.syncWithCloud();
-      console.log('✅ Kick session synced to cloud');
+      // Note: addToCollection already syncs to cloud
 
       storage.remove('current_kick_session');
 
