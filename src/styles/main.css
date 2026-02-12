@@ -4237,3 +4237,11 @@ body.night-mode::after {
   justify-content: center;
   transition: all 0.2s;
 }
+/* MODAL DIAGNOSTIC — FORCE VISIBILITY */
+.game-modal-content,
+.game-modal-content *,
+.modal-card,
+.modal-card * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
