@@ -195,6 +195,14 @@ export const storage = {
         }));
       }
 
+      if (shouldSync('matched_names')) {
+        payload.matchedNames = this.get('matched_names', []);
+      }
+
+      if (shouldSync('custom_names')) {
+        payload.customNames = this.get('custom_names', []);
+      }
+
       if (shouldSync('kicks')) {
         const kicks = this.getCollection('kicks');
         payload.kicks = kicks.map(session => ({
@@ -327,7 +335,7 @@ export const storage = {
       console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
-        const { settings, journal, moods, together, nameVotes, predictions, kicks, auctionState } = result.data;
+        const { settings, journal, moods, together, nameVotes, matchedNames, customNames, predictions, kicks, auctionState } = result.data;
         let hasChanged = false;
 
         if (settings) {
@@ -373,6 +381,24 @@ export const storage = {
 
           if (hasChanged) {
             this.set('name_votes', currentVotes, true); // Skip sync to avoid loop!
+          }
+        }
+
+        if (matchedNames !== undefined) {
+          const current = this.get('matched_names', []);
+          if (JSON.stringify(current) !== JSON.stringify(matchedNames)) {
+            console.log('♻️ Syncing matched_names from cloud:', matchedNames);
+            this.set('matched_names', matchedNames, true);
+            hasChanged = true;
+          }
+        }
+
+        if (customNames !== undefined) {
+          const current = this.get('custom_names', []);
+          if (JSON.stringify(current) !== JSON.stringify(customNames)) {
+            console.log('♻️ Syncing custom_names from cloud:', customNames);
+            this.set('custom_names', customNames, true);
+            hasChanged = true;
           }
         }
 

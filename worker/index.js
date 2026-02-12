@@ -82,6 +82,16 @@ export default {
         return await handleSettings(db, request);
       }
 
+      if (path === '/api/debug/schema') {
+        const schema = await db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='journal'");
+        const entries = await db.execute('SELECT * FROM journal ORDER BY created_at DESC');
+        return jsonResponse({
+          schema: schema.rows[0]?.sql,
+          entries: entries.rows,
+          count: entries.rows.length
+        });
+      }
+
       return jsonResponse({ error: 'Not found' }, 404);
 
     } catch (error) {
@@ -154,7 +164,19 @@ async function handleInit(db) {
       is_custom INTEGER DEFAULT 0,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
-    
+
+    // Matched names (names both partners love)
+    `CREATE TABLE IF NOT EXISTS matched_names (
+      name TEXT PRIMARY KEY,
+      matched_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Custom names (user-added names)
+    `CREATE TABLE IF NOT EXISTS custom_names (
+      name TEXT PRIMARY KEY,
+      added_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Baby predictions
     `CREATE TABLE IF NOT EXISTS predictions (
       id TEXT PRIMARY KEY,
@@ -257,12 +279,19 @@ async function handleInit(db) {
 
 async function handleSyncPush(db, request) {
   const data = await request.json();
-  const { settings, journal, moods, nameVotes, predictions } = data;
+  const { settings, journal, moods, nameVotes, matchedNames, customNames, predictions } = data;
+
+  console.log('🔷 SYNC PUSH RECEIVED:', {
+    journalCount: journal?.length,
+    moodsCount: moods?.length,
+    matchedNamesCount: matchedNames?.length,
+    customNamesCount: customNames?.length
+  });
 
   // Sync settings
   if (settings) {
     await db.execute({
-      sql: `UPDATE settings SET 
+      sql: `UPDATE settings SET
         name = COALESCE(?, name),
         partner_name = COALESCE(?, partner_name),
         due_date = COALESCE(?, due_date),
@@ -275,13 +304,32 @@ async function handleSyncPush(db, request) {
 
   // Sync journal entries
   if (journal && Array.isArray(journal)) {
+    console.log('🔷 Processing', journal.length, 'journal entries');
     for (const entry of journal) {
-      await db.execute({
-        sql: `INSERT OR REPLACE INTO journal (id, week_number, photo_url, note, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-        args: [entry.id, entry.week_number, entry.photo_blob, entry.note, entry.entry_date]
+      console.log('🔷 Inserting journal entry:', {
+        id: entry.id,
+        week_number: entry.week_number,
+        has_photo: !!entry.photo_blob,
+        note_length: entry.note?.length,
+        entry_date: entry.entry_date
       });
+
+      try {
+        const result = await db.execute({
+          sql: `INSERT OR REPLACE INTO journal (id, week_number, photo_url, note, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+          args: [entry.id, entry.week_number, entry.photo_blob, entry.note, entry.entry_date]
+        });
+        console.log('🔷 Journal insert result:', result);
+      } catch (err) {
+        console.error('🔷 Journal insert FAILED:', err);
+        throw err;
+      }
     }
+
+    // Verify what's in the database after insert
+    const verify = await db.execute('SELECT id, week_number, note, created_at FROM journal ORDER BY created_at DESC LIMIT 10');
+    console.log('🔷 Journal table now has', verify.rows.length, 'entries:', verify.rows.map(r => ({ id: r.id, week: r.week_number, note: r.note?.substring(0, 20) })));
   }
 
   // Sync moods
@@ -307,6 +355,34 @@ async function handleSyncPush(db, request) {
     }
   }
 
+  // Sync matched names
+  if (matchedNames !== undefined) {
+    // Clear existing matches and insert new ones
+    await db.execute('DELETE FROM matched_names');
+    if (Array.isArray(matchedNames)) {
+      for (const name of matchedNames) {
+        await db.execute({
+          sql: `INSERT INTO matched_names (name, matched_at) VALUES (?, CURRENT_TIMESTAMP)`,
+          args: [name]
+        });
+      }
+    }
+  }
+
+  // Sync custom names
+  if (customNames !== undefined) {
+    // Clear existing custom names and insert new ones
+    await db.execute('DELETE FROM custom_names');
+    if (Array.isArray(customNames)) {
+      for (const name of customNames) {
+        await db.execute({
+          sql: `INSERT INTO custom_names (name, added_at) VALUES (?, CURRENT_TIMESTAMP)`,
+          args: [name]
+        });
+      }
+    }
+  }
+
   // Sync predictions
   if (predictions) {
     for (const [role, answers] of Object.entries(predictions)) {
@@ -326,11 +402,13 @@ async function handleSyncPush(db, request) {
 
 async function handleSyncPull(db, request) {
   // Fetch all data
-  const [settingsResult, journalResult, moodsResult, nameVotesResult, predictionsResult] = await Promise.all([
+  const [settingsResult, journalResult, moodsResult, nameVotesResult, matchedNamesResult, customNamesResult, predictionsResult] = await Promise.all([
     db.execute('SELECT * FROM settings WHERE id = 1'),
     db.execute('SELECT * FROM journal ORDER BY created_at DESC'),
     db.execute('SELECT * FROM moods ORDER BY date DESC'),
     db.execute('SELECT * FROM name_votes'),
+    db.execute('SELECT name FROM matched_names ORDER BY matched_at DESC'),
+    db.execute('SELECT name FROM custom_names ORDER BY added_at DESC'),
     db.execute('SELECT * FROM predictions'),
   ]);
 
@@ -343,6 +421,12 @@ async function handleSyncPull(db, request) {
     predictions[row.role][row.question_id] = row.answer;
   }
 
+  // Extract matched names as array of strings
+  const matchedNames = matchedNamesResult.rows.map(row => row.name);
+
+  // Extract custom names as array of strings
+  const customNames = customNamesResult.rows.map(row => row.name);
+
   return jsonResponse({
     success: true,
     data: {
@@ -350,6 +434,8 @@ async function handleSyncPull(db, request) {
       journal: journalResult.rows,
       moods: moodsResult.rows,
       nameVotes: nameVotesResult.rows,
+      matchedNames,
+      customNames,
       predictions,
     }
   });
