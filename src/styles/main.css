@@ -1,17 +1,17 @@
-/* ═══════════════════════════════════════════════════════════════
-   🌸 BUMPY — A Love Letter in Code
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð¸ BUMPY â A Love Letter in Code
    Picasso-level refinement for Andrine
-   ═══════════════════════════════════════════════════════════════ */
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
-/* ─────────────────────────────────────────────────────────────────
-   🎨 COLOR SYSTEM
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð¨ COLOR SYSTEM
    Soft, warm, emotionally resonant
-   ───────────────────────────────────────────────────────────────── */
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 :root {
   --vvh: 100dvh;
 
-  /* ── Primary Pink Spectrum ── */
+  /* ââ Primary Pink Spectrum ââ */
   --pink-25: #FEF7FA;
   --pink-50: #FDF0F5;
   --pink-100: #FFD1E6;
@@ -22,32 +22,32 @@
   --pink-600: #E63D90;
   --pink-700: #C4307A;
 
-  /* ── Rose Accent ── */
+  /* ââ Rose Accent ââ */
   --rose-50: #FFF1F3;
   --rose-100: #FFE0E6;
   --rose-200: #FFC7D3;
   --rose-400: #FB7A9C;
   --rose-500: #F43F6C;
 
-  /* ── Baby Blue Accent (10–15% usage) ── */
+  /* ââ Baby Blue Accent (10â15% usage) ââ */
   --blue-accent: #6EC6FF;
   --blue-accent-soft: rgba(110, 198, 255, 0.12);
   --blue-accent-border: rgba(110, 198, 255, 0.25);
 
-  /* ── Lavender ── */
+  /* ââ Lavender ââ */
   --lavender-50: #F8F6FC;
   --lavender-100: #F0EAFA;
   --lavender-200: #E4D9F5;
   --lavender-300: #D0C0EB;
   --lavender-400: #B8A1DE;
 
-  /* ── Warm Cream ── */
+  /* ââ Warm Cream ââ */
   --cream-50: #FDF4F8;
   --cream-100: #FFF9F5;
   --cream-200: #FFF3EB;
   --cream-warm: #FBF7F4;
 
-  /* ── Neutrals ── */
+  /* ââ Neutrals ââ */
   --gray-25: #FCFBFA;
   --gray-50: #F9F7F6;
   --gray-100: #F1EEED;
@@ -60,7 +60,7 @@
   --gray-800: #141414;
   --gray-900: #0A0A0A;
 
-  /* ── Semantic Colors ── */
+  /* ââ Semantic Colors ââ */
   --background: #FDF4F8;
   --background-subtle: var(--pink-25);
   --surface: #FFFFFF;
@@ -85,21 +85,21 @@
   --border-default: rgba(0, 0, 0, 0.08);
   --border-pink: rgba(255, 77, 166, 0.15);
 
-  /* ── Shadows ── */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0px 1px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.02);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.02);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.09), 0 4px 16px rgba(0, 0, 0, 0.03);
+  /* ââ Shadows ââ */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.08);
 
-  --shadow-pink-sm: 0 2px 12px rgba(255, 77, 166, 0.12);
-  --shadow-pink-md: 0 4px 20px rgba(255, 77, 166, 0.16);
-  --shadow-pink-lg: 0 8px 32px rgba(255, 77, 166, 0.2);
+  --shadow-pink-sm: 0 4px 20px rgba(255, 77, 166, 0.25);
+  --shadow-pink-md: 0 8px 30px rgba(255, 77, 166, 0.30);
+  --shadow-pink-lg: 0 12px 40px rgba(255, 77, 166, 0.35);
   --shadow-pink-glow: 0 0 40px rgba(255, 77, 166, 0.2);
 
   --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 
-  /* ── Spacing (8/12/16/24/32 scale) ── */
+  /* ââ Spacing (8/12/16/24/32 scale) ââ */
   --space-0: 2px;
   --space-1: 4px;
   --space-2: 8px;
@@ -113,7 +113,7 @@
   --space-16: 64px;
   --space-20: 80px;
 
-  /* ── Typography (iOS-Inspired Hierarchy) ── */
+  /* ââ Typography (iOS-Inspired Hierarchy) ââ */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Font sizes with optical sizing */
@@ -149,7 +149,7 @@
   --weight-bold: 700;
   --weight-heavy: 800;
 
-  /* ── Borders & Radius (iOS-Style Squircle) ── */
+  /* ââ Borders & Radius (iOS-Style Squircle) ââ */
   --radius-xs: 10px;
   --radius-sm: 14px;
   --radius-md: 18px;
@@ -159,7 +159,7 @@
   --radius-half: 50%;
   --radius-full: 999px;
 
-  /* ── Motion ── */
+  /* ââ Motion ââ */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-soft: cubic-bezier(0.33, 1, 0.68, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -172,7 +172,7 @@
   --duration-slow: 350ms;
   --duration-slower: 500ms;
 
-  /* ── Layout ── */
+  /* ââ Layout ââ */
   --tap-target: 44px;
   --tap-comfortable: 48px;
   --tab-bar-height: 80px;
@@ -180,9 +180,9 @@
   --content-max-width: 500px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ✅ SUCCESS & LOADING STATES
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   â SUCCESS & LOADING STATES
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* Success Checkmark Animation */
 @keyframes checkmark {
@@ -265,17 +265,17 @@
   opacity: 1;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🌙 DARK MODE — Cozy Night
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð DARK MODE â Cozy Night
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .text-primary {
   color: var(--text-dark);
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   🌙 DARK MODE — DISABLED (ALWAYS LIGHT MODE)
-   ───────────────────────────────────────────────────────────────── */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð DARK MODE â DISABLED (ALWAYS LIGHT MODE)
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* DARK MODE COMPLETELY DISABLED - APP IS ALWAYS LIGHT PINK THEME */
 /* @media (prefers-color-scheme: dark) {
@@ -310,9 +310,9 @@
   }
 } */
 
-/* ═══════════════════════════════════════════════════════════════
-   ✨ PREMIUM UTILITIES (RESTORED ESSENTIALS)
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   â¨ PREMIUM UTILITIES (RESTORED ESSENTIALS)
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .icon-circle {
   width: 48px;
@@ -360,9 +360,9 @@
   overflow: hidden;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🔧 BASE RESET
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð§ BASE RESET
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 *,
 *::before,
@@ -389,7 +389,7 @@ body {
   line-height: var(--leading-normal);
   color: var(--text-primary);
   background:
-    radial-gradient(ellipse at top, rgba(255, 237, 245, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 200, 230, 0.45) 0%, transparent 55%),
     radial-gradient(ellipse at bottom, rgba(255, 245, 249, 0.6) 0%, transparent 50%),
     linear-gradient(180deg, #FDF4F8 0%, #FFEDF5 40%, #FFF9FC 60%, #FDF4F8 100%);
   margin: 0;
@@ -418,9 +418,9 @@ input, textarea, select {
   -webkit-touch-callout: default;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   📱 APP SHELL
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð± APP SHELL
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .app,
 .app-shell {
@@ -468,9 +468,9 @@ input, textarea, select {
   scroll-behavior: smooth;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   📄 PAGE SYSTEM
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð PAGE SYSTEM
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .page {
   display: none;
@@ -544,9 +544,9 @@ input, textarea, select {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🧭 NAV BAR — iOS-style Elegance
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð§­ NAV BAR â iOS-style Elegance
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .nav-bar {
   position: fixed;
@@ -636,9 +636,9 @@ input, textarea, select {
   transform: scale(1);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🔤 TYPOGRAPHY
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð¤ TYPOGRAPHY
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .heading-hero {
   font-size: var(--text-5xl);
@@ -778,9 +778,9 @@ li + li {
   margin-top: var(--space-2);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🃏 CARDS — Elevated & Soft
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð CARDS â Elevated & Soft
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .card {
   background: var(--surface);
@@ -850,9 +850,9 @@ li + li {
   box-shadow: var(--shadow-md);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🔘 BUTTONS — Tactile & Responsive
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð BUTTONS â Tactile & Responsive
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .btn {
   display: inline-flex;
@@ -924,9 +924,9 @@ li + li {
   width: 100%;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   📝 FORM ELEMENTS
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð FORM ELEMENTS
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .input,
 .textarea {
@@ -1174,9 +1174,9 @@ li + li {
   color: var(--pink-500);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🏠 HOME PAGE — Emotional Center
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð  HOME PAGE â Emotional Center
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .page-home {
   padding-bottom: var(--space-8);
@@ -1446,9 +1446,9 @@ li + li {
   line-height: var(--leading-relaxed);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   😊 MOOD SELECTOR
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð MOOD SELECTOR
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .mood-grid {
   display: grid;
@@ -1496,23 +1496,23 @@ li + li {
 }
 
 /* Mood-based border colors for history items */
-.feelings-history-item[data-mood="🥰"] {
+.feelings-history-item[data-mood="ð¥°"] {
   border-left-color: #FF4DA6;
 }
 
-.feelings-history-item[data-mood="😊"] {
+.feelings-history-item[data-mood="ð"] {
   border-left-color: #FFD54F;
 }
 
-.feelings-history-item[data-mood="😌"] {
+.feelings-history-item[data-mood="ð"] {
   border-left-color: #81C784;
 }
 
-.feelings-history-item[data-mood="😄"] {
+.feelings-history-item[data-mood="ð"] {
   border-left-color: #FF6B9D;
 }
 
-.feelings-history-item[data-mood="😴"] {
+.feelings-history-item[data-mood="ð´"] {
   border-left-color: #9FA8DA;
 }
 
@@ -1540,9 +1540,9 @@ li + li {
   filter: drop-shadow(0 0 4px var(--pink-200));
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🎮 GAME CARDS
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð® GAME CARDS
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .game-grid {
   display: grid;
@@ -1785,9 +1785,9 @@ body.modal-active {
   transform: scale(0.95);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   📔 JOURNAL
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð JOURNAL
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .journal-entry {
   background:
@@ -1871,9 +1871,9 @@ body.modal-active {
   padding: var(--space-3) var(--space-4);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ⚙️ SETTINGS
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   âï¸ SETTINGS
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .settings-list {
   background: var(--surface);
@@ -1913,9 +1913,9 @@ body.modal-active {
   color: var(--text-muted);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🫧 ANIMATIONS
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð«§ ANIMATIONS
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 @keyframes pulse {
 
@@ -1963,9 +1963,9 @@ body.modal-active {
   animation: pulse 3s ease-in-out infinite;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🎛️ UTILITIES
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ðï¸ UTILITIES
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .mb-1 {
   margin-bottom: var(--space-1);
@@ -2290,9 +2290,9 @@ body.modal-active {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ☁️ SYNC INDICATOR
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   âï¸ SYNC INDICATOR
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .sync-indicator {
   position: fixed;
@@ -2343,9 +2343,9 @@ body.modal-active {
   50% { transform: scale(1.2); }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   📳 MOBILE TOUCH ENHANCEMENTS
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð³ MOBILE TOUCH ENHANCEMENTS
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* Better touch targets */
 @media (hover: none) and (pointer: coarse) {
@@ -2440,7 +2440,7 @@ body.modal-active {
   }
 }
 
-/* 💓 GLOBAL HEARTBEAT OVERLAY */
+/* ð GLOBAL HEARTBEAT OVERLAY */
 .global-heartbeat-overlay {
   position: fixed;
   top: 0;
@@ -2512,9 +2512,9 @@ body.modal-active {
   border-radius: var(--radius-full);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   💖 ULTIMATE LOVE FEATURES
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð ULTIMATE LOVE FEATURES
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* Baby Speech Bubble */
 .baby-speech-bubble {
@@ -2527,7 +2527,7 @@ body.modal-active {
 }
 
 .baby-speech-bubble::before {
-  content: '💬';
+  content: 'ð¬';
   position: absolute;
   top: -14px;
   left: 20px;
@@ -2668,9 +2668,9 @@ body.night-mode::after {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🎮 TOGETHER PAGE — Identity & Games
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð® TOGETHER PAGE â Identity & Games
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .identity-selection {
   padding: var(--space-6) 0;
@@ -2898,9 +2898,9 @@ body.night-mode::after {
   color: var(--text-secondary);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   😊 FEELINGS PAGE
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð FEELINGS PAGE
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .feelings-history-item {
   padding: var(--space-4);
@@ -2939,9 +2939,9 @@ body.night-mode::after {
   letter-spacing: 0.5px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   📔 JOURNAL PAGE
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð JOURNAL PAGE
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .journal-week-badge {
   display: inline-block;
@@ -3060,9 +3060,9 @@ body.night-mode::after {
   transform: scale(1.2);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🦶 KICKS PAGE
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð¦¶ KICKS PAGE
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .kick-count-ring {
   width: 160px;
@@ -3126,9 +3126,9 @@ body.night-mode::after {
   animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   💖 TIMELINE PAGE
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð TIMELINE PAGE
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .timeline-container {
   position: relative;
@@ -3369,9 +3369,9 @@ body.night-mode::after {
   transform: scale(1.1) rotate(-5deg);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🎨 MOOD COLOR THEMES
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð¨ MOOD COLOR THEMES
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* Mood-based color overlays */
 .mood-theme-loved {
@@ -3405,7 +3405,7 @@ body.night-mode::after {
 }
 
 /* Enhanced mood button with color themes */
-.mood-btn[data-mood="🥰"].selected {
+.mood-btn[data-mood="ð¥°"].selected {
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
     linear-gradient(135deg, #FFEBF5 0%, #FFD6E8 100%);
@@ -3415,7 +3415,7 @@ body.night-mode::after {
     0 0 0 4px rgba(255, 77, 166, 0.1);
 }
 
-.mood-btn[data-mood="😊"].selected {
+.mood-btn[data-mood="ð"].selected {
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
     linear-gradient(135deg, #FFF9E6 0%, #FFEAA7 100%);
@@ -3425,7 +3425,7 @@ body.night-mode::after {
     0 0 0 4px rgba(255, 213, 79, 0.1);
 }
 
-.mood-btn[data-mood="😌"].selected {
+.mood-btn[data-mood="ð"].selected {
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
     linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
@@ -3435,7 +3435,7 @@ body.night-mode::after {
     0 0 0 4px rgba(129, 199, 132, 0.1);
 }
 
-.mood-btn[data-mood="😄"].selected {
+.mood-btn[data-mood="ð"].selected {
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
     linear-gradient(135deg, #FFE8F0 0%, #FFD1E3 100%);
@@ -3445,7 +3445,7 @@ body.night-mode::after {
     0 0 0 4px rgba(255, 107, 157, 0.1);
 }
 
-.mood-btn[data-mood="😴"].selected {
+.mood-btn[data-mood="ð´"].selected {
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 70%),
     linear-gradient(135deg, #E8EAF6 0%, #C5CAE9 100%);
@@ -3473,9 +3473,9 @@ body.night-mode::after {
   animation: moodGlow 2s ease-in-out infinite;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ⚙️ SETTINGS PAGE
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   âï¸ SETTINGS PAGE
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 .settings-input {
   text-align: right;
@@ -3517,9 +3517,9 @@ body.night-mode::after {
   line-height: var(--leading-relaxed);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   💸 LOVE AUCTION V2 UI
-   ═══════════════════════════════════════════════════════════════ */
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   ð¸ LOVE AUCTION V2 UI
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* Auction page shell */
 .auction-page {
@@ -3673,9 +3673,9 @@ body.night-mode::after {
   font-weight: bold;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    MISSING STYLES RESTORED
-   ═══════════════════════════════════════════════════════════════ */
+   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 
 /* Shop Tab Styles */
 .shop-grid {
@@ -4212,3 +4212,474 @@ body.night-mode::after {
   transition: all 0.2s;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   🏠 HOME PAGE — MASTERPIECE REDESIGN
+   Full-bleed hero, dramatic depth, premium feel
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.home-hero {
+  margin: calc(-1 * max(var(--space-5), env(safe-area-inset-top))) calc(-1 * var(--space-4)) 0;
+  padding: max(var(--space-10), calc(env(safe-area-inset-top) + 28px)) var(--space-6) var(--space-10);
+  background:
+    radial-gradient(ellipse 140% 80% at 50% -10%, rgba(255,130,195,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 90% 110%, rgba(160,20,100,0.4) 0%, transparent 50%),
+    linear-gradient(160deg, #FF1F85 0%, #D91268 45%, #AA0F52 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(ellipse at 65% 35%, rgba(255,255,255,0.1) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+/* Curved cutout at bottom so content flows naturally */
+.home-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: var(--background);
+  border-radius: 40px 40px 0 0;
+}
+
+/* ── Top bar ── */
+.home-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-5);
+  position: relative;
+  z-index: 1;
+}
+
+.home-greeting-label {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.65);
+  font-weight: var(--weight-medium);
+  margin: 0;
+  max-width: none;
+  line-height: 1.3;
+}
+
+.home-greeting-name {
+  font-size: 34px;
+  font-weight: var(--weight-heavy);
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 2px 0 0;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.15);
+}
+
+.home-settings-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.22);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--duration-fast), transform var(--duration-fast);
+  margin-top: 4px;
+}
+
+.home-settings-btn:active {
+  background: rgba(255,255,255,0.28);
+  transform: scale(0.9);
+}
+
+/* ── Week pill ── */
+.home-week-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: var(--radius-full);
+  padding: 7px 16px;
+  margin-bottom: var(--space-5);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.home-week-num {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: #ffffff;
+}
+
+.home-week-dot {
+  color: rgba(255,255,255,0.45);
+  font-size: 14px;
+}
+
+.home-week-sub {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.72);
+}
+
+/* ── Ring stage ── */
+.home-ring-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: var(--space-5);
+  z-index: 1;
+}
+
+.home-ring-glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,180,220,0.4) 0%, transparent 70%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.home-ring-svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 18px rgba(255,150,210,0.5));
+}
+
+.home-ring-center {
+  position: absolute;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.home-ring-pct {
+  font-size: 54px;
+  font-weight: var(--weight-heavy);
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-shadow: 0 3px 24px rgba(0,0,0,0.25);
+}
+
+.home-ring-pct-sym {
+  font-size: 22px;
+  font-weight: var(--weight-bold);
+  vertical-align: super;
+  opacity: 0.85;
+}
+
+.home-ring-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: var(--weight-bold);
+  margin-top: 4px;
+}
+
+/* ── Days badge ── */
+.home-days-badge {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: var(--space-6);
+  position: relative;
+  z-index: 1;
+}
+
+.home-days-num {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-heavy);
+  color: #ffffff;
+  letter-spacing: var(--tracking-tight);
+  text-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+
+.home-days-label {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Content below hero ── */
+.home-content {
+  padding: var(--space-5) 0 var(--space-10);
+}
+
+/* ── Baby card ── */
+.home-baby-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow:
+    0 10px 36px rgba(255, 77, 166, 0.14),
+    0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(255,77,166,0.07);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.1s ease;
+}
+
+.home-baby-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FF1F85, #FF6BAF, #FFB8D9);
+}
+
+.home-baby-card:active { transform: scale(0.985); }
+
+.home-baby-left { flex: 1; }
+
+.home-baby-eyebrow {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: var(--weight-bold);
+  margin: 0 0 4px;
+  max-width: none;
+}
+
+.home-baby-name {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-heavy);
+  color: var(--pink-600);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 6px;
+}
+
+.home-baby-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+  max-width: none;
+}
+
+.home-baby-emoji {
+  font-size: 68px;
+  line-height: 1;
+  margin-left: var(--space-4);
+  flex-shrink: 0;
+  filter: drop-shadow(0 6px 16px rgba(255,77,166,0.25));
+  animation: gentleBob 4s ease-in-out infinite;
+}
+
+/* ── Message card ── */
+.home-message-card {
+  background: linear-gradient(135deg, #FFF0F8 0%, #FFE5F3 100%);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  border: 1px solid rgba(255,77,166,0.1);
+  box-shadow: 0 6px 24px rgba(255,77,166,0.1);
+  transition: transform 0.1s ease;
+}
+
+.home-message-card:active { transform: scale(0.985); }
+
+.home-message-from {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--pink-500);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-2);
+}
+
+.home-message-text {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+  max-width: none;
+}
+
+/* ── Stats row ── */
+.home-stats-row {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5) var(--space-4);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+  border: 1px solid var(--border-light);
+}
+
+.home-stat { text-align: center; flex: 1; }
+
+.home-stat-value {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-heavy);
+  color: var(--pink-600);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.home-stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: var(--weight-bold);
+  margin-top: 5px;
+}
+
+.home-stat-divider {
+  width: 1px;
+  height: 44px;
+  background: var(--border-light);
+  flex-shrink: 0;
+}
+
+/* ── Fact card ── */
+.home-fact-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+  border: 1px solid var(--border-light);
+  transition: transform 0.1s ease;
+}
+
+.home-fact-card:active { transform: scale(0.985); }
+
+.home-fact-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.home-fact-icon { font-size: 22px; }
+
+.home-fact-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.home-fact-text {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: none;
+}
+
+/* ── Love note ── */
+.home-lovenote-card {
+  background: linear-gradient(145deg, #FFF3FA 0%, #FFE8F5 50%, #FFF0F8 100%);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  border: 1px solid rgba(255,77,166,0.1);
+  box-shadow:
+    0 10px 36px rgba(255,77,166,0.12),
+    0 2px 8px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.1s ease;
+}
+
+.home-lovenote-card:active { transform: scale(0.985); }
+
+.home-lovenote-card::after {
+  content: '💕';
+  position: absolute;
+  right: -8px;
+  bottom: -12px;
+  font-size: 88px;
+  opacity: 0.07;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.home-lovenote-label {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--pink-500);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-3);
+}
+
+.home-lovenote-text {
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+  max-width: none;
+}
+
+/* ── Nav dot indicator ── */
+.nav-item::before { display: none; }
+
+.nav-item::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pink-500);
+  opacity: 0;
+  transform: scale(0);
+  transition: all var(--duration-normal) var(--ease-spring);
+  margin-top: 2px;
+}
+
+.nav-item.active::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Nav icon refined ── */
+.nav-icon {
+  font-size: 22px;
+  transition: transform var(--duration-normal) var(--ease-bounce);
+  opacity: 0.38;
+}
+
+.nav-item.active .nav-icon {
+  transform: translateY(-1px) scale(1.1);
+  opacity: 1;
+}
+
+/* ── Hover only on pointer devices ── */
+@media (hover: hover) {
+  .home-baby-card:hover,
+  .home-message-card:hover,
+  .home-fact-card:hover,
+  .home-lovenote-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 44px rgba(255,77,166,0.18), 0 4px 12px rgba(0,0,0,0.07);
+  }
+}
