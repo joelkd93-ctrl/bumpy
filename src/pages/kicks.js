@@ -98,6 +98,20 @@ export function initKicks() {
   const finishBtn = document.getElementById('finish-session');
   const role = localStorage.getItem('who_am_i') || 'andrine';
 
+  // Force refresh kick data when page loads (ensures latest from cloud)
+  console.log('🦶 Kicks page loaded, pulling latest data...');
+  if (window.storage && window.storage.pullFromCloud) {
+    window.storage.pullFromCloud().then(() => {
+      console.log('✅ Latest kick data loaded');
+      // Only refresh if we're still on kicks page
+      if (window.app.getCurrentTab() === 'kicks') {
+        window.app.refreshCurrentPage();
+      }
+    }).catch(err => {
+      console.warn('⚠️ Could not pull kick data:', err);
+    });
+  }
+
   // Start Session
   startBtn?.addEventListener('click', async () => {
     const newSession = {

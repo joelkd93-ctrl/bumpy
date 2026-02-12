@@ -489,9 +489,13 @@ async function startGlobalHeartbeatPoller() {
         }
 
         console.log('🧹 Session cleared, pulling fresh data...');
-        storage.pullFromCloud().then(() => {
-          window.app.refreshCurrentPage();
-        });
+        // Add delay to ensure Andrine's sync completes first
+        setTimeout(() => {
+          storage.pullFromCloud().then(() => {
+            console.log('✅ Fresh kick data pulled after session end');
+            window.app.refreshCurrentPage();
+          });
+        }, 2000); // 2 second delay for sync propagation
       }
     } catch (err) {
       // Quietly log network errors
