@@ -341,71 +341,101 @@ export function initJournal() {
     emojiPopup.style.display = 'none';
   });
 
-  // Close popup when clicking outside
-  document.addEventListener('click', (e) => {
-    if (emojiPopup && !emojiPopup.contains(e.target) && e.target !== emojiToggle) {
-      emojiPopup.style.display = 'none';
-    }
-  });
+  // Close popup when clicking outside (prevent duplicate listeners)
+  if (!window._journalEmojiCloseHandlerAttached) {
+    document.addEventListener('click', (e) => {
+      const emojiPopup = document.getElementById('emoji-popup');
+      const emojiToggle = document.getElementById('emoji-toggle');
+      if (emojiPopup && !emojiPopup.contains(e.target) && e.target !== emojiToggle) {
+        emojiPopup.style.display = 'none';
+      }
+    });
+    window._journalEmojiCloseHandlerAttached = true;
+  }
 
-  // Handle edit buttons
-  document.addEventListener('click', async (e) => {
-    const editBtn = e.target.closest('.edit-journal-entry');
-    if (!editBtn) return;
+  // Handle edit buttons (prevent duplicate listeners)
+  if (!window._journalEditHandlerAttached) {
+    const handleEdit = async (e) => {
+      const editBtn = e.target.closest('.edit-journal-entry');
+      if (!editBtn) return;
 
-    const id = editBtn.dataset.id;
-    const entries = storage.getCollection('journal');
-    const entry = entries.find(e => e.id === id);
+      const id = editBtn.dataset.id;
+      const entries = storage.getCollection('journal');
+      const entry = entries.find(e => e.id === id);
 
-    if (!entry) return;
+      if (!entry) return;
 
-    // Populate form with entry data
-    editingEntryId = id;
-    noteInput.value = entry.note || '';
-    dateInput.value = entry.date;
+      // Get form elements
+      const noteInput = document.getElementById('note-input');
+      const dateInput = document.getElementById('date-input');
+      const photoUpload = document.getElementById('photo-upload');
+      const photoPreview = document.getElementById('photo-preview');
+      const previewImg = document.getElementById('preview-img');
+      const saveBtn = document.getElementById('save-journal');
 
-    if (entry.photo) {
-      currentPhoto = entry.photo;
-      previewImg.src = entry.photo;
-      photoUpload.style.display = 'none';
-      photoPreview.style.display = 'block';
-      updateUploadButton(true);
-    }
+      // Populate form with entry data
+      editingEntryId = id;
+      noteInput.value = entry.note || '';
+      dateInput.value = entry.date;
 
-    // Update button text
-    saveBtn.textContent = 'Oppdater Minne 💕';
+      if (entry.photo) {
+        currentPhoto = entry.photo;
+        previewImg.src = entry.photo;
+        photoUpload.style.display = 'none';
+        photoPreview.style.display = 'block';
+        updateUploadButton(true);
+      }
 
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Update button text
+      saveBtn.textContent = 'Oppdater Minne 💕';
 
-    // Haptic feedback
-    if (window.haptic) window.haptic.light();
-  });
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // Handle delete buttons
-  document.addEventListener('click', async (e) => {
-    const deleteBtn = e.target.closest('.delete-journal-entry');
-    if (!deleteBtn) return;
+      // Haptic feedback
+      if (window.haptic) window.haptic.light();
+    };
 
-    const id = deleteBtn.dataset.id;
+    document.addEventListener('click', handleEdit);
+    window._journalEditHandlerAttached = true;
+  }
 
-    // Confirm deletion
-    const confirmed = confirm('Er du sikker på at du vil slette dette bildet?');
-    if (!confirmed) return;
+  // Handle delete buttons (prevent duplicate listeners)
+  if (!window._journalDeleteHandlerAttached) {
+    const handleDelete = async (e) => {
+      const deleteBtn = e.target.closest('.delete-journal-entry');
+      if (!deleteBtn) return;
 
-    // Haptic feedback
-    if (window.haptic) window.haptic.medium();
+      // Prevent multiple triggers
+      if (deleteBtn.disabled) return;
+      deleteBtn.disabled = true;
 
-    // Delete entry
-    await storage.removeFromCollection('journal', id);
+      const id = deleteBtn.dataset.id;
 
-    // Refresh page
-    if (window.app?.refreshCurrentPage) {
-      setTimeout(() => {
-        window.app.refreshCurrentPage();
-      }, 500);
-    }
-  });
+      // Confirm deletion
+      const confirmed = confirm('Er du sikker på at du vil slette dette bildet?');
+      if (!confirmed) {
+        deleteBtn.disabled = false;
+        return;
+      }
+
+      // Haptic feedback
+      if (window.haptic) window.haptic.medium();
+
+      // Delete entry
+      await storage.removeFromCollection('journal', id);
+
+      // Refresh page
+      if (window.app?.refreshCurrentPage) {
+        setTimeout(() => {
+          window.app.refreshCurrentPage();
+        }, 500);
+      }
+    };
+
+    document.addEventListener('click', handleDelete);
+    window._journalDeleteHandlerAttached = true;
+  }
 }
 
 // Compress image to reduce localStorage usage
