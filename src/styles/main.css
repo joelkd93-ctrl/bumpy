@@ -1663,8 +1663,8 @@ body.modal-active {
 .game-modal-content {
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   padding: var(--space-6);
-  padding-top: max(var(--space-8), env(safe-area-inset-top, 0px));
-  padding-bottom: max(var(--space-6), env(safe-area-inset-bottom, 14px));
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-6);
   width: 100vw;
   max-width: min(var(--content-max-width), 100vw);
   min-height: 68dvh;
