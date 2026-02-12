@@ -437,7 +437,7 @@ input, textarea, select {
 }
 
 #modal-root {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 9999;
   transform: none !important;
@@ -1628,6 +1628,9 @@ body.modal-active {
 }
 
 .game-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1637,6 +1640,8 @@ body.modal-active {
 }
 
 .modal-backdrop {
+  position: fixed;
+  inset: 0;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
@@ -1664,7 +1669,10 @@ body.modal-active {
   max-width: min(var(--content-max-width), 100vw);
   min-height: 68dvh;
   max-height: 90dvh;
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18);
   animation: sheetSlideUp 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
   pointer-events: auto;
