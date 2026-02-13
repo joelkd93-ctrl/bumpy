@@ -1816,7 +1816,7 @@ function renderAuctionGame(container, cleanupStack) {
     }
 
     if (btn) {
-      btn.textContent = '\\u2705 Kj\\u00F8pt!';
+      btn.textContent = `✅ Kj${String.fromCharCode(248)}pt!`;
       btn.style.background = '#4ade80';
     }
 
