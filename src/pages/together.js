@@ -12,37 +12,37 @@ import { modal as modalManager } from '../utils/modal.js';
 const GAMES = [
   {
     id: 'heartbeat',
-    iconPath: '/icons/together/heart.jpg',
+    iconPath: '/icons/together/heart.png',
     title: 'Hjerteslag',
     description: 'Trykk i takt sammen'
   },
   {
     id: 'names',
-    iconPath: '/icons/together/bottle.jpg',
+    iconPath: '/icons/together/bottle.png',
     title: 'Navnelek',
     description: 'Finn favorittnavnene deres'
   },
   {
     id: 'missions',
-    iconPath: '/icons/together/envelope.jpg',
+    iconPath: '/icons/together/envelope.png',
     title: 'Kjærlighets-oppdrag',
     description: 'Små daglige utfordringer'
   },
   {
     id: 'predictions',
-    iconPath: '/icons/together/dice.jpg',
+    iconPath: '/icons/together/dice.png',
     title: 'Gjettelek',
     description: 'Hva tror dere om fremtiden?'
   },
   {
     id: 'auction',
-    iconPath: '/icons/together/gavel.jpg',
+    iconPath: '/icons/together/gavel.png',
     title: 'Love Auction',
     description: 'Coins + små kjærlighetskjøp'
   },
   {
     id: 'naughty',
-    iconPath: '/icons/together/devil.jpg',
+    iconPath: '/icons/together/devil.png',
     title: 'Rampete Kveld',
     description: 'Litt spicy moro for to 🔥'
   }
