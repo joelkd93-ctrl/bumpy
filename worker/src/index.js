@@ -1183,7 +1183,9 @@ async function handleAuction(env, request) {
       const { itemId, title, cost, payer, requiresBothConfirm } = body;
       if (!itemId || !title || !Number.isFinite(cost)) return json({ success: false, error: 'Invalid buy payload' }, { status: 400 });
 
-      if (payer === 'BEGGE') {
+      const splitPay = payer === 'BEGGE' && !!requiresBothConfirm;
+
+      if (splitPay) {
         const other = role === 'andrine' ? 'partner' : 'andrine';
         const cost1 = role === 'andrine' ? Math.floor(cost / 2) : Math.ceil(cost / 2);
         const cost2 = cost - cost1;
@@ -1212,10 +1214,11 @@ async function handleAuction(env, request) {
 
       const rewardId = `reward_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
       const confirmations = requiresBothConfirm ? JSON.stringify({ [role]: true }) : JSON.stringify({});
+      const rewardPayer = splitPay ? 'BEGGE' : role;
       await client.execute({
         sql: `INSERT INTO owned_rewards (id, title, source, payer, status, confirmations, acquired_at)
               VALUES (?, ?, 'SHOP', ?, 'READY', ?, CURRENT_TIMESTAMP)`,
-        args: [rewardId, title, payer === 'BEGGE' ? 'BEGGE' : role, confirmations],
+        args: [rewardId, title, rewardPayer, confirmations],
       });
 
       return json({ success: true, id: rewardId });
