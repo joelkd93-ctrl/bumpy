@@ -79,6 +79,14 @@ const WEEKLY_FACTS = {
  * @param {Date|string} referenceDate - Optional reference date (defaults to today)
  * @returns {Object}
  */
+function toUtcDayNumber(date) {
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / (1000 * 60 * 60 * 24);
+}
+
+function diffCalendarDays(fromDate, toDate) {
+  return Math.round(toUtcDayNumber(toDate) - toUtcDayNumber(fromDate));
+}
+
 export function getPregnancyProgress(dueDateStr = '2026-06-29', referenceDate = null) {
   const now = referenceDate ? new Date(referenceDate) : new Date();
 
@@ -113,13 +121,13 @@ export function getPregnancyProgress(dueDateStr = '2026-06-29', referenceDate = 
   const conceptionDate = new Date(dueDate);
   conceptionDate.setDate(conceptionDate.getDate() - 283);
 
-  // Calculate days pregnant
-  const daysPregnant = Math.floor((now - conceptionDate) / (1000 * 60 * 60 * 24));
+  // Calculate days pregnant (calendar-day diff, DST-safe)
+  const daysPregnant = diffCalendarDays(conceptionDate, now);
   const weeksPregnant = Math.floor(daysPregnant / 7);
   const daysIntoWeek = daysPregnant % 7;
 
-  // Days remaining
-  const daysRemaining = Math.max(0, Math.floor((dueDate - now) / (1000 * 60 * 60 * 24)));
+  // Days remaining (calendar-day diff, DST-safe)
+  const daysRemaining = Math.max(0, diffCalendarDays(now, dueDate));
 
   // Trimester
   let trimester = 1;
