@@ -1335,16 +1335,70 @@ function renderAuctionGame(container, cleanupStack) {
       auctions: [],
       ownedRewards: []
     };
-    storage.set('love_auction_v2', state);
+    storage.set('love_auction_v2', state, true);
   } else if (!state.lastModified) {
     // Initialize timestamp for existing state
     state.lastModified = Date.now();
-    storage.set('love_auction_v2', state);
+    storage.set('love_auction_v2', state, true);
   }
 
-  // Ensure active auctions exist
-  tickAuctions(state);
-  storage.set('love_auction_v2', state); // Save any tick updates
+
+  const AUCTION_API = `${window.API_BASE}/api/auction`;
+
+  const normalizeServerState = (server) => ({
+    version: 2,
+    activeProfileId: role,
+    lastModified: Date.now(),
+    profiles: {
+      andrine: server?.profiles?.andrine || { coins: 50, weeklyEarned: 0, streak: 0 },
+      partner: server?.profiles?.partner || { coins: 50, weeklyEarned: 0, streak: 0 },
+    },
+    ledger: (server?.ledger || []).map(l => ({ ...l, meta: typeof l.meta === 'string' ? (JSON.parse(l.meta || '{}')) : (l.meta || {}) })),
+    shopItems: [...SEED_ITEMS],
+    auctions: (server?.auctions || []).map(a => ({
+      id: a.id,
+      title: a.title,
+      desc: a.description,
+      category: a.category,
+      startPrice: a.start_price,
+      minIncrement: a.min_increment,
+      highestBid: a.highest_bid,
+      highestBidder: a.highest_bidder,
+      endTs: a.end_time,
+      settled: !!a.settled,
+      updatedTs: a.created_at || a.end_time,
+    })),
+    ownedRewards: (server?.ownedRewards || []).map(r => ({
+      id: r.id,
+      title: r.title,
+      source: r.source,
+      payer: r.payer,
+      status: r.status,
+      confirmations: (() => { try { return JSON.parse(r.confirmations || '{}'); } catch { return {}; } })(),
+      requiresBothConfirm: true,
+      acquiredTs: r.acquired_at,
+    })),
+  });
+
+  const auctionRequest = async (payload = null) => {
+    const res = await fetch(AUCTION_API, payload ? {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    } : undefined);
+    return res.json();
+  };
+
+  const refreshFromServer = async () => {
+    const result = await auctionRequest();
+    if (result?.success) {
+      state = normalizeServerState(result);
+      storage.set('love_auction_v2', state, true);
+      audit('server:refresh', { andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins, auctions: state.auctions.length });
+      return true;
+    }
+    return false;
+  };
 
   // 2. HELPER: Save & Render
   const saveAndRender = () => {
@@ -1367,8 +1421,7 @@ function renderAuctionGame(container, cleanupStack) {
       timestamp: new Date(state.lastModified).toLocaleTimeString()
     });
 
-    storage.set('love_auction_v2', state);
-    // Note: storage.set() already syncs to cloud
+    storage.set('love_auction_v2', state, true);
     renderUI();
   };
 
@@ -1682,70 +1735,33 @@ function renderAuctionGame(container, cleanupStack) {
     });
 
     // Daily Claim
-    container.querySelector('#btn-daily-claim')?.addEventListener('click', (e) => {
+    container.querySelector('#btn-daily-claim')?.addEventListener('click', async (e) => {
       const btn = e.target;
-      if (btn.disabled) return; // Prevent double-click
+      if (btn.disabled) return;
+      btn.disabled = true;
 
-      const active = state.activeProfileId;
-      const today = new Date().toDateString();
-      const lastClaim = storage.get(`last_coin_claim_${active}`, null);
-
-      if (lastClaim === today) {
-        console.log(`⚠️ Daily bonus already claimed today`);
+      const active = role;
+      audit('dailyClaim:start', { role, active });
+      const result = await auctionRequest({ type: 'daily_claim', role: active });
+      if (!result?.success) {
+        btn.disabled = false;
         return;
       }
 
-      const oldCoins = state.profiles[active].coins;
-      audit('dailyClaim:start', { role, active, oldCoins, today, lastClaim });
-      console.log(`💰 Daily claim for ${active}: ${oldCoins} -> ${oldCoins + 10} coins`);
-
-      // Disable button immediately
-      btn.disabled = true;
-      btn.textContent = 'Hentet ✅';
-
-      // Mark as claimed FIRST
-      storage.set(`last_coin_claim_${active}`, today);
-      lastSaveTime = Date.now(); // Prevent immediate pull
-
-      // Update state
-      addLedger(state, 'DAILY_CLAIM', active, 10, { desc: 'Daglig bonus' });
-      state.profiles[active].coins += 10;
-      audit('dailyClaim:applied', { active, newCoins: state.profiles[active].coins });
-
-      saveAndRender();
+      await refreshFromServer();
+      renderUI();
       if (navigator.vibrate) navigator.vibrate(50);
     });
 
     // Reset Auction
     container.querySelector('#reset-auction')?.addEventListener('click', async () => {
-      const confirmed = confirm('Er du SIKKER? Dette sletter alle coins, kjøp og auksjonsoversikt. Kan ikke angres!');
+      const confirmed = confirm('Er du SIKKER? Dette sletter alle coins, kjA,p og auksjonsoversikt. Kan ikke angres!');
       if (!confirmed) return;
-
-      // Reset state to default
-      state.profiles.andrine.coins = 50;
-      state.profiles.partner.coins = 50;
-      state.profiles.andrine.weeklyEarned = 0;
-      state.profiles.partner.weeklyEarned = 0;
-      state.ownedRewards = [];
-      state.ledger = [];
-      state.auctions = [];
-
-      // Clear daily claim records
-      storage.remove('last_coin_claim_andrine');
-      storage.remove('last_coin_claim_partner');
-
-      // Clear task records (all of today's tasks)
-      const today = new Date().toDateString();
-      ['hug', 'letter', 'tidy'].forEach(taskId => {
-        storage.remove(`task_${taskId}_andrine_${today}`);
-        storage.remove(`task_${taskId}_partner_${today}`);
-      });
-
-      console.log('🔄 Auction reset to default state');
-      saveAndRender();
-      await storage.syncWithCloud({ only: ['love_auction_v2'] });
-      localStorage.setItem('bumpy:skip_pull', 'true');
-      alert('✅ Alt er nullstilt! Begge har 50 coins.');
+      const result = await auctionRequest({ type: 'reset', role });
+      if (!result?.success) return;
+      await refreshFromServer();
+      renderUI();
+      alert('?o. Alt er nullstilt! Begge har 50 coins.');
     });
   };
 
@@ -1753,231 +1769,53 @@ function renderAuctionGame(container, cleanupStack) {
   window.setShopFilter = (cat) => { shopFilter = cat; renderUI(); };
   window.setInvTab = (tab) => { inventoryDetail = tab; renderUI(); };
 
-  window.handleSoftTask = (user, taskId, amount) => {
+  window.handleSoftTask = async (user, taskId, amount) => {
     if (user !== role) return;
-    const today = new Date().toDateString();
-    const key = `task_${taskId}_${user}_${today}`;
-    if (storage.get(key, false)) {
-      console.log(`⚠️ Task ${taskId} already claimed today`);
-      return;
-    }
-
-    console.log(`💰 Task ${taskId} for ${user}: +${amount} coins`);
-
-    // Mark as claimed FIRST (prevent double-click)
-    storage.set(key, true);
-    lastSaveTime = Date.now(); // Prevent immediate pull
-
-    // Update state
-    state.profiles[user].coins += amount;
-    addLedger(state, 'TASK', user, amount, { desc: taskId });
-
-    saveAndRender();
+    const result = await auctionRequest({ type: 'task', role: user, taskId, amount });
+    if (!result?.success) return;
+    await refreshFromServer();
+    renderUI();
     if (navigator.vibrate) navigator.vibrate([30, 30]);
   };
 
-  window.buyShopItem = (user, itemId) => {
+  window.buyShopItem = async (user, itemId) => {
     if (user !== role) return;
-    audit('buy:start', { role, actingUser: user, itemId, activeProfileId: state.activeProfileId, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
     const item = state.shopItems.find(i => i.id === itemId);
-    if (!item || state.profiles[user].coins < item.cost) return;
-
-    // Disable button immediately to prevent double-click
-    const btn = document.querySelector(`button[onclick*="${itemId}"]`);
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Kjøper... ⏳';
-    }
-
-    if (item.requiresBothConfirm) {
-      // Logic for split pay is tricky with instant buy. Simpler: One buys, other confirms later?
-      // User requested: "BEGGE items: if requiresBothConfirm: needs both confirmations... once both confirmed -> status REDEEMED"
-      // User also said: "Payer types: BEGGE (split 50/50)".
-      // Implementation:
-      // 1. Check if both have coins? Complex UI.
-      // Simpler: User A buys "Share". It goes to inventory as "Waiting for Partner". Cost is deducted from A? Or split?
-      // Let's do: Cost is deducted immediately from Buyer? Or Ledger holds it?
-      // User Spec: "BEGGE items ... if requiresBothConfirm: needs both confirmations to REDEEM".
-      // Impl: Buy -> Inventory (Status READY, confirmations: {buyer: true}).
-      // If Payer=Begge, Cost is split when buying?
-      // Let's simplify: Buyer pays FULL cost if they click buy?
-      // Re-read spec: "BEGGE (split 50/50; if odd cost, partner pays +1)"
-      // So when buying a BEGGE item:
-      // Valid only if BOTH have coins.
-      const p1 = user;
-      const p2 = user === 'andrine' ? 'partner' : 'andrine';
-
-      if (item.payer === 'BEGGE') {
-        const cost1 = user === 'andrine' ? Math.floor(item.cost / 2) : Math.ceil(item.cost / 2);
-        const cost2 = item.cost - cost1;
-
-        // Validate exact split costs before deducting
-        if (state.profiles[p1].coins < cost1 || state.profiles[p2].coins < cost2) {
-          alert('Begge mA? ha nok coins til A? spleise!');
-          return;
-        }
-
-        // Deduct
-        state.profiles[p1].coins -= cost1;
-        state.profiles[p2].coins -= cost2;
-        addLedger(state, 'BUY_SPLIT', p1, -cost1, { desc: `Spleis: ${item.title}` });
-        addLedger(state, 'BUY_SPLIT', p2, -cost2, { desc: `Spleis: ${item.title}` });
-      } else {
-        // Single payer
-        state.profiles[user].coins -= item.cost;
-        addLedger(state, 'BUY', user, -item.cost, { desc: `Kjøp: ${item.title}` });
-      }
-    } else {
-      // Normal Buy
-      state.profiles[user].coins -= item.cost;
-      addLedger(state, 'BUY', user, -item.cost, { desc: `Kjøp: ${item.title}` });
-    }
-
-    // Add to inventory
-    // Determine actual payer: if BEGGE item was split-paid, mark as BEGGE, otherwise mark as buyer
-    const actualPayer = (item.payer === 'BEGGE' && item.requiresBothConfirm) ? 'BEGGE' : user;
-    audit('buy:afterDeduct', { actingUser: user, itemId, itemTitle: item.title, payer: actualPayer, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
-
-    state.ownedRewards.push({
-      id: crypto.randomUUID(),
+    if (!item) return;
+    const result = await auctionRequest({
+      type: 'buy',
+      role: user,
+      itemId: item.id,
       title: item.title,
-      source: 'SHOP',
-      payer: actualPayer,
-      requiresBothConfirm: item.requiresBothConfirm || false,
-      status: 'READY',
-      acquiredTs: new Date().toISOString(),
-      confirmations: {}
+      cost: item.cost,
+      payer: item.payer || 'BEGGE',
+      requiresBothConfirm: !!item.requiresBothConfirm,
     });
-
-    console.log(`🛒 ${user} bought ${item.title} (payer: ${actualPayer})`);
-
-    // Show success feedback
-    if (btn) {
-      btn.textContent = '✅ Kjøpt!';
-      btn.style.background = '#4ade80';
-      setTimeout(() => {
-        saveAndRender(); // Render after showing success
-      }, 500);
-    } else {
-      saveAndRender();
-    }
-
+    if (!result?.success) return;
+    await refreshFromServer();
+    renderUI();
     if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
   };
 
-  window.placeBid = (user, aucId, amount) => {
+  window.placeBid = async (user, aucId, amount) => {
     if (user !== role) return;
-    audit('bid:start', { role, actingUser: user, aucId, amount, activeProfileId: state.activeProfileId, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
-    const aucIdx = state.auctions.findIndex(a => a.id === aucId);
-    if (aucIdx < 0) return;
-    const auc = state.auctions[aucIdx];
-
-    // Hard guards (never trust only UI-disabled state)
-    if (auc.settled || new Date(auc.endTs) <= new Date()) return;
-    if (auc.highestBidder === user) return;
-
-    const minBid = (auc.highestBid || auc.startPrice) + auc.minIncrement;
-    audit('bid:guards', { aucTitle: auc.title, highestBid: auc.highestBid || auc.startPrice, minBid, bidderCoins: state.profiles[user]?.coins || 0, highestBidder: auc.highestBidder, endTs: auc.endTs, settled: auc.settled });
-    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < minBid) return;
-    if ((state.profiles[user]?.coins || 0) < amount) return;
-
-    // Refund previous leader
-    if (auc.highestBidder) {
-      state.profiles[auc.highestBidder].coins += auc.highestBid;
-      addLedger(state, 'REFUND', auc.highestBidder, auc.highestBid, { desc: `Overbydd: ${auc.title}` });
-    }
-
-    // Deduct new bid
-    state.profiles[user].coins -= amount;
-
-    // Update Auction
-    state.auctions[aucIdx].highestBid = amount;
-    state.auctions[aucIdx].highestBidder = user;
-    state.auctions[aucIdx].updatedTs = new Date().toISOString();
-    audit('bid:applied', { actingUser: user, aucId, amount, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins, newLeader: state.auctions[aucIdx].highestBidder });
-
-    saveAndRender();
+    const result = await auctionRequest({ type: 'bid', role: user, auctionId: aucId, amount });
+    if (!result?.success) return;
+    await refreshFromServer();
+    renderUI();
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
-  window.redeemItem = (user, itemId) => {
+  window.redeemItem = async (user, itemId) => {
     if (user !== role) return;
-    audit('redeem:start', { role, actingUser: user, itemId });
-    const itemIdx = state.ownedRewards.findIndex(i => i.id === itemId);
-    if (itemIdx < 0) return;
-    const item = state.ownedRewards[itemIdx];
-
-    if (item.requiresBothConfirm) {
-      if (!item.confirmations) item.confirmations = {};
-      item.confirmations[user] = true;
-      // Check if both
-      if (item.confirmations.andrine && item.confirmations.partner) {
-        item.status = 'REDEEMED';
-        addLedger(state, 'REDEEM', 'BEGGE', 0, { desc: `Brukt: ${item.title}` });
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-      } else {
-        saveAndRender();
-        return;
-      }
-    } else {
-      item.status = 'REDEEMED';
-      addLedger(state, 'REDEEM', user, 0, { desc: `Brukt: ${item.title}` });
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-    }
-    saveAndRender();
+    const result = await auctionRequest({ type: 'redeem', role: user, itemId });
+    if (!result?.success) return;
+    await refreshFromServer();
+    renderUI();
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   };
 
-  // 7. INITIAL RENDER
-  renderUI();
-
-  // 8. CLOCK & SYNC (Cleanup)
-  const interval = setInterval(async () => {
-    // Don't pull immediately after saving (give cloud time to update)
-    const timeSinceLastSave = Date.now() - lastSaveTime;
-    if (timeSinceLastSave < 3000) {
-      console.log(`⏭️ Skipping pull - just saved ${Math.round(timeSinceLastSave / 1000)}s ago`);
-      tickAuctions(state);
-      renderUI();
-      return;
-    }
-
-    // Pull latest auction state from cloud
-    await storage.pullFromCloud({ skipCelebration: true });
-
-    // Check if cloud has new auction state (stored in temp key to avoid race conditions)
-    const cloudState = storage.get('_auction_cloud_temp', null);
-    if (cloudState) {
-      audit('pull:cloudState', { incomingLastModified: cloudState.lastModified || null, localLastModified: state.lastModified || null, incomingAndrineCoins: cloudState?.profiles?.andrine?.coins, incomingPartnerCoins: cloudState?.profiles?.partner?.coins, localAndrineCoins: state?.profiles?.andrine?.coins, localPartnerCoins: state?.profiles?.partner?.coins });
-      // Clear temp key immediately
-      storage.remove('_auction_cloud_temp');
-
-      // Only update if cloud state is NEWER than local state
-      if (!cloudState.lastModified || !state.lastModified || cloudState.lastModified > state.lastModified) {
-        console.log('🔄 Syncing fresh state from cloud:', {
-          andrineCoins: cloudState.profiles.andrine.coins,
-          partnerCoins: cloudState.profiles.partner.coins,
-          ownedItems: cloudState.ownedRewards.length,
-          cloudTimestamp: cloudState.lastModified ? new Date(cloudState.lastModified).toLocaleTimeString() : 'none',
-          localTimestamp: state.lastModified ? new Date(state.lastModified).toLocaleTimeString() : 'none'
-        });
-
-        // Update state object in-place (don't replace reference)
-        Object.assign(state, cloudState);
-        audit('pull:appliedCloudState', { applied: true, newLastModified: state.lastModified, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
-      } else {
-        console.log('⏭️ Ignoring stale cloud state', {
-          cloudTime: cloudState.lastModified ? new Date(cloudState.lastModified).toLocaleTimeString() : 'none',
-          localTime: state.lastModified ? new Date(state.lastModified).toLocaleTimeString() : 'none',
-          cloudCoins: cloudState.profiles.andrine.coins,
-          localCoins: state.profiles.andrine.coins
-        });
-      }
-    }
-
-    tickAuctions(state); // Check settlements
-    renderUI(); // Update timers and UI
-  }, 15000); // 15s sync interval
-  cleanupStack.push(() => clearInterval(interval));
+  // 7. INITIAL RENDER`r`n  renderUI();`r`n  refreshFromServer().then(() => renderUI());`r`n`r`n  // 8. CLOCK & SYNC (Cleanup)`r`n  const interval = setInterval(async () => {`r`n    await refreshFromServer();`r`n    renderUI();`r`n  }, 15000);`r`n  cleanupStack.push(() => clearInterval(interval));
 }
 
 // ════ HELPERS ════
@@ -2401,6 +2239,14 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
+
+
+
+
+
+
+
 
 
 

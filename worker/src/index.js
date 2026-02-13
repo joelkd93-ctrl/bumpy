@@ -961,6 +961,44 @@ async function handlePredictions(env, request) {
 // 💰 AUCTION SYSTEM
 // ─────────────────────────────────────────────────────────────────────────────
 
+const AUCTION_SEED_ITEMS = [
+  { title: '60 min Full Kroppsmassasje', description: 'Den ultimate spaopplevelsen hjemme.', category: 'Luksus', start: 40, inc: 5 },
+  { title: 'Master of Remote', description: 'Full kontroll over TV-en en hel kveld.', category: 'Makt', start: 20, inc: 2 },
+  { title: 'Helg uten planer', description: 'Vi sier nei til alt og bare er hjemme.', category: 'Frihet', start: 50, inc: 10 },
+  { title: '3-retters middag', description: 'Du lager forrett, hovedrett og dessert.', category: 'Mat', start: 60, inc: 5 },
+  { title: 'Privatsjåfør', description: 'Du kjører og henter meg hvor som helst en kveld.', category: 'Praktisk', start: 25, inc: 5 },
+  { title: 'Hjemme-spa Pakke', description: 'Bad, massasje, ansiktsmaske - alt sammen.', category: 'Luksus', start: 120, inc: 15 },
+];
+
+async function ensureAuctionBootstrap(client) {
+  await client.execute(`INSERT OR IGNORE INTO auction_profiles (role, coins, weekly_earned, streak) VALUES ('andrine', 50, 0, 0)`);
+  await client.execute(`INSERT OR IGNORE INTO auction_profiles (role, coins, weekly_earned, streak) VALUES ('partner', 50, 0, 0)`);
+}
+
+async function settleAndSeedAuctions(client) {
+  await client.execute(`UPDATE auctions SET settled = 1 WHERE settled = 0 AND datetime(end_time) <= datetime('now')`);
+
+  const activeResult = await client.execute(`SELECT id, title FROM auctions WHERE settled = 0 ORDER BY end_time ASC`);
+  const active = activeResult.rows || [];
+  if (active.length >= 5) return;
+
+  const activeTitles = new Set(active.map(a => a.title));
+  const candidates = AUCTION_SEED_ITEMS.filter(i => !activeTitles.has(i.title));
+  const pool = candidates.length ? candidates : AUCTION_SEED_ITEMS;
+  const needed = 5 - active.length;
+
+  for (let i = 0; i < needed; i++) {
+    const t = pool[Math.floor(Math.random() * pool.length)];
+    const id = `auc_${Date.now()}_${Math.floor(Math.random() * 10000)}_${i}`;
+    const hours = 24 + Math.floor(Math.random() * 48);
+    await client.execute({
+      sql: `INSERT INTO auctions (id, title, description, category, start_price, min_increment, highest_bid, highest_bidder, end_time, settled, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 0, NULL, datetime('now', ?), 0, CURRENT_TIMESTAMP)`,
+      args: [id, t.title, t.description, t.category, t.start, t.inc, `+${hours} hours`],
+    });
+  }
+}
+
 async function handleAuction(env, request) {
   const client = getClient(env);
   const url = new URL(request.url);
@@ -968,6 +1006,9 @@ async function handleAuction(env, request) {
 
   // GET: Fetch auction state
   if (request.method === 'GET') {
+    await ensureAuctionBootstrap(client);
+    await settleAndSeedAuctions(client);
+
     const [profiles, auctions, rewards, ledger] = await Promise.all([
       client.execute('SELECT * FROM auction_profiles'),
       client.execute('SELECT * FROM auctions WHERE settled = 0 ORDER BY end_time ASC'),
@@ -1030,6 +1071,14 @@ async function handleAuction(env, request) {
       });
       const auction = auctionResult.rows?.[0];
       if (!auction) return json({ success: false, error: 'Auction not found' }, { status: 404 });
+      if (auction.settled) return json({ success: false, error: 'Auction settled' }, { status: 400 });
+      if (new Date(auction.end_time).getTime() <= Date.now()) return json({ success: false, error: 'Auction ended' }, { status: 400 });
+      if (auction.highest_bidder === role) return json({ success: false, error: 'Already leading' }, { status: 400 });
+
+      const minBid = (auction.highest_bid || auction.start_price) + auction.min_increment;
+      if (!Number.isFinite(amount) || amount < minBid) {
+        return json({ success: false, error: 'Bid too low', minBid }, { status: 400 });
+      }
 
       // Get user coins
       const profileResult = await client.execute({
@@ -1090,14 +1139,121 @@ async function handleAuction(env, request) {
         }
       }
 
-      const bonus = Math.min(10 + newStreak * 2, 30); // 10-30 coins based on streak
+      const bonus = 10;
 
       await client.execute({
         sql: `UPDATE auction_profiles SET coins = coins + ?, streak = ?, last_daily_claim = ? WHERE role = ?`,
         args: [bonus, newStreak, today, role],
       });
 
+      const ledgerId = `ledger_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      await client.execute({
+        sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at)
+              VALUES (?, 'DAILY_CLAIM', ?, ?, ?, CURRENT_TIMESTAMP)`,
+        args: [ledgerId, role, bonus, JSON.stringify({ desc: 'Daglig bonus' })],
+      });
+
       return json({ success: true, bonus, streak: newStreak });
+    }
+
+    if (type === 'task') {
+      const { taskId, amount } = body;
+      if (!taskId || !Number.isFinite(amount)) return json({ success: false, error: 'Invalid task payload' }, { status: 400 });
+      const today = new Date().toISOString().split('T')[0];
+      const claimKey = `auction_task_${role}_${today}_${taskId}`;
+
+      const claimResult = await client.execute({ sql: `SELECT value FROM app_state WHERE key = ?`, args: [claimKey] });
+      if (claimResult.rows?.[0]?.value) {
+        return json({ success: false, error: 'Task already claimed' }, { status: 400 });
+      }
+
+      await client.execute({ sql: `INSERT OR REPLACE INTO app_state (key, value, updated_at) VALUES (?, '1', CURRENT_TIMESTAMP)`, args: [claimKey] });
+      await client.execute({ sql: `UPDATE auction_profiles SET coins = coins + ?, weekly_earned = weekly_earned + ? WHERE role = ?`, args: [amount, amount, role] });
+
+      const ledgerId = `ledger_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      await client.execute({
+        sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at)
+              VALUES (?, 'TASK', ?, ?, ?, CURRENT_TIMESTAMP)`,
+        args: [ledgerId, role, amount, JSON.stringify({ desc: taskId })],
+      });
+      return json({ success: true });
+    }
+
+    if (type === 'buy') {
+      const { itemId, title, cost, payer, requiresBothConfirm } = body;
+      if (!itemId || !title || !Number.isFinite(cost)) return json({ success: false, error: 'Invalid buy payload' }, { status: 400 });
+
+      if (payer === 'BEGGE') {
+        const other = role === 'andrine' ? 'partner' : 'andrine';
+        const cost1 = role === 'andrine' ? Math.floor(cost / 2) : Math.ceil(cost / 2);
+        const cost2 = cost - cost1;
+
+        const balances = await client.execute(`SELECT role, coins FROM auction_profiles WHERE role IN ('andrine','partner')`);
+        const map = Object.fromEntries((balances.rows || []).map(r => [r.role, r.coins]));
+        if ((map[role] || 0) < cost1 || (map[other] || 0) < cost2) {
+          return json({ success: false, error: 'Not enough coins for split' }, { status: 400 });
+        }
+
+        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost1, role] });
+        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost2, other] });
+
+        const l1 = `ledger_${Date.now()}_a`;
+        const l2 = `ledger_${Date.now()}_b`;
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l1, role, -cost1, JSON.stringify({ desc: `Spleis: ${title}` })] });
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l2, other, -cost2, JSON.stringify({ desc: `Spleis: ${title}` })] });
+      } else {
+        const r = await client.execute({ sql: `SELECT coins FROM auction_profiles WHERE role = ?`, args: [role] });
+        const coins = r.rows?.[0]?.coins || 0;
+        if (coins < cost) return json({ success: false, error: 'Not enough coins' }, { status: 400 });
+        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost, role] });
+        const l = `ledger_${Date.now()}_buy`;
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l, role, -cost, JSON.stringify({ desc: `Kjop: ${title}` })] });
+      }
+
+      const rewardId = `reward_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      const confirmations = requiresBothConfirm ? JSON.stringify({ [role]: true }) : JSON.stringify({});
+      await client.execute({
+        sql: `INSERT INTO owned_rewards (id, title, source, payer, status, confirmations, acquired_at)
+              VALUES (?, ?, 'SHOP', ?, 'READY', ?, CURRENT_TIMESTAMP)`,
+        args: [rewardId, title, payer === 'BEGGE' ? 'BEGGE' : role, confirmations],
+      });
+
+      return json({ success: true, id: rewardId });
+    }
+
+    if (type === 'redeem') {
+      const { itemId } = body;
+      if (!itemId) return json({ success: false, error: 'Missing itemId' }, { status: 400 });
+
+      const r = await client.execute({ sql: `SELECT * FROM owned_rewards WHERE id = ?`, args: [itemId] });
+      const item = r.rows?.[0];
+      if (!item) return json({ success: false, error: 'Reward not found' }, { status: 404 });
+      if (item.status === 'REDEEMED') return json({ success: true, already: true });
+
+      let confirmations = {};
+      try { confirmations = item.confirmations ? JSON.parse(item.confirmations) : {}; } catch { confirmations = {}; }
+      confirmations[role] = true;
+
+      const both = confirmations.andrine && confirmations.partner;
+      if (both) {
+        await client.execute({ sql: `UPDATE owned_rewards SET status = 'REDEEMED', confirmations = ? WHERE id = ?`, args: [JSON.stringify(confirmations), itemId] });
+        const l = `ledger_${Date.now()}_redeem`;
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'REDEEM', ?, 0, ?, CURRENT_TIMESTAMP)`, args: [l, item.payer || role, JSON.stringify({ desc: `Brukt: ${item.title}` })] });
+      } else {
+        await client.execute({ sql: `UPDATE owned_rewards SET confirmations = ? WHERE id = ?`, args: [JSON.stringify(confirmations), itemId] });
+      }
+
+      return json({ success: true, redeemed: !!both, confirmations });
+    }
+
+    if (type === 'reset') {
+      await client.execute(`DELETE FROM auctions`);
+      await client.execute(`DELETE FROM owned_rewards`);
+      await client.execute(`DELETE FROM ledger`);
+      await client.execute(`DELETE FROM app_state WHERE key LIKE 'auction_task_%'`);
+      await client.execute(`UPDATE auction_profiles SET coins = 50, weekly_earned = 0, streak = 0, last_daily_claim = NULL`);
+      await settleAndSeedAuctions(client);
+      return json({ success: true });
     }
 
     return json({ success: false, error: 'Invalid action type' }, { status: 400 });

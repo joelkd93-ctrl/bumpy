@@ -241,9 +241,7 @@ export const storage = {
         payload.predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
       }
 
-      if (shouldSync('love_auction_v2')) {
-        payload.auctionState = this.get('love_auction_v2', null);
-      }
+      // Auction state moved to server-authoritative /api/auction actions
 
       const apiUrl = getApiUrl();
 
@@ -251,7 +249,7 @@ export const storage = {
         keys: Object.keys(payload),
         journalCount: payload.journal?.length || 0,
         moodsCount: payload.moods?.length || 0,
-        hasAuction: !!payload.auctionState,
+        hasAuction: false,
         api: apiUrl
       });
 
@@ -377,7 +375,7 @@ export const storage = {
       console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
-        const { settings, journal, moods, together, nameVotes, nameVotesEpoch, matchedNames, customNames, predictions, kicks, auctionState } = result.data;
+        const { settings, journal, moods, together, nameVotes, nameVotesEpoch, matchedNames, customNames, predictions, kicks } = result.data;
         let hasChanged = false;
 
         if (settings) {
@@ -475,28 +473,6 @@ export const storage = {
 
         // Sync Love Auction state - store in temp key for together.js to handle with timestamp checking
         // DON'T merge directly into love_auction_v2 to prevent race conditions!
-        if (auctionState) {
-          const currentTemp = this.get('_auction_cloud_temp', null);
-          const currentAuction = this.get('love_auction_v2', null);
-          const incomingTs = Number(auctionState?.lastModified || 0) || 0;
-          const tempTs = Number(currentTemp?.lastModified || 0) || 0;
-          const localTs = Number(currentAuction?.lastModified || 0) || 0;
-          const incomingJson = JSON.stringify(auctionState);
-          const tempJson = JSON.stringify(currentTemp);
-          const localJson = JSON.stringify(currentAuction);
-
-          const shouldStoreAuctionTemp = incomingTs > Math.max(tempTs, localTs)
-            || (incomingTs === 0 && incomingJson !== tempJson && incomingJson !== localJson);
-
-          if (shouldStoreAuctionTemp) {
-            console.log('♻️ Received fresh auction state from cloud, storing for timestamp-based merge');
-            this.set('_auction_cloud_temp', auctionState, true);
-            hasChanged = true;
-          } else {
-            console.log('⏭️ Auction state unchanged, skipping temp write');
-          }
-        }
-
         if (journal !== undefined) {
           console.log(`🔽 Processing ${journal.length} journal entries from cloud`);
           // Get existing local journal entries
