@@ -1128,33 +1128,26 @@ async function handleAuction(env, request) {
         return json({ success: false, error: 'Invalid bid payload' }, { status: 400 });
       }
 
-      await client.execute('BEGIN IMMEDIATE');
-      try {
         const auctionResult = await client.execute({
           sql: `SELECT * FROM auctions WHERE id = ?`,
           args: [auctionId],
         });
         const auction = auctionResult.rows?.[0];
         if (!auction) {
-          await client.execute('ROLLBACK');
           return json({ success: false, error: 'Auction not found' }, { status: 404 });
         }
         if (auction.settled) {
-          await client.execute('ROLLBACK');
           return json({ success: false, error: 'Auction settled' }, { status: 400 });
         }
         if (new Date(auction.end_time).getTime() <= Date.now()) {
-          await client.execute('ROLLBACK');
           return json({ success: false, error: 'Auction ended' }, { status: 400 });
         }
         if (auction.highest_bidder === role) {
-          await client.execute('ROLLBACK');
           return json({ success: false, error: 'Already leading' }, { status: 400 });
         }
 
         const minBid = (auction.highest_bid || auction.start_price) + auction.min_increment;
         if (amount < minBid) {
-          await client.execute('ROLLBACK');
           return json({ success: false, error: 'Bid too low', minBid }, { status: 400 });
         }
 
@@ -1164,7 +1157,6 @@ async function handleAuction(env, request) {
         });
         const userCoins = profileResult.rows?.[0]?.coins || 0;
         if (amount > userCoins) {
-          await client.execute('ROLLBACK');
           return json({ success: false, error: 'Not enough coins' }, { status: 400 });
         }
 
@@ -1185,12 +1177,7 @@ async function handleAuction(env, request) {
           args: [amount, role, auctionId],
         });
 
-        await client.execute('COMMIT');
-        return json({ success: true });
-      } catch (err) {
-        await client.execute('ROLLBACK').catch(() => {});
-        throw err;
-      }
+      return json({ success: true });
     }
 
     // Daily claim
@@ -1271,54 +1258,45 @@ async function handleAuction(env, request) {
       const requiresBothConfirm = !!item.requiresBothConfirm;
       const splitPay = payer === 'BEGGE' && requiresBothConfirm;
 
-      await client.execute('BEGIN IMMEDIATE');
-      try {
-        if (splitPay) {
-          const other = role === 'andrine' ? 'partner' : 'andrine';
-          const cost1 = role === 'andrine' ? Math.floor(cost / 2) : Math.ceil(cost / 2);
-          const cost2 = cost - cost1;
+      if (splitPay) {
+        const other = role === 'andrine' ? 'partner' : 'andrine';
+        const cost1 = role === 'andrine' ? Math.floor(cost / 2) : Math.ceil(cost / 2);
+        const cost2 = cost - cost1;
 
-          const balances = await client.execute(`SELECT role, coins FROM auction_profiles WHERE role IN ('andrine','partner')`);
-          const map = Object.fromEntries((balances.rows || []).map(r => [r.role, r.coins]));
-          if ((map[role] || 0) < cost1 || (map[other] || 0) < cost2) {
-            await client.execute('ROLLBACK');
-            return json({ success: false, error: 'Not enough coins for split' }, { status: 400 });
-          }
-
-          await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost1, role] });
-          await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost2, other] });
-
-          const l1 = `ledger_${Date.now()}_a`;
-          const l2 = `ledger_${Date.now()}_b`;
-          await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l1, role, -cost1, JSON.stringify({ desc: `Spleis: ${title}` })] });
-          await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l2, other, -cost2, JSON.stringify({ desc: `Spleis: ${title}` })] });
-        } else {
-          const r = await client.execute({ sql: `SELECT coins FROM auction_profiles WHERE role = ?`, args: [role] });
-          const coins = r.rows?.[0]?.coins || 0;
-          if (coins < cost) {
-            await client.execute('ROLLBACK');
-            return json({ success: false, error: 'Not enough coins' }, { status: 400 });
-          }
-          await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost, role] });
-          const l = `ledger_${Date.now()}_buy`;
-          await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l, role, -cost, JSON.stringify({ desc: `Kjøp: ${title}` })] });
+        const balances = await client.execute(`SELECT role, coins FROM auction_profiles WHERE role IN ('andrine','partner')`);
+        const map = Object.fromEntries((balances.rows || []).map(r => [r.role, r.coins]));
+        if ((map[role] || 0) < cost1 || (map[other] || 0) < cost2) {
+          return json({ success: false, error: 'Not enough coins for split' }, { status: 400 });
         }
 
-        const rewardId = `reward_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-        const confirmations = requiresBothConfirm ? JSON.stringify({ [role]: true }) : JSON.stringify({});
-        const rewardPayer = splitPay ? 'BEGGE' : role;
-        await client.execute({
-          sql: `INSERT INTO owned_rewards (id, title, source, payer, status, confirmations, acquired_at)
-                VALUES (?, ?, 'SHOP', ?, 'READY', ?, CURRENT_TIMESTAMP)`,
-          args: [rewardId, title, rewardPayer, confirmations],
-        });
+        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost1, role] });
+        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost2, other] });
 
-        await client.execute('COMMIT');
-        return json({ success: true, id: rewardId });
-      } catch (err) {
-        await client.execute('ROLLBACK').catch(() => {});
-        throw err;
+        const l1 = `ledger_${Date.now()}_a`;
+        const l2 = `ledger_${Date.now()}_b`;
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l1, role, -cost1, JSON.stringify({ desc: `Spleis: ${title}` })] });
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l2, other, -cost2, JSON.stringify({ desc: `Spleis: ${title}` })] });
+      } else {
+        const r = await client.execute({ sql: `SELECT coins FROM auction_profiles WHERE role = ?`, args: [role] });
+        const coins = r.rows?.[0]?.coins || 0;
+        if (coins < cost) {
+          return json({ success: false, error: 'Not enough coins' }, { status: 400 });
+        }
+        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost, role] });
+        const l = `ledger_${Date.now()}_buy`;
+        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l, role, -cost, JSON.stringify({ desc: `Kjøp: ${title}` })] });
       }
+
+      const rewardId = `reward_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      const confirmations = requiresBothConfirm ? JSON.stringify({ [role]: true }) : JSON.stringify({});
+      const rewardPayer = splitPay ? 'BEGGE' : role;
+      await client.execute({
+        sql: `INSERT INTO owned_rewards (id, title, source, payer, status, confirmations, acquired_at)
+              VALUES (?, ?, 'SHOP', ?, 'READY', ?, CURRENT_TIMESTAMP)`,
+        args: [rewardId, title, rewardPayer, confirmations],
+      });
+
+      return json({ success: true, id: rewardId });
     }
 
     if (type === 'redeem') {
@@ -1550,3 +1528,4 @@ export default {
     }
   },
 };
+
