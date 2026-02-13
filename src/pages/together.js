@@ -2210,7 +2210,6 @@ function renderNaughtyGame(container, cleanupStack) {
 
         <div class="naughty-dare-wrap">
           <button class="naughty-dare-btn" id="naughty-dare-btn">
-            <span class="naughty-dice-ring" aria-hidden="true"></span>
             <span class="naughty-dice" id="naughty-dice">🎲</span>
             Dare Us!
           </button>
@@ -2274,10 +2273,6 @@ function renderNaughtyGame(container, cleanupStack) {
       void dareBtn.offsetWidth;
       dareBtn.classList.add('rolling');
 
-      const unrollTimeout = setTimeout(() => {
-        dareBtn.classList.remove('rolling');
-      }, 470);
-
       const rollTimeout = setTimeout(() => {
         const result = generateNaughtyDare({ selectedLevel, activeProps, lastDareText });
         lastDare = result;
@@ -2285,10 +2280,7 @@ function renderNaughtyGame(container, cleanupStack) {
         console.log('😈 Naughty dare roll:', { lvl: result.level, dare: result.dare });
         render();
       }, 420);
-      cleanupStack.push(() => {
-        clearTimeout(unrollTimeout);
-        clearTimeout(rollTimeout);
-      });
+      cleanupStack.push(() => clearTimeout(rollTimeout));
     });
 
     // Save
