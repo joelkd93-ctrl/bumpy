@@ -5,6 +5,8 @@
 import { DAILY_FACTS } from './dailyFacts.js';
 import { getBabyMessage } from './babyVoice.js';
 
+const GESTATION_DAYS = 283;
+
 // Baby size comparisons by week
 const BABY_SIZES = {
   4: { emoji: '🌱', name: 'valmuefrø', size: '2mm' },
@@ -117,9 +119,9 @@ export function getPregnancyProgress(dueDateStr = '2026-06-29', referenceDate = 
     dueDate.setHours(0, 0, 0, 0);
   }
 
-  // Adjusted to 283 days to match user's timeline (June 29 due = Feb 9 is 20w3d)
+  // Use one consistent gestation length for conception + percentage math
   const conceptionDate = new Date(dueDate);
-  conceptionDate.setDate(conceptionDate.getDate() - 283);
+  conceptionDate.setDate(conceptionDate.getDate() - GESTATION_DAYS);
 
   // Calculate days pregnant (calendar-day diff, DST-safe)
   const daysPregnant = diffCalendarDays(conceptionDate, now);
@@ -135,7 +137,7 @@ export function getPregnancyProgress(dueDateStr = '2026-06-29', referenceDate = 
   else if (weeksPregnant >= 14) trimester = 2;
 
   // Progress percentage (0-100)
-  const progressPercent = Math.min(100, Math.max(0, (daysPregnant / (40 * 7)) * 100));
+  const progressPercent = Math.min(100, Math.max(0, (daysPregnant / GESTATION_DAYS) * 100));
 
   // Baby size
   const weekClamped = Math.min(40, Math.max(4, weeksPregnant));
