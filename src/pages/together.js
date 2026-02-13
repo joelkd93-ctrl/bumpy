@@ -12,37 +12,37 @@ import { modal as modalManager } from '../utils/modal.js';
 const GAMES = [
   {
     id: 'heartbeat',
-    icon: '💓',
+    iconPath: '/icons/together/heart.jpg',
     title: 'Hjerteslag',
     description: 'Trykk i takt sammen'
   },
   {
     id: 'names',
-    icon: '🍼',
+    iconPath: '/icons/together/bottle.jpg',
     title: 'Navnelek',
     description: 'Finn favorittnavnene deres'
   },
   {
     id: 'missions',
-    icon: '💌',
+    iconPath: '/icons/together/envelope.jpg',
     title: 'Kjærlighets-oppdrag',
     description: 'Små daglige utfordringer'
   },
   {
     id: 'predictions',
-    icon: '🎲',
+    iconPath: '/icons/together/dice.jpg',
     title: 'Gjettelek',
     description: 'Hva tror dere om fremtiden?'
   },
   {
     id: 'auction',
-    icon: '💸',
+    iconPath: '/icons/together/gavel.jpg',
     title: 'Love Auction',
     description: 'Coins + små kjærlighetskjøp'
   },
   {
     id: 'naughty',
-    icon: '😈',
+    iconPath: '/icons/together/devil.jpg',
     title: 'Rampete Kveld',
     description: 'Litt spicy moro for to 🔥'
   }
@@ -199,7 +199,7 @@ export function renderTogether() {
   const gameGrid = GAMES.map(game => `
     <button class="game-card" data-game="${game.id}">
       <div class="game-card-top">
-        <span class="game-icon">${game.icon}</span>
+        <span class="game-icon">${game.iconPath ? `<img class="game-icon-img-card" src="${game.iconPath}" alt="${game.title}">` : (game.icon || '')}</span>
         <span class="game-chip">Spill</span>
       </div>
       <div class="game-title">${game.title}</div>
