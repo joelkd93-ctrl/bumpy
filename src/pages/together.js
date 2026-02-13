@@ -1493,10 +1493,10 @@ function renderAuctionGame(container, cleanupStack) {
       return `
                <div class="auction-card shop-card">
                  <div class="mb-2">
-                   <span class="shop-category">${item.category}</span>
-                   <h4 class="shop-title">${item.title}</h4>
+                   <span class="shop-category">${escapeHtml(item.category)}</span>
+                   <h4 class="shop-title">${escapeHtml(item.title)}</h4>
                  </div>
-                 <p class="shop-desc">${item.desc}</p>
+                 <p class="shop-desc">${escapeHtml(item.desc)}</p>
                  <div class="shop-footer">
                    <div class="shop-price-row">
                      <span class="heading-card">🪙 ${item.cost}</span>
@@ -1540,8 +1540,8 @@ function renderAuctionGame(container, cleanupStack) {
                  <span class="timer-badge ${hours < 1 ? 'badge-danger' : ''}">${hours}t ${mins}m</span>
                </div>
                
-               <h3 class="heading-card mb-1">${auc.title}</h3>
-               <p class="text-xs text-muted mb-4">${auc.desc}</p>
+               <h3 class="heading-card mb-1">${escapeHtml(auc.title)}</h3>
+               <p class="text-xs text-muted mb-4">${escapeHtml(auc.desc)}</p>
                
                <div class="bid-box">
                  <div>
@@ -1608,7 +1608,7 @@ function renderAuctionGame(container, cleanupStack) {
                  ${item.status === 'WON' ? '<div class="status-badge status-won">VUNNET</div>' : ''}
                  ${item.status === 'REDEEMED' ? '<div class="status-badge status-redeemed">BRUKT</div>' : ''}
 
-                 <h4 class="shop-title">${item.title}</h4>
+                 <h4 class="shop-title">${escapeHtml(item.title)}</h4>
                  <p class="text-xs text-muted mb-1">Fra: ${item.source}</p>
                  <p class="text-xs font-bold mb-3" style="color: ${item.payer === 'andrine' ? '#FF8FAB' : item.payer === 'partner' ? '#89CFF0' : '#FFB6C1'}">Eier: ${ownerName}</p>
                  
@@ -1640,7 +1640,7 @@ function renderAuctionGame(container, cleanupStack) {
              <div class="ledger-item">
                <div>
                   <span class="font-bold ${l.profileId === 'andrine' ? 'text-pink-600' : 'text-blue-600'}">${l.profileId === 'andrine' ? 'A' : 'P'}:</span>
-                  <span class="text-gray-600">${l.meta?.desc || l.kind}</span>
+                  <span class="text-gray-600">${escapeHtml(l.meta?.desc || l.kind)}</span>
                </div>
                <span class="font-mono font-bold ${l.amount > 0 ? 'text-green-600' : 'text-red-500'}">
                  ${l.amount > 0 ? '+' : ''}${l.amount}
@@ -1801,18 +1801,20 @@ function renderAuctionGame(container, cleanupStack) {
       // Re-read spec: "BEGGE (split 50/50; if odd cost, partner pays +1)"
       // So when buying a BEGGE item:
       // Valid only if BOTH have coins.
-      const half = Math.ceil(item.cost / 2); // Partner pays more on odd
       const p1 = user;
       const p2 = user === 'andrine' ? 'partner' : 'andrine';
 
       if (item.payer === 'BEGGE') {
-        if (state.profiles[p1].coins < Math.floor(item.cost / 2) || state.profiles[p2].coins < Math.floor(item.cost / 2)) {
-          alert('Begge må ha nok coins til å spleise!');
-          return;
-        }
-        // Deduct
         const cost1 = user === 'andrine' ? Math.floor(item.cost / 2) : Math.ceil(item.cost / 2);
         const cost2 = item.cost - cost1;
+
+        // Validate exact split costs before deducting
+        if (state.profiles[p1].coins < cost1 || state.profiles[p2].coins < cost2) {
+          alert('Begge mA? ha nok coins til A? spleise!');
+          return;
+        }
+
+        // Deduct
         state.profiles[p1].coins -= cost1;
         state.profiles[p2].coins -= cost2;
         addLedger(state, 'BUY_SPLIT', p1, -cost1, { desc: `Spleis: ${item.title}` });
@@ -1864,6 +1866,14 @@ function renderAuctionGame(container, cleanupStack) {
     if (aucIdx < 0) return;
     const auc = state.auctions[aucIdx];
 
+    // Hard guards (never trust only UI-disabled state)
+    if (auc.settled || new Date(auc.endTs) <= new Date()) return;
+    if (auc.highestBidder === user) return;
+
+    const minBid = (auc.highestBid || auc.startPrice) + auc.minIncrement;
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < minBid) return;
+    if ((state.profiles[user]?.coins || 0) < amount) return;
+
     // Refund previous leader
     if (auc.highestBidder) {
       state.profiles[auc.highestBidder].coins += auc.highestBid;
@@ -1872,7 +1882,6 @@ function renderAuctionGame(container, cleanupStack) {
 
     // Deduct new bid
     state.profiles[user].coins -= amount;
-    // addLedger(state, 'BID_ESCROW', user, -amount, { desc: `Bud: ${auc.title}` });
 
     // Update Auction
     state.auctions[aucIdx].highestBid = amount;
@@ -2380,4 +2389,5 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
 
