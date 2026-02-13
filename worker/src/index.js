@@ -293,6 +293,7 @@ async function handleSyncGet(env) {
     predictions,
     kicks,
     auctionStateRow,
+    nameVotesEpochRow,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
     client.execute('SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries ORDER BY COALESCE(entry_date, created_at) DESC'),
@@ -304,6 +305,7 @@ async function handleSyncGet(env) {
     client.execute('SELECT * FROM predictions').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM kick_sessions ORDER BY start_time DESC LIMIT 20').catch(() => ({ rows: [] })),
     client.execute("SELECT value FROM app_state WHERE key = 'love_auction_v2'").catch(() => ({ rows: [] })),
+    client.execute("SELECT value FROM app_state WHERE key = 'name_votes_epoch'").catch(() => ({ rows: [] })),
   ]);
 
   // Transform predictions to { andrine: {}, partner: {} } format
@@ -340,6 +342,7 @@ async function handleSyncGet(env) {
       together: together.rows || [],
       heartbeats: heartbeats.rows || [],
       nameVotes: nameVotes.rows || [],
+      nameVotesEpoch: Number(nameVotesEpochRow.rows?.[0]?.value || 0) || 0,
       loveNotes: loveNotes.rows || [],
       predictions: predictionsMap,
       kicks: kicks.rows || [],
@@ -353,7 +356,7 @@ async function handleSyncPost(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { settings, journal, moods, together, nameVotes, predictions, kicks, deletedKickIds, auctionState } = body;
+  const { settings, journal, moods, together, nameVotes, nameVotesEpoch, resetNameVotes, predictions, kicks, deletedKickIds, auctionState } = body;
 
   // 1) Settings
   if (settings) {
@@ -369,24 +372,52 @@ async function handleSyncPost(env, request) {
     });
   }
 
-  // 2) Name votes (authoritative replace)
-  // Client sends full name_votes map; replace cloud set to support "Start på nytt" reset.
+  // 2) Name votes (merge-safe with epoch guard + explicit reset)
   if (Array.isArray(nameVotes)) {
-    // Clear existing votes first so removed keys are actually deleted in cloud.
-    await client.execute(`DELETE FROM name_votes`);
+    const incomingEpoch = Number(nameVotesEpoch || 0) || 0;
+    const serverEpochRow = await client.execute("SELECT value FROM app_state WHERE key = 'name_votes_epoch'").catch(() => ({ rows: [] }));
+    const serverEpoch = Number(serverEpochRow.rows?.[0]?.value || 0) || 0;
 
-    for (const vote of nameVotes) {
-      if (!vote || !vote.name) continue;
+    // Explicit reset path (used by "Start på nytt")
+    if (resetNameVotes === true) {
+      const nextEpoch = incomingEpoch > 0 ? incomingEpoch : Date.now();
+      await client.execute(`DELETE FROM name_votes`);
       await client.execute({
-        sql: `INSERT INTO name_votes (name, andrine_vote, partner_vote, is_custom, updated_at)
-              VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-        args: [
-          vote.name,
-          vote.andrine_vote || null,
-          vote.partner_vote || null,
-          vote.is_custom ? 1 : 0,
-        ],
+        sql: `INSERT OR REPLACE INTO app_state (key, value, updated_at)
+              VALUES ('name_votes_epoch', ?, CURRENT_TIMESTAMP)`,
+        args: [String(nextEpoch)],
       });
+    } else if (incomingEpoch > 0 && incomingEpoch < serverEpoch) {
+      // Stale client write after reset: ignore to prevent resurrecting old votes
+      console.log('⏭️ Ignoring stale nameVotes payload', { incomingEpoch, serverEpoch });
+    } else {
+      // Normal voting path: merge/upsert only (no table wipe)
+      for (const vote of nameVotes) {
+        if (!vote || !vote.name) continue;
+        await client.execute({
+          sql: `INSERT INTO name_votes (name, andrine_vote, partner_vote, is_custom, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(name) DO UPDATE SET
+                  andrine_vote = COALESCE(excluded.andrine_vote, name_votes.andrine_vote),
+                  partner_vote = COALESCE(excluded.partner_vote, name_votes.partner_vote),
+                  is_custom = COALESCE(excluded.is_custom, name_votes.is_custom),
+                  updated_at = excluded.updated_at`,
+          args: [
+            vote.name,
+            vote.andrine_vote || null,
+            vote.partner_vote || null,
+            vote.is_custom ? 1 : 0,
+          ],
+        });
+      }
+
+      if (incomingEpoch > 0) {
+        await client.execute({
+          sql: `INSERT OR REPLACE INTO app_state (key, value, updated_at)
+                VALUES ('name_votes_epoch', ?, CURRENT_TIMESTAMP)`,
+          args: [String(incomingEpoch)],
+        });
+      }
     }
   }
 

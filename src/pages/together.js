@@ -1035,7 +1035,13 @@ function renderNameStats(container, cleanupStack) {
     storage.set('custom_names', [], true);
     pendingMatch = null;
 
-    await storage.syncWithCloud({ only: ['name_votes', 'matched_names', 'custom_names'] });
+    const resetEpoch = Date.now();
+    localStorage.setItem('bumpy:name_votes_epoch', String(resetEpoch));
+    await storage.syncWithCloud({
+      only: ['name_votes', 'matched_names', 'custom_names'],
+      resetNameVotes: true,
+      nameVotesEpoch: resetEpoch,
+    });
     localStorage.setItem('bumpy:skip_pull', 'true');
 
     // Show feedback

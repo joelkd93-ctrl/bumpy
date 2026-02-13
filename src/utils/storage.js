@@ -158,7 +158,7 @@ export const storage = {
    * Cloud Sync Logic
    */
   async syncWithCloud(options = {}) {
-    const { only = null } = options;
+    const { only = null, resetNameVotes = false, nameVotesEpoch = null } = options;
 
     // Show syncing indicator
     this.updateSyncIndicator('syncing', 'Syncing...');
@@ -203,6 +203,11 @@ export const storage = {
           partner_vote: votes.partner,
           is_custom: false
         }));
+
+        // Epoch guards against stale clients reintroducing old votes after reset
+        const localEpoch = Number(localStorage.getItem('bumpy:name_votes_epoch') || '0') || 0;
+        payload.nameVotesEpoch = Number(nameVotesEpoch || localEpoch || Date.now());
+        if (resetNameVotes) payload.resetNameVotes = true;
       }
 
       if (shouldSync('matched_names')) {
@@ -363,7 +368,7 @@ export const storage = {
       console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
-        const { settings, journal, moods, together, nameVotes, matchedNames, customNames, predictions, kicks, auctionState } = result.data;
+        const { settings, journal, moods, together, nameVotes, nameVotesEpoch, matchedNames, customNames, predictions, kicks, auctionState } = result.data;
         let hasChanged = false;
 
         if (settings) {
@@ -387,28 +392,48 @@ export const storage = {
         // ... journal and moods handling ...
 
         if (nameVotes && Array.isArray(nameVotes)) {
+          const serverEpoch = Number(nameVotesEpoch || 0) || 0;
+          const localEpoch = Number(localStorage.getItem('bumpy:name_votes_epoch') || '0') || 0;
           const currentVotes = this.get('name_votes', {});
 
-          nameVotes.forEach(remote => {
-            const local = currentVotes[remote.name] || {};
+          // If server epoch is newer (e.g. after reset), replace local state fully.
+          if (serverEpoch > localEpoch) {
+            const rebuiltVotes = {};
+            nameVotes.forEach(remote => {
+              if (!remote?.name) return;
+              rebuiltVotes[remote.name] = {
+                andrine: remote.andrine_vote || undefined,
+                partner: remote.partner_vote || undefined,
+              };
+            });
+            this.set('name_votes', rebuiltVotes, true);
+            localStorage.setItem('bumpy:name_votes_epoch', String(serverEpoch));
+            hasChanged = true;
+          } else {
+            // Same epoch: merge updates from server
+            nameVotes.forEach(remote => {
+              const local = currentVotes[remote.name] || {};
 
-            // Merge Logic: Server wins if local is missing, otherwise merge
-            if (remote.andrine_vote && remote.andrine_vote !== local.andrine) {
-              console.log(`♻️ Syncing ${remote.name} Andrine: ${local.andrine} -> ${remote.andrine_vote}`);
-              local.andrine = remote.andrine_vote;
-              hasChanged = true;
+              if (remote.andrine_vote && remote.andrine_vote !== local.andrine) {
+                console.log(`♻️ Syncing ${remote.name} Andrine: ${local.andrine} -> ${remote.andrine_vote}`);
+                local.andrine = remote.andrine_vote;
+                hasChanged = true;
+              }
+              if (remote.partner_vote && remote.partner_vote !== local.partner) {
+                console.log(`♻️ Syncing ${remote.name} Partner: ${local.partner} -> ${remote.partner_vote}`);
+                local.partner = remote.partner_vote;
+                hasChanged = true;
+              }
+
+              currentVotes[remote.name] = local;
+            });
+
+            if (hasChanged) {
+              this.set('name_votes', currentVotes, true); // Skip sync to avoid loop!
             }
-            if (remote.partner_vote && remote.partner_vote !== local.partner) {
-              console.log(`♻️ Syncing ${remote.name} Partner: ${local.partner} -> ${remote.partner_vote}`);
-              local.partner = remote.partner_vote;
-              hasChanged = true;
+            if (serverEpoch > 0 && localEpoch !== serverEpoch) {
+              localStorage.setItem('bumpy:name_votes_epoch', String(serverEpoch));
             }
-
-            currentVotes[remote.name] = local;
-          });
-
-          if (hasChanged) {
-            this.set('name_votes', currentVotes, true); // Skip sync to avoid loop!
           }
         }
 
