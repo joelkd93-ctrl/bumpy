@@ -1353,7 +1353,15 @@ function renderAuctionGame(container, cleanupStack) {
       andrine: server?.profiles?.andrine || { coins: 50, weeklyEarned: 0, streak: 0 },
       partner: server?.profiles?.partner || { coins: 50, weeklyEarned: 0, streak: 0 },
     },
-    ledger: (server?.ledger || []).map(l => ({ ...l, meta: typeof l.meta === 'string' ? (JSON.parse(l.meta || '{}')) : (l.meta || {}) })),
+    ledger: (server?.ledger || []).map(l => {
+      let parsedMeta = {};
+      if (typeof l.meta === 'string') {
+        try { parsedMeta = JSON.parse(l.meta || '{}'); } catch { parsedMeta = { desc: String(l.meta || '') }; }
+      } else {
+        parsedMeta = l.meta || {};
+      }
+      return { ...l, meta: parsedMeta };
+    }),
     shopItems: [...SEED_ITEMS],
     auctions: (server?.auctions || []).map(a => ({
       id: a.id,
@@ -1815,7 +1823,16 @@ function renderAuctionGame(container, cleanupStack) {
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
   };
 
-  // 7. INITIAL RENDER`r`n  renderUI();`r`n  refreshFromServer().then(() => renderUI());`r`n`r`n  // 8. CLOCK & SYNC (Cleanup)`r`n  const interval = setInterval(async () => {`r`n    await refreshFromServer();`r`n    renderUI();`r`n  }, 15000);`r`n  cleanupStack.push(() => clearInterval(interval));
+  // 7. INITIAL RENDER
+  renderUI();
+  refreshFromServer().then(() => renderUI());
+
+  // 8. CLOCK & SYNC (Cleanup)
+  const interval = setInterval(async () => {
+    await refreshFromServer();
+    renderUI();
+  }, 15000);
+  cleanupStack.push(() => clearInterval(interval));
 }
 
 // ════ HELPERS ════
