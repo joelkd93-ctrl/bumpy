@@ -1451,35 +1451,125 @@ li + li {
 
 .mood-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-3);
-  margin: var(--space-6) 0;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: var(--space-4) 0;
 }
 
 .mood-btn {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 16px;
   border: 1.5px solid transparent;
   background: var(--surface);
-  font-size: 26px;
   cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-spring), box-shadow var(--duration-fast), border-color var(--duration-fast), background var(--duration-fast);
+  text-align: left;
+  transition:
+    transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.mood-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--mood-gradient, linear-gradient(135deg,#FF8FC0,#FF4DA6));
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  border-radius: inherit;
+}
+
+.mood-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--mood-gradient, linear-gradient(135deg,#FF8FC0,#FF4DA6));
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-xs);
+  color: white;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  z-index: 1;
+}
+
+.mood-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.mood-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+  position: relative;
+  z-index: 1;
+  transition: color 0.18s ease;
 }
 
 .mood-btn:active {
-  transform: scale(0.88);
+  transform: scale(0.96);
+}
+
+.mood-btn:active .mood-icon {
+  transform: scale(0.92);
 }
 
 .mood-btn.selected {
-  background: var(--pink-50);
-  border-color: var(--pink-300);
-  box-shadow: 0 0 0 3px rgba(255, 77, 166, 0.12), var(--shadow-sm);
-  transform: scale(1.12);
+  background: color-mix(in srgb, var(--mood-color, #FF4DA6) 8%, white);
+  border-color: var(--mood-color, #FF4DA6);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--mood-color, #FF4DA6) 15%, transparent),
+    0 4px 16px color-mix(in srgb, var(--mood-color, #FF4DA6) 20%, transparent);
+  transform: scale(1.02);
+}
+
+.mood-btn.selected .mood-label {
+  color: var(--mood-color, #FF4DA6);
+  font-weight: 600;
+}
+
+.mood-btn.selected .mood-icon {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--mood-color,#FF4DA6) 40%, transparent);
+}
+
+.mood-selected-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Large mood display when already logged */
+.mood-display-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 24px;
+  background: var(--mood-gradient, linear-gradient(135deg,#FF8FC0,#FF4DA6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--mood-color,#FF4DA6) 35%, transparent);
+}
+
+.mood-display-icon {
+  color: white;
+  display: flex;
+}
+
+.mood-display-icon svg {
+  width: 36px;
+  height: 36px;
 }
 
 /* Feelings History List */
@@ -1527,6 +1617,37 @@ li + li {
     radial-gradient(circle at center, rgba(255, 237, 245, 0.5) 0%, transparent 70%),
     var(--pink-25);
   box-shadow: var(--shadow-xs);
+}
+
+/* Premium mood history dot */
+.mood-history-dot {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.92;
+}
+
+.mood-history-icon {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mood-history-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.history-note-indicator {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
 }
 
 .history-note-content {
