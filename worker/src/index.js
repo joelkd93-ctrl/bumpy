@@ -369,18 +369,17 @@ async function handleSyncPost(env, request) {
     });
   }
 
-  // 2) Name votes (merge-safe upsert)
+  // 2) Name votes (authoritative replace)
+  // Client sends full name_votes map; replace cloud set to support "Start på nytt" reset.
   if (Array.isArray(nameVotes)) {
+    // Clear existing votes first so removed keys are actually deleted in cloud.
+    await client.execute(`DELETE FROM name_votes`);
+
     for (const vote of nameVotes) {
       if (!vote || !vote.name) continue;
       await client.execute({
         sql: `INSERT INTO name_votes (name, andrine_vote, partner_vote, is_custom, updated_at)
-              VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-              ON CONFLICT(name) DO UPDATE SET
-                andrine_vote = COALESCE(excluded.andrine_vote, name_votes.andrine_vote),
-                partner_vote = COALESCE(excluded.partner_vote, name_votes.partner_vote),
-                is_custom = COALESCE(excluded.is_custom, name_votes.is_custom),
-                updated_at = excluded.updated_at`,
+              VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         args: [
           vote.name,
           vote.andrine_vote || null,
