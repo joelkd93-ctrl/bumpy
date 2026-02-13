@@ -170,6 +170,36 @@ async function handleInit(env) {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
 
+    // App settings
+    `CREATE TABLE IF NOT EXISTS user_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      name TEXT DEFAULT 'Andrine',
+      partner_name TEXT,
+      due_date TEXT DEFAULT '2026-06-29',
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Baby name voting
+    `CREATE TABLE IF NOT EXISTS name_votes (
+      name TEXT PRIMARY KEY,
+      andrine_vote TEXT,
+      partner_vote TEXT,
+      is_custom INTEGER DEFAULT 0,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Matched names (names both partners love)
+    `CREATE TABLE IF NOT EXISTS matched_names (
+      name TEXT PRIMARY KEY,
+      matched_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Custom names (user-added names)
+    `CREATE TABLE IF NOT EXISTS custom_names (
+      name TEXT PRIMARY KEY,
+      added_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Add entry_date column to journal_entries if not exists (for existing databases)
     `ALTER TABLE journal_entries ADD COLUMN entry_date TEXT`,
 
@@ -289,6 +319,8 @@ async function handleSyncGet(env) {
     together,
     heartbeats,
     nameVotes,
+    matchedNamesResult,
+    customNamesResult,
     loveNotes,
     predictions,
     kicks,
@@ -301,6 +333,8 @@ async function handleSyncGet(env) {
     client.execute('SELECT * FROM weekly_questions'),
     client.execute('SELECT * FROM heartbeat_sessions ORDER BY timestamp DESC LIMIT 10'),
     client.execute('SELECT * FROM name_votes'),
+    client.execute('SELECT name FROM matched_names ORDER BY matched_at DESC').catch(() => ({ rows: [] })),
+    client.execute('SELECT name FROM custom_names ORDER BY added_at DESC').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM love_notes').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM predictions').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM kick_sessions ORDER BY start_time DESC LIMIT 20').catch(() => ({ rows: [] })),
@@ -333,6 +367,10 @@ async function handleSyncGet(env) {
   console.log(`🔽 GET /api/sync returning ${journal.rows?.length || 0} journal entries`);
   console.log(`🔽 Journal IDs:`, journal.rows?.map(r => r.id));
 
+  // Extract matched names and custom names as arrays of strings
+  const matchedNames = (matchedNamesResult.rows || []).map(row => row.name);
+  const customNames = (customNamesResult.rows || []).map(row => row.name);
+
   return json({
     success: true,
     data: {
@@ -342,6 +380,8 @@ async function handleSyncGet(env) {
       together: together.rows || [],
       heartbeats: heartbeats.rows || [],
       nameVotes: nameVotes.rows || [],
+      matchedNames,
+      customNames,
       nameVotesEpoch: Number(nameVotesEpochRow.rows?.[0]?.value || 0) || 0,
       loveNotes: loveNotes.rows || [],
       predictions: predictionsMap,
@@ -356,7 +396,7 @@ async function handleSyncPost(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { settings, journal, moods, together, nameVotes, nameVotesEpoch, resetNameVotes, predictions, kicks, deletedKickIds, auctionState } = body;
+  const { settings, journal, moods, together, nameVotes, matchedNames, customNames, nameVotesEpoch, resetNameVotes, predictions, kicks, deletedKickIds, auctionState } = body;
 
   // 1) Settings
   if (settings) {
@@ -416,6 +456,32 @@ async function handleSyncPost(env, request) {
           sql: `INSERT OR REPLACE INTO app_state (key, value, updated_at)
                 VALUES ('name_votes_epoch', ?, CURRENT_TIMESTAMP)`,
           args: [String(incomingEpoch)],
+        });
+      }
+    }
+  }
+
+  // 2b) Matched names
+  if (matchedNames !== undefined) {
+    await client.execute('DELETE FROM matched_names');
+    if (Array.isArray(matchedNames)) {
+      for (const name of matchedNames) {
+        await client.execute({
+          sql: `INSERT INTO matched_names (name, matched_at) VALUES (?, CURRENT_TIMESTAMP)`,
+          args: [name],
+        });
+      }
+    }
+  }
+
+  // 2c) Custom names
+  if (customNames !== undefined) {
+    await client.execute('DELETE FROM custom_names');
+    if (Array.isArray(customNames)) {
+      for (const name of customNames) {
+        await client.execute({
+          sql: `INSERT INTO custom_names (name, added_at) VALUES (?, CURRENT_TIMESTAMP)`,
+          args: [name],
         });
       }
     }
@@ -631,6 +697,57 @@ async function handleDeleteKick(env, id) {
 // ─────────────────────────────────────────────────────────────────────────────
 // 👥 PRESENCE & HEARTBEAT
 // ─────────────────────────────────────────────────────────────────────────────
+
+async function handleReset(env) {
+  const client = getClient(env);
+
+  const wipeSql = [
+    'DELETE FROM journal_entries',
+    'DELETE FROM mood_entries',
+    'DELETE FROM kick_sessions',
+    'DELETE FROM active_kick_session',
+    'DELETE FROM predictions',
+    'DELETE FROM name_votes',
+    'DELETE FROM matched_names',
+    'DELETE FROM custom_names',
+    'DELETE FROM auctions',
+    'DELETE FROM owned_rewards',
+    'DELETE FROM ledger',
+    'DELETE FROM app_state',
+  ];
+
+  for (const sql of wipeSql) {
+    try {
+      await client.execute(sql);
+    } catch (err) {
+      console.warn('Reset warning:', sql, err.message);
+    }
+  }
+
+  try {
+    await client.execute('DELETE FROM auction_profiles');
+    await client.execute(`INSERT OR REPLACE INTO auction_profiles (role, coins, weekly_earned, streak, last_daily_claim) VALUES ('andrine', 50, 0, 0, NULL)`);
+    await client.execute(`INSERT OR REPLACE INTO auction_profiles (role, coins, weekly_earned, streak, last_daily_claim) VALUES ('partner', 50, 0, 0, NULL)`);
+  } catch (err) {
+    console.warn('Reset warning: auction_profiles', err.message);
+  }
+
+  try {
+    await client.execute('DELETE FROM presence');
+    await client.execute('INSERT INTO presence (id, updated_at) VALUES (1, CURRENT_TIMESTAMP)');
+  } catch (err) {
+    console.warn('Reset warning: presence', err.message);
+  }
+
+  try {
+    await client.execute(`INSERT OR REPLACE INTO user_settings (id, name, partner_name, due_date, updated_at)
+      VALUES (1, 'Andrine', NULL, '2026-06-29', CURRENT_TIMESTAMP)`);
+  } catch (err) {
+    console.warn('Reset warning: user_settings', err.message);
+  }
+
+  return json({ success: true, message: 'Cloud data reset' });
+}
 
 async function ensurePresenceRow(client) {
   await client.execute('INSERT OR IGNORE INTO presence (id) VALUES (1)');
@@ -1129,6 +1246,11 @@ export default {
       if (url.pathname.startsWith('/api/kicks/') && request.method === 'DELETE') {
         const id = url.pathname.split('/').pop();
         return withCors(await handleDeleteKick(env, id), env, request);
+      }
+
+      // Reset all cloud data
+      if (url.pathname === '/api/reset' && request.method === 'POST') {
+        return withCors(await handleReset(env), env, request);
       }
 
       // Presence
