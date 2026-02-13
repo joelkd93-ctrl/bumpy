@@ -2162,67 +2162,35 @@ function renderNaughtyGame(container, cleanupStack) {
   let lastDare = null;
   let lastDareText = null;
 
-  // Inject 3D dice CSS inline so it works regardless of build/bundle state
+  // Inline dice CSS — bypasses Vite bundle cache entirely
   if (!document.getElementById('bumpy-dice-css')) {
-    const style = document.createElement('style');
-    style.id = 'bumpy-dice-css';
-    style.textContent = `
-      .naughty-dice{display:inline-block;width:32px;height:32px;perspective:120px;flex-shrink:0}
-      .dice-3d{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-20deg) rotateY(20deg);transition:transform 0.3s ease}
-      .dice-face{position:absolute;width:32px;height:32px;border-radius:7px;background:linear-gradient(145deg,#fff8f0,#f0d8c8);border:1.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),inset 0 -1px 2px rgba(0,0,0,0.1);backface-visibility:hidden}
-      .dice-dot{width:5px;height:5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8a090,#c2185b);box-shadow:0 1px 2px rgba(0,0,0,0.25);position:absolute}
-      .dice-face.front{transform:translateZ(16px)}
-      .dice-face.back{transform:rotateY(180deg) translateZ(16px)}
-      .dice-face.right{transform:rotateY(90deg) translateZ(16px)}
-      .dice-face.left{transform:rotateY(-90deg) translateZ(16px)}
-      .dice-face.top{transform:rotateX(90deg) translateZ(16px)}
-      .dice-face.bottom{transform:rotateX(-90deg) translateZ(16px)}
-      .face-1 .dice-dot{top:50%;left:50%;transform:translate(-50%,-50%)}
-      .face-2 .dice-dot:nth-child(1){top:25%;left:25%}
-      .face-2 .dice-dot:nth-child(2){bottom:25%;right:25%}
-      .face-3 .dice-dot:nth-child(1){top:22%;left:22%}
-      .face-3 .dice-dot:nth-child(2){top:50%;left:50%;transform:translate(-50%,-50%)}
-      .face-3 .dice-dot:nth-child(3){bottom:22%;right:22%}
-      .face-4 .dice-dot:nth-child(1){top:25%;left:25%}
-      .face-4 .dice-dot:nth-child(2){top:25%;right:25%}
-      .face-4 .dice-dot:nth-child(3){bottom:25%;left:25%}
-      .face-4 .dice-dot:nth-child(4){bottom:25%;right:25%}
-      .face-5 .dice-dot:nth-child(1){top:22%;left:22%}
-      .face-5 .dice-dot:nth-child(2){top:22%;right:22%}
-      .face-5 .dice-dot:nth-child(3){top:50%;left:50%;transform:translate(-50%,-50%)}
-      .face-5 .dice-dot:nth-child(4){bottom:22%;left:22%}
-      .face-5 .dice-dot:nth-child(5){bottom:22%;right:22%}
-      .face-6 .dice-dot:nth-child(1){top:20%;left:25%}
-      .face-6 .dice-dot:nth-child(2){top:20%;right:25%}
-      .face-6 .dice-dot:nth-child(3){top:50%;left:25%;transform:translateY(-50%)}
-      .face-6 .dice-dot:nth-child(4){top:50%;right:25%;transform:translateY(-50%)}
-      .face-6 .dice-dot:nth-child(5){bottom:20%;left:25%}
-      .face-6 .dice-dot:nth-child(6){bottom:20%;right:25%}
-      .naughty-dare-btn.rolling{animation:dareButtonPulse 1.2s ease}
-      .naughty-dare-btn.rolling .dice-3d{animation:dice3dSpin 1.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards}
-      .dice-3d.land-1{transform:rotateX(0deg) rotateY(0deg)}
-      .dice-3d.land-2{transform:rotateX(0deg) rotateY(-90deg)}
-      .dice-3d.land-3{transform:rotateX(-90deg) rotateY(0deg)}
-      .dice-3d.land-4{transform:rotateX(90deg) rotateY(0deg)}
-      .dice-3d.land-5{transform:rotateX(0deg) rotateY(90deg)}
-      .dice-3d.land-6{transform:rotateX(180deg) rotateY(0deg)}
-      @keyframes dice3dSpin{
-        0%{transform:rotateX(-20deg) rotateY(20deg) scale(1)}
-        15%{transform:rotateX(120deg) rotateY(180deg) scale(1.4)}
-        35%{transform:rotateX(300deg) rotateY(420deg) scale(1.5)}
-        55%{transform:rotateX(540deg) rotateY(720deg) scale(1.45)}
-        75%{transform:rotateX(660deg) rotateY(900deg) scale(1.3)}
-        88%{transform:rotateX(720deg) rotateY(1080deg) scale(1.1)}
-        100%{transform:rotateX(720deg) rotateY(1080deg) scale(1)}
-      }
-      @keyframes dareButtonPulse{
-        0%{box-shadow:0 8px 32px rgba(194,24,91,0.4)}
-        30%{box-shadow:0 12px 48px rgba(194,24,91,0.7),0 0 0 8px rgba(194,24,91,0.15)}
-        60%{box-shadow:0 10px 40px rgba(194,24,91,0.55),0 0 0 4px rgba(194,24,91,0.1)}
-        100%{box-shadow:0 8px 32px rgba(194,24,91,0.4)}
-      }
-    `;
-    document.head.appendChild(style);
+    const s = document.createElement('style');
+    s.id = 'bumpy-dice-css';
+    s.textContent = [
+      '.naughty-dice{display:inline-block!important;width:32px!important;height:32px!important;perspective:120px!important;flex-shrink:0!important}',
+      '.dice-3d{width:100%!important;height:100%!important;position:relative!important;transform-style:preserve-3d!important;transform:rotateX(-20deg) rotateY(20deg)!important;transition:transform 0.3s ease!important}',
+      '.dice-face{position:absolute!important;width:32px!important;height:32px!important;border-radius:7px!important;background:linear-gradient(145deg,#fff8f0,#f0d8c8)!important;border:1.5px solid rgba(0,0,0,0.08)!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),inset 0 -1px 2px rgba(0,0,0,0.1)!important;backface-visibility:hidden!important}',
+      '.dice-dot{width:5px!important;height:5px!important;border-radius:50%!important;background:radial-gradient(circle at 35% 35%,#e8a090,#c2185b)!important;box-shadow:0 1px 2px rgba(0,0,0,0.25)!important;position:absolute!important}',
+      '.dice-face.front{transform:translateZ(16px)!important}',
+      '.dice-face.back{transform:rotateY(180deg) translateZ(16px)!important}',
+      '.dice-face.right{transform:rotateY(90deg) translateZ(16px)!important}',
+      '.dice-face.left{transform:rotateY(-90deg) translateZ(16px)!important}',
+      '.dice-face.top{transform:rotateX(90deg) translateZ(16px)!important}',
+      '.dice-face.bottom{transform:rotateX(-90deg) translateZ(16px)!important}',
+      '.face-1 .dice-dot{top:50%;left:50%;transform:translate(-50%,-50%)}',
+      '.face-2 .dice-dot:nth-child(1){top:25%;left:25%}.face-2 .dice-dot:nth-child(2){bottom:25%;right:25%}',
+      '.face-3 .dice-dot:nth-child(1){top:22%;left:22%}.face-3 .dice-dot:nth-child(2){top:50%;left:50%;transform:translate(-50%,-50%)}.face-3 .dice-dot:nth-child(3){bottom:22%;right:22%}',
+      '.face-4 .dice-dot:nth-child(1){top:25%;left:25%}.face-4 .dice-dot:nth-child(2){top:25%;right:25%}.face-4 .dice-dot:nth-child(3){bottom:25%;left:25%}.face-4 .dice-dot:nth-child(4){bottom:25%;right:25%}',
+      '.face-5 .dice-dot:nth-child(1){top:22%;left:22%}.face-5 .dice-dot:nth-child(2){top:22%;right:22%}.face-5 .dice-dot:nth-child(3){top:50%;left:50%;transform:translate(-50%,-50%)}.face-5 .dice-dot:nth-child(4){bottom:22%;left:22%}.face-5 .dice-dot:nth-child(5){bottom:22%;right:22%}',
+      '.face-6 .dice-dot:nth-child(1){top:20%;left:25%}.face-6 .dice-dot:nth-child(2){top:20%;right:25%}.face-6 .dice-dot:nth-child(3){top:50%;left:25%;transform:translateY(-50%)}.face-6 .dice-dot:nth-child(4){top:50%;right:25%;transform:translateY(-50%)}.face-6 .dice-dot:nth-child(5){bottom:20%;left:25%}.face-6 .dice-dot:nth-child(6){bottom:20%;right:25%}',
+      '.naughty-dare-btn.rolling{animation:dareButtonPulse 1.2s ease!important}',
+      '.naughty-dare-btn.rolling .dice-3d{animation:dice3dSpin 1.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards!important}',
+      '.dice-3d.land-1{transform:rotateX(0deg) rotateY(0deg)!important}.dice-3d.land-2{transform:rotateX(0deg) rotateY(-90deg)!important}.dice-3d.land-3{transform:rotateX(-90deg) rotateY(0deg)!important}.dice-3d.land-4{transform:rotateX(90deg) rotateY(0deg)!important}.dice-3d.land-5{transform:rotateX(0deg) rotateY(90deg)!important}.dice-3d.land-6{transform:rotateX(180deg) rotateY(0deg)!important}',
+      '@keyframes dice3dSpin{0%{transform:rotateX(-20deg) rotateY(20deg) scale(1)}15%{transform:rotateX(120deg) rotateY(180deg) scale(1.4)}35%{transform:rotateX(300deg) rotateY(420deg) scale(1.5)}55%{transform:rotateX(540deg) rotateY(720deg) scale(1.45)}75%{transform:rotateX(660deg) rotateY(900deg) scale(1.3)}88%{transform:rotateX(720deg) rotateY(1080deg) scale(1.1)}100%{transform:rotateX(720deg) rotateY(1080deg) scale(1)}}',
+      '@keyframes dareButtonPulse{0%{box-shadow:0 8px 32px rgba(194,24,91,0.4)}30%{box-shadow:0 12px 48px rgba(194,24,91,0.7),0 0 0 8px rgba(194,24,91,0.15)}60%{box-shadow:0 10px 40px rgba(194,24,91,0.55),0 0 0 4px rgba(194,24,91,0.1)}100%{box-shadow:0 8px 32px rgba(194,24,91,0.4)}}',
+    ].join('');
+    document.head.appendChild(s);
+    console.log('🎲 Dice CSS injected');
   }
 
   function render() {
