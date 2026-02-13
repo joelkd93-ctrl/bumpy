@@ -1313,6 +1313,7 @@ const SEED_AUCTION_REWARDS = [
 
 function renderAuctionGame(container, cleanupStack) {
   const role = localStorage.getItem('who_am_i') || 'andrine';
+  const audit = (...args) => console.log('[AUCTION_AUDIT]', ...args);
 
   // Track last save time to prevent overwriting fresh changes
   let lastSaveTime = 0;
@@ -1349,6 +1350,15 @@ function renderAuctionGame(container, cleanupStack) {
   const saveAndRender = () => {
     lastSaveTime = Date.now(); // Track when we saved
     state.lastModified = lastSaveTime; // Timestamp the state
+
+    audit('saveAndRender', {
+      role,
+      activeProfileId: state.activeProfileId,
+      andrineCoins: state.profiles.andrine.coins,
+      partnerCoins: state.profiles.partner.coins,
+      ownedItems: state.ownedRewards.length,
+      lastModified: state.lastModified
+    });
 
     console.log('💾 Saving auction state:', {
       andrineCoins: state.profiles.andrine.coins,
@@ -1531,6 +1541,7 @@ function renderAuctionGame(container, cleanupStack) {
       const mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       const isLeader = auc.highestBidder === user;
       const minBid = (auc.highestBid || auc.startPrice) + auc.minIncrement;
+    audit('bid:guards', { aucTitle: auc.title, highestBid: auc.highestBid || auc.startPrice, minBid, bidderCoins: state.profiles[user]?.coins || 0, highestBidder: auc.highestBidder, endTs: auc.endTs, settled: auc.settled });
       const canAfford = profile.coins >= minBid;
 
       return `
@@ -1698,6 +1709,7 @@ function renderAuctionGame(container, cleanupStack) {
       }
 
       const oldCoins = state.profiles[active].coins;
+      audit('dailyClaim:start', { role, active, oldCoins, today, lastClaim });
       console.log(`💰 Daily claim for ${active}: ${oldCoins} -> ${oldCoins + 10} coins`);
 
       // Disable button immediately
@@ -1711,6 +1723,7 @@ function renderAuctionGame(container, cleanupStack) {
       // Update state
       addLedger(state, 'DAILY_CLAIM', active, 10, { desc: 'Daglig bonus' });
       state.profiles[active].coins += 10;
+      audit('dailyClaim:applied', { active, newCoins: state.profiles[active].coins });
 
       saveAndRender();
       if (navigator.vibrate) navigator.vibrate(50);
@@ -1776,6 +1789,7 @@ function renderAuctionGame(container, cleanupStack) {
   };
 
   window.buyShopItem = (user, itemId) => {
+    audit('buy:start', { role, actingUser: user, itemId, activeProfileId: state.activeProfileId, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
     const item = state.shopItems.find(i => i.id === itemId);
     if (!item || state.profiles[user].coins < item.cost) return;
 
@@ -1833,6 +1847,7 @@ function renderAuctionGame(container, cleanupStack) {
     // Add to inventory
     // Determine actual payer: if BEGGE item was split-paid, mark as BEGGE, otherwise mark as buyer
     const actualPayer = (item.payer === 'BEGGE' && item.requiresBothConfirm) ? 'BEGGE' : user;
+    audit('buy:afterDeduct', { actingUser: user, itemId, itemTitle: item.title, payer: actualPayer, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
 
     state.ownedRewards.push({
       id: crypto.randomUUID(),
@@ -1862,6 +1877,7 @@ function renderAuctionGame(container, cleanupStack) {
   };
 
   window.placeBid = (user, aucId, amount) => {
+    audit('bid:start', { role, actingUser: user, aucId, amount, activeProfileId: state.activeProfileId, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
     const aucIdx = state.auctions.findIndex(a => a.id === aucId);
     if (aucIdx < 0) return;
     const auc = state.auctions[aucIdx];
@@ -1871,6 +1887,7 @@ function renderAuctionGame(container, cleanupStack) {
     if (auc.highestBidder === user) return;
 
     const minBid = (auc.highestBid || auc.startPrice) + auc.minIncrement;
+    audit('bid:guards', { aucTitle: auc.title, highestBid: auc.highestBid || auc.startPrice, minBid, bidderCoins: state.profiles[user]?.coins || 0, highestBidder: auc.highestBidder, endTs: auc.endTs, settled: auc.settled });
     if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < minBid) return;
     if ((state.profiles[user]?.coins || 0) < amount) return;
 
@@ -1887,12 +1904,14 @@ function renderAuctionGame(container, cleanupStack) {
     state.auctions[aucIdx].highestBid = amount;
     state.auctions[aucIdx].highestBidder = user;
     state.auctions[aucIdx].updatedTs = new Date().toISOString();
+    audit('bid:applied', { actingUser: user, aucId, amount, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins, newLeader: state.auctions[aucIdx].highestBidder });
 
     saveAndRender();
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
   window.redeemItem = (user, itemId) => {
+    audit('redeem:start', { role, actingUser: user, itemId });
     const itemIdx = state.ownedRewards.findIndex(i => i.id === itemId);
     if (itemIdx < 0) return;
     const item = state.ownedRewards[itemIdx];
@@ -1937,6 +1956,7 @@ function renderAuctionGame(container, cleanupStack) {
     // Check if cloud has new auction state (stored in temp key to avoid race conditions)
     const cloudState = storage.get('_auction_cloud_temp', null);
     if (cloudState) {
+      audit('pull:cloudState', { incomingLastModified: cloudState.lastModified || null, localLastModified: state.lastModified || null, incomingAndrineCoins: cloudState?.profiles?.andrine?.coins, incomingPartnerCoins: cloudState?.profiles?.partner?.coins, localAndrineCoins: state?.profiles?.andrine?.coins, localPartnerCoins: state?.profiles?.partner?.coins });
       // Clear temp key immediately
       storage.remove('_auction_cloud_temp');
 
@@ -1952,6 +1972,7 @@ function renderAuctionGame(container, cleanupStack) {
 
         // Update state object in-place (don't replace reference)
         Object.assign(state, cloudState);
+        audit('pull:appliedCloudState', { applied: true, newLastModified: state.lastModified, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
       } else {
         console.log('⏭️ Ignoring stale cloud state', {
           cloudTime: cloudState.lastModified ? new Date(cloudState.lastModified).toLocaleTimeString() : 'none',
@@ -2389,5 +2410,11 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
+
+
+
+
+
 
 
