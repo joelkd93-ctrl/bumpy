@@ -1763,13 +1763,13 @@ function renderAuctionGame(container, cleanupStack) {
 
     // Reset Auction
     container.querySelector('#reset-auction')?.addEventListener('click', async () => {
-      const confirmed = confirm('Er du SIKKER? Dette sletter alle coins, kjA,p og auksjonsoversikt. Kan ikke angres!');
+      const confirmed = confirm('Er du SIKKER? Dette sletter alle coins, kjøp og auksjonsoversikt. Kan ikke angres!');
       if (!confirmed) return;
       const result = await auctionRequest({ type: 'reset', role });
       if (!result?.success) return;
       await refreshFromServer();
       renderUI();
-      alert('?o. Alt er nullstilt! Begge har 50 coins.');
+      alert('✅ Alt er nullstilt! Begge har 50 coins.');
     });
   };
 
@@ -1779,7 +1779,7 @@ function renderAuctionGame(container, cleanupStack) {
 
   window.handleSoftTask = async (user, taskId, amount) => {
     if (user !== role) return;
-    const result = await auctionRequest({ type: 'task', role: user, taskId, amount });
+    const result = await auctionRequest({ type: 'task', role: user, taskId });
     if (!result?.success) return;
     await refreshFromServer();
     renderUI();

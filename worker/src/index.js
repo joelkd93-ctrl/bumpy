@@ -970,6 +970,64 @@ const AUCTION_SEED_ITEMS = [
   { title: 'Hjemme-spa Pakke', description: 'Bad, massasje, ansiktsmaske - alt sammen.', category: 'Luksus', start: 120, inc: 15 },
 ];
 
+const AUCTION_TASK_REWARDS = {
+  hug: 3,
+  letter: 5,
+  tidy: 4,
+};
+
+const AUCTION_SHOP_RULES = {
+  item_back_massage: { title: '15 min Ryggmassasje', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_foot_massage: { title: 'Fotmassasje', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_head_scratch: { title: 'Hodebunnskos', cost: 10, payer: 'BEGGE', requiresBothConfirm: false },
+  item_scratch_back: { title: 'Kile på ryggen', cost: 10, payer: 'BEGGE', requiresBothConfirm: false },
+  item_movie_pick: { title: 'Velg Filmkveld', cost: 30, payer: 'BEGGE', requiresBothConfirm: false },
+  item_series_ep: { title: 'Én episode til', cost: 10, payer: 'BEGGE', requiresBothConfirm: false },
+  item_back_scratch_20: { title: '20 min Rygge-kløing', cost: 35, payer: 'BEGGE', requiresBothConfirm: false },
+  item_game_night: { title: 'Spillkveld av Ditt Valg', cost: 45, payer: 'BEGGE', requiresBothConfirm: false },
+  item_music_choice: { title: 'Velg Musikk i Bilen', cost: 25, payer: 'BEGGE', requiresBothConfirm: false },
+  item_breakfast_bed: { title: 'Frokost på senga', cost: 50, payer: 'BEGGE', requiresBothConfirm: false },
+  item_dinner_chef: { title: 'Du lager middag', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+  item_water_fetch: { title: 'Hente vann', cost: 5, payer: 'BEGGE', requiresBothConfirm: false },
+  item_snack_run: { title: 'Snack Levering', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_coffee_bed: { title: 'Kaffe på senga', cost: 10, payer: 'BEGGE', requiresBothConfirm: false },
+  item_pizza_night: { title: 'Pizza-kveld', cost: 30, payer: 'BEGGE', requiresBothConfirm: true },
+  item_takeout: { title: 'Takeaway etter Eget Valg', cost: 70, payer: 'BEGGE', requiresBothConfirm: false },
+  item_dessert: { title: 'Hjemmelaget Dessert', cost: 55, payer: 'BEGGE', requiresBothConfirm: false },
+  item_champagne_breakfast: { title: 'Champagne-frokost', cost: 120, payer: 'BEGGE', requiresBothConfirm: false },
+  item_weekend_brunch: { title: 'Weekend Brunch-laging', cost: 95, payer: 'BEGGE', requiresBothConfirm: false },
+  item_date_night_luxury: { title: 'Luksus Date Night', cost: 150, payer: 'BEGGE', requiresBothConfirm: false },
+  item_date_night: { title: 'Date Night', cost: 50, payer: 'BEGGE', requiresBothConfirm: true },
+  item_walk_together: { title: 'Gåtur sammen', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_board_games: { title: 'Brettspillkveld', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+  item_cinema: { title: 'Kinotur', cost: 60, payer: 'BEGGE', requiresBothConfirm: false },
+  item_mini_date: { title: 'Minidate hjemme', cost: 25, payer: 'BEGGE', requiresBothConfirm: false },
+  item_photo_shoot: { title: 'Par-Fotoshoot', cost: 180, payer: 'BEGGE', requiresBothConfirm: false },
+  item_stargazing: { title: 'Stjernekikking-date', cost: 85, payer: 'BEGGE', requiresBothConfirm: false },
+  item_coffee_date_out: { title: 'Kaffe-date ute', cost: 65, payer: 'BEGGE', requiresBothConfirm: false },
+  item_dishes: { title: 'Ta oppvasken', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+  item_trash_out: { title: 'Gå ut med søpla', cost: 10, payer: 'BEGGE', requiresBothConfirm: false },
+  item_diaper_free: { title: '1 bleie-fritak', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_kitchen_clean: { title: 'Rydd kjøkkenet', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+  item_laundry_fold: { title: 'Brette klær', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+  item_sleep_in: { title: 'Sove lenge', cost: 40, payer: 'BEGGE', requiresBothConfirm: false },
+  item_chore_pass: { title: 'Slipp unna Oppvask', cost: 40, payer: 'BEGGE', requiresBothConfirm: false },
+  item_lazy_day: { title: 'Ingen Forventninger-dag', cost: 90, payer: 'BEGGE', requiresBothConfirm: false },
+  item_no_phone: { title: 'Telefonfri Kveld', cost: 110, payer: 'BEGGE', requiresBothConfirm: false },
+  item_small_gift: { title: 'Liten gave', cost: 30, payer: 'BEGGE', requiresBothConfirm: false },
+  item_surprise_gift: { title: 'Liten Overraskelse', cost: 80, payer: 'BEGGE', requiresBothConfirm: false },
+  item_flowers: { title: 'Blomster', cost: 35, payer: 'BEGGE', requiresBothConfirm: false },
+  item_chocolate: { title: 'Sjokoladeplate', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_love_letter: { title: 'Kjærlighetsbrev', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+  item_massage_15: { title: '15 min Massasje', cost: 60, payer: 'BEGGE', requiresBothConfirm: false },
+  item_spa_night: { title: 'Hjemmespa-kveld', cost: 100, payer: 'BEGGE', requiresBothConfirm: false },
+  item_baby_name_veto: { title: 'Navn Veto-kort', cost: 50, payer: 'BEGGE', requiresBothConfirm: false },
+  item_name_truce: { title: 'Navne-fred', cost: 200, payer: 'BEGGE', requiresBothConfirm: false },
+  item_pack_bag: { title: 'Pakke Fødebag', cost: 15, payer: 'BEGGE', requiresBothConfirm: false },
+  item_belly_oil: { title: 'Smøre magen', cost: 10, payer: 'BEGGE', requiresBothConfirm: false },
+  item_playlist: { title: 'Føde-spilleliste', cost: 20, payer: 'BEGGE', requiresBothConfirm: false },
+};
+
 async function ensureAuctionBootstrap(client) {
   await client.execute(`INSERT OR IGNORE INTO auction_profiles (role, coins, weekly_earned, streak) VALUES ('andrine', 50, 0, 0)`);
   await client.execute(`INSERT OR IGNORE INTO auction_profiles (role, coins, weekly_earned, streak) VALUES ('partner', 50, 0, 0)`);
@@ -1041,6 +1099,9 @@ async function handleAuction(env, request) {
     if (!body) return json({ success: false, error: 'Invalid JSON' }, { status: 400 });
 
     const { role, type } = body;
+    if (role !== 'andrine' && role !== 'partner') {
+      return json({ success: false, error: 'Invalid role' }, { status: 400 });
+    }
 
     // Award coins
     if (type === 'earn') {
@@ -1063,55 +1124,73 @@ async function handleAuction(env, request) {
     // Place bid
     if (type === 'bid') {
       const { auctionId, amount } = body;
-      
-      // Get current auction
-      const auctionResult = await client.execute({
-        sql: `SELECT * FROM auctions WHERE id = ?`,
-        args: [auctionId],
-      });
-      const auction = auctionResult.rows?.[0];
-      if (!auction) return json({ success: false, error: 'Auction not found' }, { status: 404 });
-      if (auction.settled) return json({ success: false, error: 'Auction settled' }, { status: 400 });
-      if (new Date(auction.end_time).getTime() <= Date.now()) return json({ success: false, error: 'Auction ended' }, { status: 400 });
-      if (auction.highest_bidder === role) return json({ success: false, error: 'Already leading' }, { status: 400 });
-
-      const minBid = (auction.highest_bid || auction.start_price) + auction.min_increment;
-      if (!Number.isFinite(amount) || amount < minBid) {
-        return json({ success: false, error: 'Bid too low', minBid }, { status: 400 });
+      if (!auctionId || !Number.isFinite(amount) || amount <= 0) {
+        return json({ success: false, error: 'Invalid bid payload' }, { status: 400 });
       }
 
-      // Get user coins
-      const profileResult = await client.execute({
-        sql: `SELECT coins FROM auction_profiles WHERE role = ?`,
-        args: [role],
-      });
-      const userCoins = profileResult.rows?.[0]?.coins || 0;
-      
-      if (amount > userCoins) {
-        return json({ success: false, error: 'Not enough coins' }, { status: 400 });
-      }
-
-      // Refund previous bidder
-      if (auction.highest_bidder) {
-        await client.execute({
-          sql: `UPDATE auction_profiles SET coins = coins + ? WHERE role = ?`,
-          args: [auction.highest_bid, auction.highest_bidder],
+      await client.execute('BEGIN IMMEDIATE');
+      try {
+        const auctionResult = await client.execute({
+          sql: `SELECT * FROM auctions WHERE id = ?`,
+          args: [auctionId],
         });
+        const auction = auctionResult.rows?.[0];
+        if (!auction) {
+          await client.execute('ROLLBACK');
+          return json({ success: false, error: 'Auction not found' }, { status: 404 });
+        }
+        if (auction.settled) {
+          await client.execute('ROLLBACK');
+          return json({ success: false, error: 'Auction settled' }, { status: 400 });
+        }
+        if (new Date(auction.end_time).getTime() <= Date.now()) {
+          await client.execute('ROLLBACK');
+          return json({ success: false, error: 'Auction ended' }, { status: 400 });
+        }
+        if (auction.highest_bidder === role) {
+          await client.execute('ROLLBACK');
+          return json({ success: false, error: 'Already leading' }, { status: 400 });
+        }
+
+        const minBid = (auction.highest_bid || auction.start_price) + auction.min_increment;
+        if (amount < minBid) {
+          await client.execute('ROLLBACK');
+          return json({ success: false, error: 'Bid too low', minBid }, { status: 400 });
+        }
+
+        const profileResult = await client.execute({
+          sql: `SELECT coins FROM auction_profiles WHERE role = ?`,
+          args: [role],
+        });
+        const userCoins = profileResult.rows?.[0]?.coins || 0;
+        if (amount > userCoins) {
+          await client.execute('ROLLBACK');
+          return json({ success: false, error: 'Not enough coins' }, { status: 400 });
+        }
+
+        if (auction.highest_bidder) {
+          await client.execute({
+            sql: `UPDATE auction_profiles SET coins = coins + ? WHERE role = ?`,
+            args: [auction.highest_bid, auction.highest_bidder],
+          });
+        }
+
+        await client.execute({
+          sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`,
+          args: [amount, role],
+        });
+
+        await client.execute({
+          sql: `UPDATE auctions SET highest_bid = ?, highest_bidder = ? WHERE id = ?`,
+          args: [amount, role, auctionId],
+        });
+
+        await client.execute('COMMIT');
+        return json({ success: true });
+      } catch (err) {
+        await client.execute('ROLLBACK').catch(() => {});
+        throw err;
       }
-
-      // Deduct from new bidder
-      await client.execute({
-        sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`,
-        args: [amount, role],
-      });
-
-      // Update auction
-      await client.execute({
-        sql: `UPDATE auctions SET highest_bid = ?, highest_bidder = ? WHERE id = ?`,
-        args: [amount, role, auctionId],
-      });
-
-      return json({ success: true });
     }
 
     // Daily claim
@@ -1157,8 +1236,10 @@ async function handleAuction(env, request) {
     }
 
     if (type === 'task') {
-      const { taskId, amount } = body;
+      const { taskId } = body;
+      const amount = AUCTION_TASK_REWARDS[taskId];
       if (!taskId || !Number.isFinite(amount)) return json({ success: false, error: 'Invalid task payload' }, { status: 400 });
+
       const today = new Date().toISOString().split('T')[0];
       const claimKey = `auction_task_${role}_${today}_${taskId}`;
 
@@ -1176,52 +1257,68 @@ async function handleAuction(env, request) {
               VALUES (?, 'TASK', ?, ?, ?, CURRENT_TIMESTAMP)`,
         args: [ledgerId, role, amount, JSON.stringify({ desc: taskId })],
       });
-      return json({ success: true });
+      return json({ success: true, amount });
     }
 
     if (type === 'buy') {
-      const { itemId, title, cost, payer, requiresBothConfirm } = body;
-      if (!itemId || !title || !Number.isFinite(cost)) return json({ success: false, error: 'Invalid buy payload' }, { status: 400 });
+      const { itemId } = body;
+      const item = AUCTION_SHOP_RULES[itemId];
+      if (!itemId || !item) return json({ success: false, error: 'Unknown shop item' }, { status: 400 });
 
-      const splitPay = payer === 'BEGGE' && !!requiresBothConfirm;
+      const title = item.title;
+      const cost = item.cost;
+      const payer = item.payer;
+      const requiresBothConfirm = !!item.requiresBothConfirm;
+      const splitPay = payer === 'BEGGE' && requiresBothConfirm;
 
-      if (splitPay) {
-        const other = role === 'andrine' ? 'partner' : 'andrine';
-        const cost1 = role === 'andrine' ? Math.floor(cost / 2) : Math.ceil(cost / 2);
-        const cost2 = cost - cost1;
+      await client.execute('BEGIN IMMEDIATE');
+      try {
+        if (splitPay) {
+          const other = role === 'andrine' ? 'partner' : 'andrine';
+          const cost1 = role === 'andrine' ? Math.floor(cost / 2) : Math.ceil(cost / 2);
+          const cost2 = cost - cost1;
 
-        const balances = await client.execute(`SELECT role, coins FROM auction_profiles WHERE role IN ('andrine','partner')`);
-        const map = Object.fromEntries((balances.rows || []).map(r => [r.role, r.coins]));
-        if ((map[role] || 0) < cost1 || (map[other] || 0) < cost2) {
-          return json({ success: false, error: 'Not enough coins for split' }, { status: 400 });
+          const balances = await client.execute(`SELECT role, coins FROM auction_profiles WHERE role IN ('andrine','partner')`);
+          const map = Object.fromEntries((balances.rows || []).map(r => [r.role, r.coins]));
+          if ((map[role] || 0) < cost1 || (map[other] || 0) < cost2) {
+            await client.execute('ROLLBACK');
+            return json({ success: false, error: 'Not enough coins for split' }, { status: 400 });
+          }
+
+          await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost1, role] });
+          await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost2, other] });
+
+          const l1 = `ledger_${Date.now()}_a`;
+          const l2 = `ledger_${Date.now()}_b`;
+          await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l1, role, -cost1, JSON.stringify({ desc: `Spleis: ${title}` })] });
+          await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l2, other, -cost2, JSON.stringify({ desc: `Spleis: ${title}` })] });
+        } else {
+          const r = await client.execute({ sql: `SELECT coins FROM auction_profiles WHERE role = ?`, args: [role] });
+          const coins = r.rows?.[0]?.coins || 0;
+          if (coins < cost) {
+            await client.execute('ROLLBACK');
+            return json({ success: false, error: 'Not enough coins' }, { status: 400 });
+          }
+          await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost, role] });
+          const l = `ledger_${Date.now()}_buy`;
+          await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l, role, -cost, JSON.stringify({ desc: `Kjøp: ${title}` })] });
         }
 
-        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost1, role] });
-        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost2, other] });
+        const rewardId = `reward_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        const confirmations = requiresBothConfirm ? JSON.stringify({ [role]: true }) : JSON.stringify({});
+        const rewardPayer = splitPay ? 'BEGGE' : role;
+        await client.execute({
+          sql: `INSERT INTO owned_rewards (id, title, source, payer, status, confirmations, acquired_at)
+                VALUES (?, ?, 'SHOP', ?, 'READY', ?, CURRENT_TIMESTAMP)`,
+          args: [rewardId, title, rewardPayer, confirmations],
+        });
 
-        const l1 = `ledger_${Date.now()}_a`;
-        const l2 = `ledger_${Date.now()}_b`;
-        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l1, role, -cost1, JSON.stringify({ desc: `Spleis: ${title}` })] });
-        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY_SPLIT', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l2, other, -cost2, JSON.stringify({ desc: `Spleis: ${title}` })] });
-      } else {
-        const r = await client.execute({ sql: `SELECT coins FROM auction_profiles WHERE role = ?`, args: [role] });
-        const coins = r.rows?.[0]?.coins || 0;
-        if (coins < cost) return json({ success: false, error: 'Not enough coins' }, { status: 400 });
-        await client.execute({ sql: `UPDATE auction_profiles SET coins = coins - ? WHERE role = ?`, args: [cost, role] });
-        const l = `ledger_${Date.now()}_buy`;
-        await client.execute({ sql: `INSERT INTO ledger (id, kind, profile_id, amount, meta, created_at) VALUES (?, 'BUY', ?, ?, ?, CURRENT_TIMESTAMP)`, args: [l, role, -cost, JSON.stringify({ desc: `Kjop: ${title}` })] });
+        await client.execute('COMMIT');
+        return json({ success: true, id: rewardId });
+      } catch (err) {
+        await client.execute('ROLLBACK').catch(() => {});
+        throw err;
       }
-
-      const rewardId = `reward_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-      const confirmations = requiresBothConfirm ? JSON.stringify({ [role]: true }) : JSON.stringify({});
-      const rewardPayer = splitPay ? 'BEGGE' : role;
-      await client.execute({
-        sql: `INSERT INTO owned_rewards (id, title, source, payer, status, confirmations, acquired_at)
-              VALUES (?, ?, 'SHOP', ?, 'READY', ?, CURRENT_TIMESTAMP)`,
-        args: [rewardId, title, rewardPayer, confirmations],
-      });
-
-      return json({ success: true, id: rewardId });
     }
 
     if (type === 'redeem') {
