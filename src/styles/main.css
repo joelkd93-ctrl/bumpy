@@ -1717,7 +1717,8 @@ li + li {
   height: 60px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.10));
 }
 
 .game-chip {
