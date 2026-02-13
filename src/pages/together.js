@@ -1379,10 +1379,10 @@ function renderAuctionGame(container, cleanupStack) {
 
   // 4. MAIN RENDER FUNCTION
   const renderUI = () => {
-    // Determine active wallet
-    const activeUser = state.activeProfileId; // 'andrine' or 'partner'
+    // Lock wallet/actions to current identity on Sammen page
+    state.activeProfileId = role;
+    const activeUser = role;
     const profile = state.profiles[activeUser];
-    const isMe = role === activeUser;
 
     container.innerHTML = `
       <div class="auction-page ios-scroll-lock">
@@ -1390,11 +1390,8 @@ function renderAuctionGame(container, cleanupStack) {
         <div class="text-center mb-6 pt-2">
           <div class="flex justify-center mb-4">
              <div class="wallet-switcher">
-               <button class="switch-btn ${activeUser === 'andrine' ? 'active-andrine' : ''}" id="switch-andrine">
-                 Andrine 💗
-               </button>
-               <button class="switch-btn ${activeUser === 'partner' ? 'active-partner' : ''}" id="switch-partner">
-                 Partner 💙
+               <button class="switch-btn ${activeUser === 'andrine' ? 'active-andrine' : 'active-partner'}" disabled>
+                 ${activeUser === 'andrine' ? "Andrine dY'-" : "Partner dY'T"}
                </button>
              </div>
           </div>
@@ -1676,16 +1673,6 @@ function renderAuctionGame(container, cleanupStack) {
 
   // 5. ATTACH LISTENERS
   const attachEventListeners = () => {
-    // Switcher
-    container.querySelector('#switch-andrine')?.addEventListener('click', () => {
-      state.activeProfileId = 'andrine';
-      saveAndRender();
-    });
-    container.querySelector('#switch-partner')?.addEventListener('click', () => {
-      state.activeProfileId = 'partner';
-      saveAndRender();
-    });
-
     // Nav
     container.querySelectorAll('.nav-tab').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -1767,6 +1754,7 @@ function renderAuctionGame(container, cleanupStack) {
   window.setInvTab = (tab) => { inventoryDetail = tab; renderUI(); };
 
   window.handleSoftTask = (user, taskId, amount) => {
+    if (user !== role) return;
     const today = new Date().toDateString();
     const key = `task_${taskId}_${user}_${today}`;
     if (storage.get(key, false)) {
@@ -1789,6 +1777,7 @@ function renderAuctionGame(container, cleanupStack) {
   };
 
   window.buyShopItem = (user, itemId) => {
+    if (user !== role) return;
     audit('buy:start', { role, actingUser: user, itemId, activeProfileId: state.activeProfileId, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
     const item = state.shopItems.find(i => i.id === itemId);
     if (!item || state.profiles[user].coins < item.cost) return;
@@ -1877,6 +1866,7 @@ function renderAuctionGame(container, cleanupStack) {
   };
 
   window.placeBid = (user, aucId, amount) => {
+    if (user !== role) return;
     audit('bid:start', { role, actingUser: user, aucId, amount, activeProfileId: state.activeProfileId, andrineCoins: state.profiles.andrine.coins, partnerCoins: state.profiles.partner.coins });
     const aucIdx = state.auctions.findIndex(a => a.id === aucId);
     if (aucIdx < 0) return;
@@ -1911,6 +1901,7 @@ function renderAuctionGame(container, cleanupStack) {
   };
 
   window.redeemItem = (user, itemId) => {
+    if (user !== role) return;
     audit('redeem:start', { role, actingUser: user, itemId });
     const itemIdx = state.ownedRewards.findIndex(i => i.id === itemId);
     if (itemIdx < 0) return;
@@ -2410,6 +2401,7 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
 
 
 
