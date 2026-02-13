@@ -1794,7 +1794,7 @@ function renderAuctionGame(container, cleanupStack) {
     const btn = document.querySelector(`button[onclick*="${itemId}"]`);
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'KjA,per... �?3';
+      btn.textContent = 'Kj\u00F8per...';
     }
 
     const result = await auctionRequest({
@@ -1810,13 +1810,13 @@ function renderAuctionGame(container, cleanupStack) {
     if (!result?.success) {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'KjA,p';
+        btn.textContent = 'Kj\u00F8p';
       }
       return;
     }
 
     if (btn) {
-      btn.textContent = `✅ Kj${String.fromCharCode(248)}pt!`;
+      btn.textContent = 'Kj\u00F8pt!';
       btn.style.background = '#4ade80';
     }
 
@@ -2276,6 +2276,8 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
+
 
 
 
