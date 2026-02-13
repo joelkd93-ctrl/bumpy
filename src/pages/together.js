@@ -2112,6 +2112,50 @@ const NAUGHTY_LEVEL_META = {
   extra:   { emoji: '😈', label: 'Extra Naughty', color: '#6A1B9A' },
 };
 
+function pickWeighted(items) {
+  const total = items.reduce((sum, i) => sum + (i.weight || 0), 0);
+  if (!total) return items[0]?.value;
+  let r = Math.random() * total;
+  for (const item of items) {
+    r -= item.weight || 0;
+    if (r <= 0) return item.value;
+  }
+  return items[items.length - 1]?.value;
+}
+
+function generateNaughtyDare({ selectedLevel, activeProps, lastDareText }) {
+  const level = selectedLevel && selectedLevel !== 'random'
+    ? selectedLevel
+    : pickWeighted([
+        { value: 'soft', weight: 3 },
+        { value: 'naughty', weight: 3 },
+        { value: 'bold', weight: 2 },
+        { value: 'extra', weight: 1 },
+      ]);
+
+  const baseDares = NAUGHTY_DARES[level] || [];
+  const filteredDares = baseDares.filter(d => d !== lastDareText);
+  const darePool = filteredDares.length ? filteredDares : baseDares;
+  const dare = darePool[Math.floor(Math.random() * darePool.length)];
+
+  const selectedPropPool = activeProps.size > 0 ? [...activeProps] : null;
+  const weightedProps = selectedPropPool
+    ? selectedPropPool.map(v => ({ value: v, weight: 1 }))
+    : [
+        { value: 'Blindfold 🙈', weight: 3 },
+        { value: 'Wrist Cuffs ⛓️', weight: 2 },
+        { value: 'Teaser 🪶', weight: 2 },
+        { value: 'Silk Scarf 🎀', weight: 2 },
+        { value: 'Vibrator 💜', weight: 2 },
+        { value: 'Massage Oil 💆', weight: 2 },
+        { value: 'Lube ✨', weight: 2 },
+        { value: 'Surprise Toy 🎁', weight: 1 },
+      ];
+
+  const prop = pickWeighted(weightedProps);
+  return { dare, prop, level, levelLabel: NAUGHTY_LEVEL_META[level]?.label || 'Naughty' };
+}
+
 function renderNaughtyGame(container, cleanupStack) {
   let selectedLevel = null;
   let activeProps = new Set();
@@ -2220,28 +2264,23 @@ function renderNaughtyGame(container, cleanupStack) {
     });
 
     // Dare
-    container.querySelector('#naughty-dare-btn')?.addEventListener('click', () => {
+    container.querySelector('#naughty-dare-btn')?.addEventListener('click', (e) => {
       if (window.haptic) window.haptic.medium();
-      const dice = container.querySelector('#naughty-dice');
-      if (dice) {
-        dice.style.animation = 'none';
-        dice.offsetHeight; // reflow
-        dice.style.animation = 'naughtyDiceSpin 0.6s cubic-bezier(0.36,0.07,0.19,0.97)';
-      }
-      const all = Object.keys(NAUGHTY_LEVEL_META);
-      const lvl = selectedLevel || all[Math.floor(Math.random() * all.length)];
-      const baseDares = NAUGHTY_DARES[lvl] || [];
-      const filteredDares = baseDares.filter(d => d !== lastDareText);
-      const dares = filteredDares.length > 0 ? filteredDares : baseDares;
-      const dare = dares[Math.floor(Math.random() * dares.length)];
-      const allProps = activeProps.size > 0
-        ? [...activeProps]
-        : [...NAUGHTY_PROPS.control, ...NAUGHTY_PROPS.pleasure];
-      const prop = allProps[Math.floor(Math.random() * allProps.length)];
-      lastDare = { dare, prop, level: lvl, levelLabel: NAUGHTY_LEVEL_META[lvl].label };
-      lastDareText = dare;
-      console.log('😈 Naughty dare roll:', { lvl, dare });
-      render();
+
+      const dareBtn = e.currentTarget;
+      dareBtn.classList.remove('rolling');
+      // force replay
+      void dareBtn.offsetWidth;
+      dareBtn.classList.add('rolling');
+
+      const rollTimeout = setTimeout(() => {
+        const result = generateNaughtyDare({ selectedLevel, activeProps, lastDareText });
+        lastDare = result;
+        lastDareText = result.dare;
+        console.log('😈 Naughty dare roll:', { lvl: result.level, dare: result.dare });
+        render();
+      }, 420);
+      cleanupStack.push(() => clearTimeout(rollTimeout));
     });
 
     // Save
