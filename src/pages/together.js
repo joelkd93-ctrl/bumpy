@@ -1790,6 +1790,13 @@ function renderAuctionGame(container, cleanupStack) {
     if (user !== role) return;
     const item = state.shopItems.find(i => i.id === itemId);
     if (!item) return;
+
+    const btn = document.querySelector(`button[onclick*="${itemId}"]`);
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'KjA,per... �?3';
+    }
+
     const result = await auctionRequest({
       type: 'buy',
       role: user,
@@ -1799,9 +1806,22 @@ function renderAuctionGame(container, cleanupStack) {
       payer: item.payer || 'BEGGE',
       requiresBothConfirm: !!item.requiresBothConfirm,
     });
-    if (!result?.success) return;
+
+    if (!result?.success) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'KjA,p';
+      }
+      return;
+    }
+
+    if (btn) {
+      btn.textContent = '�o. KjA,pt!';
+      btn.style.background = '#4ade80';
+    }
+
     await refreshFromServer();
-    renderUI();
+    setTimeout(() => renderUI(), 450);
     if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
   };
 
@@ -2256,6 +2276,7 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
 
 
 
