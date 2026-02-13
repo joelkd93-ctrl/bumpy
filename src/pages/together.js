@@ -1816,7 +1816,7 @@ function renderAuctionGame(container, cleanupStack) {
     }
 
     if (btn) {
-      btn.textContent = '�o. KjA,pt!';
+      btn.textContent = '\\u2705 Kj\\u00F8pt!';
       btn.style.background = '#4ade80';
     }
 
@@ -2276,6 +2276,7 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
 
 
 
