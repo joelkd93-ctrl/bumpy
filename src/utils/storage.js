@@ -6,6 +6,8 @@ const PREFIX = 'bumpy:';
 
 // Track last sync to prevent race conditions
 let lastPushSyncTime = 0;
+// Prevent overlapping pull loops
+let pullInFlightPromise = null;
 
 // Use a function to get API_URL at runtime (not at import time)
 function getApiUrl() {
@@ -328,23 +330,30 @@ export const storage = {
 
   async pullFromCloud(options = {}) {
     const { skipCelebration = false } = options;
-    console.log('🔽 Starting pullFromCloud...');
 
-    // Check if pull should be skipped (e.g., after reset)
-    if (localStorage.getItem('bumpy:skip_pull') === 'true') {
-      console.log('⏭️ Skipping pull - reset flag set');
-      localStorage.removeItem('bumpy:skip_pull'); // Clear flag
-      return false;
+    if (pullInFlightPromise) {
+      console.log('⏭️ Pull already in progress, reusing in-flight request');
+      return pullInFlightPromise;
     }
 
-    // Prevent pulling immediately after pushing to avoid race condition
-    const timeSinceLastPush = Date.now() - lastPushSyncTime;
-    if (timeSinceLastPush < 5000) {
-      console.log(`⏭️ Skipping pull - just pushed ${timeSinceLastPush}ms ago`);
-      return false;
-    }
+    pullInFlightPromise = (async () => {
+      console.log('🔽 Starting pullFromCloud...');
 
-    try {
+      // Check if pull should be skipped (e.g., after reset)
+      if (localStorage.getItem('bumpy:skip_pull') === 'true') {
+        console.log('⏭️ Skipping pull - reset flag set');
+        localStorage.removeItem('bumpy:skip_pull'); // Clear flag
+        return false;
+      }
+
+      // Prevent pulling immediately after pushing to avoid race condition
+      const timeSinceLastPush = Date.now() - lastPushSyncTime;
+      if (timeSinceLastPush < 5000) {
+        console.log(`⏭️ Skipping pull - just pushed ${timeSinceLastPush}ms ago`);
+        return false;
+      }
+
+      try {
       const apiUrl = getApiUrl();
       console.log(`🔽 Pulling from: ${apiUrl}/sync`);
 
@@ -467,9 +476,25 @@ export const storage = {
         // Sync Love Auction state - store in temp key for together.js to handle with timestamp checking
         // DON'T merge directly into love_auction_v2 to prevent race conditions!
         if (auctionState) {
-          console.log('♻️ Received auction state from cloud, storing for timestamp-based merge');
-          this.set('_auction_cloud_temp', auctionState, true);
-          hasChanged = true;
+          const currentTemp = this.get('_auction_cloud_temp', null);
+          const currentAuction = this.get('love_auction_v2', null);
+          const incomingTs = Number(auctionState?.lastModified || 0) || 0;
+          const tempTs = Number(currentTemp?.lastModified || 0) || 0;
+          const localTs = Number(currentAuction?.lastModified || 0) || 0;
+          const incomingJson = JSON.stringify(auctionState);
+          const tempJson = JSON.stringify(currentTemp);
+          const localJson = JSON.stringify(currentAuction);
+
+          const shouldStoreAuctionTemp = incomingTs > Math.max(tempTs, localTs)
+            || (incomingTs === 0 && incomingJson !== tempJson && incomingJson !== localJson);
+
+          if (shouldStoreAuctionTemp) {
+            console.log('♻️ Received fresh auction state from cloud, storing for timestamp-based merge');
+            this.set('_auction_cloud_temp', auctionState, true);
+            hasChanged = true;
+          } else {
+            console.log('⏭️ Auction state unchanged, skipping temp write');
+          }
         }
 
         if (journal !== undefined) {
@@ -610,12 +635,19 @@ export const storage = {
         console.log('🔽 No changes detected, skipping update');
         return false;
       }
-    } catch (err) {
-      console.error('☁️ Cloud pull failed with error:', err);
-      console.error('Error stack:', err.stack);
+      } catch (err) {
+        console.error('☁️ Cloud pull failed with error:', err);
+        console.error('Error stack:', err.stack);
+      }
+      console.log('🔽 pullFromCloud returning false');
+      return false;
+    })();
+
+    try {
+      return await pullInFlightPromise;
+    } finally {
+      pullInFlightPromise = null;
     }
-    console.log('🔽 pullFromCloud returning false');
-    return false;
   }
 };
 
