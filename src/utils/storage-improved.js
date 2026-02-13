@@ -4,7 +4,7 @@
  */
 
 const PREFIX = 'bumpy:';
-const API_URL = (window.API_BASE || 'https://bumpy-api.your-subdomain.workers.dev') + '/api';
+const API_URL = (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev') + '/api';
 
 // Debounce timer for sync
 let syncTimer = null;

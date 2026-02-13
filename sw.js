@@ -3,7 +3,7 @@
 // Offline-first PWA with intelligent caching + Push Notifications
 // ═══════════════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'bumpy-v3.6.9';
+const CACHE_VERSION = 'bumpy-v3.6.10';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const FONT_CACHE = `${CACHE_VERSION}-fonts`;
@@ -24,6 +24,17 @@ const FONT_ORIGINS = [
   'https://fonts.googleapis.com',
   'https://fonts.gstatic.com'
 ];
+
+const DEFAULT_API_BASE = 'https://bumpyapi.joelkd93.workers.dev';
+let apiBase = DEFAULT_API_BASE;
+
+function getApiBase() {
+  return (apiBase || DEFAULT_API_BASE).replace(/\/$/, '');
+}
+
+function getApiUrl(path) {
+  return `${getApiBase()}/api${path}`;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 📦 INSTALL - Cache static assets
@@ -277,30 +288,16 @@ self.addEventListener('message', (event) => {
       names.forEach((name) => caches.delete(name));
     });
   }
+
+  if (event.data?.type === 'SET_API_BASE' && event.data.apiBase) {
+    apiBase = String(event.data.apiBase).replace(/\/$/, '');
+    console.log('💕 SW API base updated:', apiBase);
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🔔 PUSH NOTIFICATIONS (Future)
 // ═══════════════════════════════════════════════════════════════════════════
-
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-  
-  const data = event.data.json();
-  const options = {
-    body: data.body || 'Ny oppdatering fra Bumpy!',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/badge-72.png',
-    vibrate: [100, 50, 100],
-    tag: data.tag || 'bumpy-notification',
-    renotify: true,
-    data: data.url || '/'
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Bumpy 💕', options)
-  );
-});
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
@@ -372,7 +369,7 @@ self.addEventListener('periodicsync', (event) => {
 
 async function checkForUpdates() {
   try {
-    const response = await fetch('/api/sync');
+    const response = await fetch(getApiUrl('/sync'));
     if (response.ok) {
       const data = await response.json();
       // Send message to all clients
@@ -391,10 +388,8 @@ async function checkForUpdatesAndNotify() {
   console.log('🔄 Checking for updates in background...');
 
   try {
-    const API_URL = 'https://bumpyapi.joelkd93.workers.dev/api';
-
     // Check for data changes
-    const response = await fetch(`${API_URL}/sync?t=${Date.now()}`);
+    const response = await fetch(`${getApiUrl('/sync')}?t=${Date.now()}`);
     if (!response.ok) {
       console.warn('Background sync failed:', response.status);
       return;
@@ -451,7 +446,7 @@ async function checkAndShowNotifications(data) {
     }
 
     // Check for heartbeats
-    const heartbeatResponse = await fetch('https://bumpyapi.joelkd93.workers.dev/api/heartbeat');
+    const heartbeatResponse = await fetch(getApiUrl('/heartbeat'));
     if (heartbeatResponse.ok) {
       const heartbeatData = await heartbeatResponse.json();
 
@@ -505,4 +500,5 @@ async function checkAndShowNotifications(data) {
 }
 
 console.log('💕 Bumpy Service Worker loaded');
+
 

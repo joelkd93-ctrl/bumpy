@@ -158,6 +158,15 @@ function getMission(role) {
   return roleMissions[dayOfYear % roleMissions.length];
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // 🪙 Coin Helper
 // 🪙 Coin Helper
 async function awardCoins(role, amount, reason) {
@@ -752,6 +761,7 @@ function renderNamesGame(container, cleanupStack) {
 
   const isFinished = !currentName;
   const hasVoted = currentName && votes[currentName] && votes[currentName][currentPlayer];
+  const safeCurrentName = escapeHtml(currentName || '');
 
   // Check if state actually changed to avoid re-rendering DOM
   const newState = { name: currentName, waiting: hasVoted, finished: isFinished };
@@ -784,7 +794,7 @@ function renderNamesGame(container, cleanupStack) {
           <div class="waiting-card fade-in">
             <div class="spinner mb-4">⏳</div>
             <h3 class="heading-love mb-4">Venter på ${partnerRole === 'andrine' ? 'Andrine' : 'Yoel'}...</h3>
-            <p class="text-muted mb-6">Du har stemt på <strong>${currentName}</strong>.</p>
+            <p class="text-muted mb-6">Du har stemt på <strong>${safeCurrentName}</strong>.</p>
             <p class="text-warm">Gi beskjed til partneren din!</p>
             
             <button class="btn btn-soft btn-block mt-8" id="check-sync">
@@ -794,19 +804,19 @@ function renderNamesGame(container, cleanupStack) {
         ` : `
           <!-- VOTING STATE -->
           <div class="name-card mb-8 fade-in" id="name-card">
-            <span class="name-text">${currentName}</span>
+            <span class="name-text">${safeCurrentName}</span>
           </div>
           
           <div class="swipe-buttons">
-            <button class="swipe-btn nope" data-vote="nope" data-name="${currentName}">
+            <button class="swipe-btn nope" data-vote="nope" data-name="${safeCurrentName}">
               <span>❌</span>
               <small>Nei</small>
             </button>
-            <button class="swipe-btn maybe" data-vote="maybe" data-name="${currentName}">
+            <button class="swipe-btn maybe" data-vote="maybe" data-name="${safeCurrentName}">
               <span>😐</span>
               <small>Kanskje</small>
             </button>
-            <button class="swipe-btn love" data-vote="love" data-name="${currentName}">
+            <button class="swipe-btn love" data-vote="love" data-name="${safeCurrentName}">
               <span>💗</span>
               <small>Elsker</small>
             </button>
@@ -890,7 +900,7 @@ function renderNamesGame(container, cleanupStack) {
     lastRenderedState = { name: null, waiting: null, finished: null };
     pendingMatch = null;
 
-    renderNamesGame(container);
+    renderNamesGame(container, cleanupStack);
   });
 
   document.getElementById('add-name-btn')?.addEventListener('click', () => {
@@ -904,7 +914,7 @@ function renderNamesGame(container, cleanupStack) {
       customNames.push(name);
       storage.set('custom_names', customNames);
       input.value = '';
-      renderNamesGame(container);
+      renderNamesGame(container, cleanupStack);
     }
   });
 
@@ -924,7 +934,7 @@ function showMatchOverlay(matchedName) {
   overlay.innerHTML = `
     <div class="match-content">
       <h1 class="match-title">Det er en match! 💕</h1>
-      <div class="match-name">${matchedName}</div>
+      <div class="match-name">${escapeHtml(matchedName)}</div>
       <p class="match-subtitle">Dere elsker begge dette navnet!</p>
     </div>
   `;
@@ -986,7 +996,7 @@ function renderNameStats(container, cleanupStack) {
         <h3 class="heading-love mb-4">Vi Elsker! 💗</h3>
         ${matches.length ? `
           <div class="tag-cloud">
-            ${matches.map(n => `<span class="tag match">${n}</span>`).join('')}
+            ${matches.map(n => `<span class="tag match">${escapeHtml(n)}</span>`).join('')}
           </div>
         ` : `<p class="text-muted text-center">Ingen fulltreffere ennå...</p>`}
       </div>
@@ -996,7 +1006,7 @@ function renderNameStats(container, cleanupStack) {
         <p class="text-muted mb-4 text-small">Navn vi begge liker litt</p>
         ${maybes.length ? `
           <div class="tag-cloud">
-            ${maybes.map(n => `<span class="tag maybe">${n}</span>`).join('')}
+            ${maybes.map(n => `<span class="tag maybe">${escapeHtml(n)}</span>`).join('')}
           </div>
         ` : `<p class="text-muted text-center">Ingenting her ennå.</p>`}
       </div>
@@ -1006,7 +1016,7 @@ function renderNameStats(container, cleanupStack) {
         <p class="text-muted mb-4 text-small">Navn jeg elsker (men vi ikke har matchet på)</p>
         ${myLoves.length ? `
           <div class="tag-cloud">
-            ${myLoves.map(n => `<span class="tag mine">${n}</span>`).join('')}
+            ${myLoves.map(n => `<span class="tag mine">${escapeHtml(n)}</span>`).join('')}
           </div>
         ` : `<p class="text-muted text-center">Du har ikke favorittmarkert noen andre navn.</p>`}
       </div>
@@ -2370,3 +2380,4 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+

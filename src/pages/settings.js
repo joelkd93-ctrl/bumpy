@@ -297,7 +297,7 @@ export function initSettings() {
     if (confirmed) {
       // 1. Wipe cloud data first
       try {
-        const API_URL = (window.API_BASE || 'http://localhost:8787') + '/api';
+        const API_URL = (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev') + '/api';
         await fetch(`${API_URL}/reset`, { method: 'POST' });
         console.log('☁️ Cloud data cleared');
       } catch (err) {

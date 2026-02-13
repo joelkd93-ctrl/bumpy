@@ -315,6 +315,17 @@ function registerSW() {
         const reg = await navigator.serviceWorker.register('/sw.js');
         console.log('✨ Offline mode enabled');
 
+        const swApiBase = (window.API_BASE || '').replace(/\/$/, '');
+        if (swApiBase) {
+          const sendApiBase = (worker) => worker?.postMessage({ type: 'SET_API_BASE', apiBase: swApiBase });
+          sendApiBase(reg.active);
+          sendApiBase(reg.waiting);
+          sendApiBase(reg.installing);
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_API_BASE', apiBase: swApiBase });
+          }
+        }
+
         // Check for updates
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
