@@ -17,18 +17,6 @@ const GAMES = [
     description: 'Trykk i takt sammen'
   },
   {
-    id: 'weekly',
-    icon: '💬',
-    title: 'Oss, Denne Uken',
-    description: 'Del tankene deres'
-  },
-  {
-    id: 'guess',
-    icon: '🤍',
-    title: 'Gjett Humøret',
-    description: 'Hvor godt kjenner du henne?'
-  },
-  {
     id: 'names',
     icon: '🍼',
     title: 'Navnelek',
@@ -375,13 +363,7 @@ export function initTogether() {
       case 'heartbeat':
         renderHeartbeatGame(content, modalCleanupStack);
         break;
-      case 'weekly':
-        renderWeeklyGame(content, modalCleanupStack);
-        break;
-      case 'guess':
-        renderGuessGame(content, modalCleanupStack);
-        break;
-      case 'names':
+case 'names':
         renderNamesGame(content, modalCleanupStack);
         break;
       case 'missions':
@@ -2276,6 +2258,10 @@ function renderNaughtyGame(container, cleanupStack) {
   render();
   cleanupStack.push(() => {});
 }
+
+
+
+
 
 
 
