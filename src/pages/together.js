@@ -2210,7 +2210,16 @@ function renderNaughtyGame(container, cleanupStack) {
 
         <div class="naughty-dare-wrap">
           <button class="naughty-dare-btn" id="naughty-dare-btn">
-            <span class="naughty-dice" id="naughty-dice">🎲</span>
+            <span class="naughty-dice" id="naughty-dice">
+              <div class="dice-3d" id="dice-3d">
+                <div class="dice-face front face-1"><div class="dice-dot"></div></div>
+                <div class="dice-face back face-6"><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div></div>
+                <div class="dice-face right face-2"><div class="dice-dot"></div><div class="dice-dot"></div></div>
+                <div class="dice-face left face-5"><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div></div>
+                <div class="dice-face top face-3"><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div></div>
+                <div class="dice-face bottom face-4"><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div><div class="dice-dot"></div></div>
+              </div>
+            </span>
             Dare Us!
           </button>
         </div>
@@ -2268,19 +2277,29 @@ function renderNaughtyGame(container, cleanupStack) {
       if (window.haptic) window.haptic.medium();
 
       const dareBtn = e.currentTarget;
+      const dice3d = document.getElementById('dice-3d');
+
+      // Strip state + force reflow for animation replay
       dareBtn.classList.remove('rolling');
-      // force replay
+      if (dice3d) { dice3d.className = 'dice-3d'; void dice3d.offsetWidth; }
       void dareBtn.offsetWidth;
       dareBtn.classList.add('rolling');
 
+      // Snap to random face just before spin ends
+      const landFace = Math.ceil(Math.random() * 6);
+      const snapTimeout = setTimeout(() => {
+        if (dice3d) dice3d.classList.add(`land-${landFace}`);
+      }, 1100);
+
+      // Reveal result after full spin
       const rollTimeout = setTimeout(() => {
         const result = generateNaughtyDare({ selectedLevel, activeProps, lastDareText });
         lastDare = result;
         lastDareText = result.dare;
-        console.log('😈 Naughty dare roll:', { lvl: result.level, dare: result.dare });
         render();
-      }, 420);
-      cleanupStack.push(() => clearTimeout(rollTimeout));
+      }, 1250);
+
+      cleanupStack.push(() => { clearTimeout(rollTimeout); clearTimeout(snapTimeout); });
     });
 
     // Save
