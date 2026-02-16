@@ -58,6 +58,32 @@ function makeMediaUrl(request, key) {
   return `${base}/api/media/${encodeURIComponent(key)}`;
 }
 
+let schemaEnsured = false;
+let schemaEnsureInFlight = null;
+
+async function ensureSchema(env) {
+  if (schemaEnsured) return;
+  if (schemaEnsureInFlight) {
+    await schemaEnsureInFlight;
+    return;
+  }
+
+  schemaEnsureInFlight = (async () => {
+    try {
+      await handleInit(env);
+      schemaEnsured = true;
+      console.log('✅ Schema ensured on worker startup');
+    } catch (err) {
+      console.error('❌ Schema ensure failed:', err?.message || err);
+      throw err;
+    } finally {
+      schemaEnsureInFlight = null;
+    }
+  })();
+
+  await schemaEnsureInFlight;
+}
+
 async function uploadJournalPhotoToR2(env, request, id, photoBlob) {
   if (!photoBlob || !env.MEDIA) return { photoKey: null, photoUrl: null };
 
@@ -1583,6 +1609,9 @@ export default {
       if (url.pathname === '/api/init') {
         return withCors(await handleInit(env), env, request);
       }
+
+      // Ensure schema/migrations for all app endpoints (prevents cold-start column mismatch 500s)
+      await ensureSchema(env);
 
       // Sync endpoints
       if (url.pathname === '/api/sync' && request.method === 'GET') {
