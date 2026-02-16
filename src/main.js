@@ -780,30 +780,39 @@ document.addEventListener('visibilitychange', async () => {
   }
 });
 
-// Auto-sync with basic failure backoff (to avoid hammering API when unstable)
-let autoPullBackoffMs = 0;
+// Auto-sync tuned for faster visible-device propagation with safe backoff
+const VISIBLE_PULL_MS = 10000;
+let pullFailStreak = 0;
+let nextAllowedPullAt = 0;
 
 const autoPull = async () => {
   if (document.hidden) {
-    return; // only auto-pull while visible to reduce sync pressure/races
+    return; // no background hammering; pull on visibility + active interval only
   }
 
-  if (autoPullBackoffMs > 0) {
-    console.log(`⏸️ Auto-pull backoff active (${autoPullBackoffMs}ms left)`);
-    autoPullBackoffMs = Math.max(0, autoPullBackoffMs - 60000);
+  const now = Date.now();
+  if (now < nextAllowedPullAt) {
     return;
   }
 
   console.log('⏰ Auto-pull [visible]');
   const hasUpdates = await storage.pullFromCloud();
 
-  // If pull failed, storage returns false too; apply gentle backoff only when API seems flaky
   if (hasUpdates === false) {
-    autoPullBackoffMs = 30000; // 30s cooldown after failure
+    // Exponential-ish backoff on failures: 10s, 20s, 40s... capped at 120s
+    pullFailStreak += 1;
+    const backoff = Math.min(120000, VISIBLE_PULL_MS * Math.pow(2, Math.min(pullFailStreak, 4)));
+    nextAllowedPullAt = Date.now() + backoff;
+    console.warn(`⚠️ Pull failed. Backing off for ${Math.round(backoff / 1000)}s`);
+    return;
   }
 
+  // Success path: reset backoff state
+  pullFailStreak = 0;
+  nextAllowedPullAt = 0;
+
   // Only refresh UI if app is visible AND modal is not open
-  if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage && !isGameModalOpen()) {
+  if (hasUpdates && window.app?.refreshCurrentPage && !isGameModalOpen()) {
     console.log('📱 Auto-refresh triggered');
     window.app.refreshCurrentPage();
   } else if (hasUpdates && isGameModalOpen()) {
@@ -817,8 +826,8 @@ setTimeout(() => {
   autoPull().catch(err => console.warn('Initial sync failed:', err));
 }, 2000);
 
-// Then poll every 60 seconds (lighter load on worker)
-setInterval(autoPull, 60000);
+// Fast visible polling for near-real-time multi-device sync
+setInterval(autoPull, VISIBLE_PULL_MS);
 
 // Listen for messages from service worker (periodic sync updates)
 if ('serviceWorker' in navigator) {
