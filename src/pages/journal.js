@@ -290,11 +290,19 @@ export function initJournal() {
       }, 1000);
     } catch (err) {
       console.error('Failed to save journal entry:', err);
-      saveBtn.textContent = 'Feil! Prøv igjen';
+      
+      // Specific handling for QuotaExceededError
+      if (err.name === 'QuotaExceededError' || err.message.includes('quota')) {
+        alert('Lagringsplassen er full! Slett noen gamle bilder for å frigjøre plass.');
+        saveBtn.textContent = 'Lagring full 💾';
+      } else {
+        saveBtn.textContent = 'Feil! Prøv igjen';
+      }
+      
       setTimeout(() => {
         saveBtn.textContent = 'Lagre Minne 💕';
         saveBtn.disabled = false;
-      }, 2000);
+      }, 3000);
     }
   });
 
@@ -473,9 +481,16 @@ function compressImage(file, callback) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, width, height);
 
-    // Compress to JPEG at 70% quality (good balance)
+    // Compress to JPEG at 60% quality (aggressive compression for localStorage)
     try {
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      
+      // Check size before returning (aim for < 300KB)
+      if (dataUrl.length > 500000) {
+        console.warn('Image still too large:', dataUrl.length);
+        // Retry with lower quality if needed? For now just warn.
+      }
+      
       callback(dataUrl);
     } catch (e) {
       console.error('Compression failed:', e);
