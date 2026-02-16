@@ -503,10 +503,22 @@ export const storage = {
             notifyNewEntry('journal');
           }
 
-          // Remove local entries that no longer exist in cloud
+          // Remove local entries that no longer exist in cloud (with grace period)
           let deletedEntriesCount = 0;
+          const GRACE_PERIOD_MS = 60 * 1000; // 1 minute grace period for new entries
+
           localJournal.forEach(local => {
             if (!cloudIds.has(local.id)) {
+              // Check if entry is brand new (created locally within grace period)
+              // We use the ID timestamp (first part of ID is usually timestamp)
+              const entryTime = parseInt(local.id.substring(0, 13));
+              const age = Date.now() - entryTime;
+              
+              if (!isNaN(entryTime) && age < GRACE_PERIOD_MS) {
+                console.log(`🛡️ Protecting new local entry from sync deletion: ${local.id} (Age: ${age}ms)`);
+                return; // Skip deletion
+              }
+
               console.log(`🔽 Removing deleted entry from local: ${local.id}`);
               localStorage.removeItem(PREFIX + `journal:${local.id}`);
               hasChanged = true;
