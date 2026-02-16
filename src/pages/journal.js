@@ -4,6 +4,7 @@
  */
 import { storage } from '../utils/storage.js';
 import { getPregnancyProgress } from '../utils/pregnancy.js';
+import { getJournalPhotoDataUrl } from '../utils/media-store.js';
 
 export function renderJournal() {
   const storedSettings = storage.get('settings');
@@ -34,7 +35,7 @@ export function renderJournal() {
           </div>
           ${entry.photo
         ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
-        : ''
+        : (entry.photoRef ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>` : '')
       }
           ${entry.note ? `<p class="journal-note">${entry.note}</p>` : ''}
         </div>
@@ -159,6 +160,21 @@ export function initJournal() {
 
   let currentPhoto = null;
   let editingEntryId = null;
+
+  // Hydrate deferred photos from IndexedDB
+  const hydrateDeferredPhotos = async () => {
+    const imgs = document.querySelectorAll('img.journal-photo-deferred[data-photo-ref]');
+    for (const img of imgs) {
+      const ref = img.getAttribute('data-photo-ref');
+      if (!ref) continue;
+      const dataUrl = await getJournalPhotoDataUrl(ref).catch(() => null);
+      if (dataUrl) {
+        img.src = dataUrl;
+        img.classList.remove('journal-photo-deferred');
+      }
+    }
+  };
+  hydrateDeferredPhotos();
 
   // Function to update upload button state
   function updateUploadButton(hasPhoto) {
@@ -382,12 +398,19 @@ export function initJournal() {
       noteInput.value = entry.note || '';
       dateInput.value = entry.date;
 
-      if (entry.photo) {
-        currentPhoto = entry.photo;
-        previewImg.src = entry.photo;
-        photoUpload.style.display = 'none';
-        photoPreview.style.display = 'block';
-        updateUploadButton(true);
+      if (entry.photo || entry.photoRef) {
+        let photoData = entry.photo || null;
+        if (!photoData && entry.photoRef) {
+          photoData = await getJournalPhotoDataUrl(entry.photoRef).catch(() => null);
+        }
+
+        if (photoData) {
+          currentPhoto = photoData;
+          previewImg.src = photoData;
+          photoUpload.style.display = 'none';
+          photoPreview.style.display = 'block';
+          updateUploadButton(true);
+        }
       }
 
       // Update button text

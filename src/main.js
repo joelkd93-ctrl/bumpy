@@ -23,6 +23,7 @@ import { renderTogether, initTogether } from './pages/together.js';
 import { renderKicks, initKicks } from './pages/kicks.js';
 import { renderSettings, initSettings } from './pages/settings.js';
 import { getPregnancyProgress } from './utils/pregnancy.js';
+import { migrateJournalPhotosToIndexedDB } from './utils/media-store.js';
 
 // Keep a stable visual viewport unit for iOS standalone/PWA modal geometry
 function setVV() {
@@ -149,6 +150,15 @@ let currentTab = 'home';
 function initApp() {
   // Initialize storage defaults
   initializeDefaults();
+
+  // One-time migration: move journal photos from localStorage to IndexedDB
+  migrateJournalPhotosToIndexedDB().then((res) => {
+    if (res?.migrated > 0) {
+      console.log(`🗂️ Migrated ${res.migrated} journal photos to IndexedDB`);
+    }
+  }).catch((err) => {
+    console.warn('Journal media migration skipped:', err?.message || err);
+  });
 
   // Render app shell
   const app = document.getElementById('app');

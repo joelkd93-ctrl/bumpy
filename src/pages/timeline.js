@@ -3,6 +3,7 @@
  * A combined view of all pregnancy moments
  */
 import { storage } from '../utils/storage.js';
+import { getJournalPhotoDataUrl } from '../utils/media-store.js';
 
 export function renderTimeline() {
   const journal = storage.getCollection('journal');
@@ -61,7 +62,10 @@ function renderEvent(event) {
             </button>
           </div>
         </div>
-        ${event.photo ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : ''}
+        ${event.photo
+          ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
+          : (event.photoRef ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>` : '')
+        }
         ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
       </div>
     `;
@@ -103,6 +107,21 @@ function renderEvent(event) {
 }
 
 export function initTimeline() {
+  // Hydrate deferred journal photos from IndexedDB
+  const hydrateDeferredPhotos = async () => {
+    const imgs = document.querySelectorAll('img.journal-photo-deferred[data-photo-ref]');
+    for (const img of imgs) {
+      const ref = img.getAttribute('data-photo-ref');
+      if (!ref) continue;
+      const dataUrl = await getJournalPhotoDataUrl(ref).catch(() => null);
+      if (dataUrl) {
+        img.src = dataUrl;
+        img.classList.remove('journal-photo-deferred');
+      }
+    }
+  };
+  hydrateDeferredPhotos();
+
   // Remove old handler flag — re-attach cleanly each time page loads
   // (using document listener with guard instead of persistent flag)
   if (window._timelineDeleteHandler) {

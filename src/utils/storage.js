@@ -16,6 +16,7 @@ function getApiUrl() {
 
 import { celebrate } from './confetti.js';
 import { notifyNewEntry, notifyEntryDeleted, notifyKick } from './notifications.js';
+import { putJournalPhoto, getJournalPhotoDataUrl, deleteJournalPhoto } from './media-store.js';
 
 export const storage = {
   get(key, defaultValue = null) {
@@ -108,9 +109,19 @@ export const storage = {
 
   async upsertJournalEntry(id, data) {
     const key = `journal:${id}`;
+
+    // Keep photo blob in IndexedDB, not localStorage
+    let photoRef = data.photoRef || null;
+    if (data.photo && String(data.photo).startsWith('data:image/')) {
+      photoRef = await putJournalPhoto(data.photo, id);
+    }
+
     const localSaved = this.set(key, {
-      ...data,
+      week: data.week,
       date: data.date || new Date().toISOString().split('T')[0],
+      note: data.note || '',
+      photo: null,
+      photoRef: photoRef || null,
     }, true);
 
     if (!localSaved) {
@@ -118,6 +129,12 @@ export const storage = {
     }
 
     try {
+      // If photo is not provided now, try to preserve existing photo by reading IndexedDB reference
+      let photoBlobForCloud = data.photo || null;
+      if (!photoBlobForCloud && photoRef) {
+        photoBlobForCloud = await getJournalPhotoDataUrl(photoRef).catch(() => null);
+      }
+
       const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/journal`, {
         method: 'POST',
@@ -130,7 +147,7 @@ export const storage = {
         body: JSON.stringify({
           id,
           week_number: data.week,
-          photo_blob: data.photo || null,
+          photo_blob: photoBlobForCloud,
           note: data.note || '',
           entry_date: data.date || new Date().toISOString().split('T')[0],
         })
@@ -199,6 +216,14 @@ export const storage = {
 
   // Remove from collection
   async removeFromCollection(prefix, id) {
+    // For journal, cleanup IndexedDB photo first
+    if (prefix === 'journal') {
+      const existing = this.get(`journal:${id}`);
+      if (existing?.photoRef) {
+        await deleteJournalPhoto(existing.photoRef).catch(() => {});
+      }
+    }
+
     // Remove from localStorage first
     localStorage.removeItem(PREFIX + prefix + ':' + id);
     console.log(`🗑️ Removed locally: ${prefix}:${id}`);
@@ -575,13 +600,19 @@ export const storage = {
 
           // Add entries that don't exist locally
           let newEntriesCount = 0;
-          journal.forEach(entry => {
+          for (const entry of journal) {
             if (!localIds.has(entry.id)) {
               console.log(`🔽 Adding new entry from cloud: ${entry.id}`);
 
+              let photoRef = null;
+              if (entry.photo_blob && String(entry.photo_blob).startsWith('data:image/')) {
+                photoRef = await putJournalPhoto(entry.photo_blob, entry.id).catch(() => null);
+              }
+
               const baseEntry = {
                 week: entry.week_number,
-                photo: entry.photo_blob,
+                photo: null,
+                photoRef: photoRef,
                 note: entry.note,
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
               };
@@ -589,12 +620,15 @@ export const storage = {
               // Try normal save first
               let saved = this.set(`journal:${entry.id}`, baseEntry, true);
 
-              // Fallback for quota exceeded: save without photo so note/date still syncs
-              if (!saved && baseEntry.photo) {
-                console.warn(`⚠️ Quota hit while syncing ${entry.id}. Retrying without photo blob.`);
+              // Fallback for quota exceeded: save lean metadata
+              if (!saved) {
+                console.warn(`⚠️ Quota hit while syncing ${entry.id}. Retrying lean entry.`);
                 saved = this.set(`journal:${entry.id}`, {
-                  ...baseEntry,
+                  week: baseEntry.week,
+                  note: baseEntry.note,
+                  date: baseEntry.date,
                   photo: null,
+                  photoRef: null,
                   photoSyncSkipped: true
                 }, true);
               }
@@ -606,7 +640,7 @@ export const storage = {
                 console.error(`❌ Could not save journal entry ${entry.id} locally (even without photo).`);
               }
             }
-          });
+          }
 
           // Notify about new entries
           if (newEntriesCount > 0) {
