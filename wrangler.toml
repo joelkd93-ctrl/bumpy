@@ -1,0 +1,7 @@
+name = "bumpyapi"
+main = "worker/src/index.js"
+compatibility_date = "2026-02-10"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ALLOWED_ORIGINS = "*"
