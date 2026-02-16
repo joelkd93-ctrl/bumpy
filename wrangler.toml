@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ALLOWED_ORIGINS = "*"
 
-# Phase B (media): create an R2 bucket and enable this binding
-# [[r2_buckets]]
-# binding = "MEDIA"
-# bucket_name = "bumpy-media"
+# Phase B (media)
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "bumpy-media"

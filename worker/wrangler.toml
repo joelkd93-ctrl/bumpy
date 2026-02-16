@@ -15,7 +15,7 @@ ALLOWED_ORIGINS = "*"
 port = 8787
 local_protocol = "http"
 
-# Phase B (media): create an R2 bucket and enable this binding
-# [[r2_buckets]]
-# binding = "MEDIA"
-# bucket_name = "bumpy-media"
+# Phase B (media)
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "bumpy-media"
