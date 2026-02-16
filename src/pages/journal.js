@@ -35,7 +35,9 @@ export function renderJournal() {
           </div>
           ${entry.photo
         ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
-        : (entry.photoRef ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>` : '')
+        : (entry.photoRef
+            ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
+            : (entry.photoUrl ? `<img src="${entry.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : ''))
       }
           ${entry.note ? `<p class="journal-note">${entry.note}</p>` : ''}
         </div>

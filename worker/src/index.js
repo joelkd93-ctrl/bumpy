@@ -52,6 +52,32 @@ function getClient(env) {
   });
 }
 
+function makeMediaUrl(request, key) {
+  if (!key) return null;
+  const base = new URL(request.url).origin;
+  return `${base}/api/media/${encodeURIComponent(key)}`;
+}
+
+async function uploadJournalPhotoToR2(env, request, id, photoBlob) {
+  if (!photoBlob || !env.MEDIA) return { photoKey: null, photoUrl: null };
+
+  const key = `journal/${id}.jpg`;
+  const base64 = String(photoBlob).split(',')[1] || '';
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+  await env.MEDIA.put(key, bytes, {
+    httpMetadata: {
+      contentType: 'image/jpeg',
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+  });
+
+  return {
+    photoKey: key,
+    photoUrl: makeMediaUrl(request, key),
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 📦 DATABASE INITIALIZATION
 // ─────────────────────────────────────────────────────────────────────────────
@@ -200,8 +226,10 @@ async function handleInit(env) {
       added_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
 
-    // Add entry_date column to journal_entries if not exists (for existing databases)
+    // Add columns to journal_entries if not exists (for existing databases)
     `ALTER TABLE journal_entries ADD COLUMN entry_date TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN photo_key TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN photo_url TEXT`,
 
     // Indexes
     `CREATE INDEX IF NOT EXISTS idx_kick_sessions_time ON kick_sessions(start_time DESC)`,
@@ -309,7 +337,7 @@ async function handleInit(env) {
 // 🔄 SYNC HANDLERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function handleSyncGet(env) {
+async function handleSyncGet(env, request) {
   const client = getClient(env);
 
   const [
@@ -328,10 +356,10 @@ async function handleSyncGet(env) {
     nameVotesEpochRow,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
-    client.execute(`SELECT id, week_number, note, entry_date, created_at, LENGTH(photo_blob) AS photo_size
+    client.execute(`SELECT id, week_number, note, entry_date, created_at, photo_key, photo_url
                     FROM journal_entries
                     ORDER BY COALESCE(entry_date, created_at) DESC
-                    LIMIT 30`),
+                    LIMIT 50`),
     client.execute('SELECT * FROM mood_entries ORDER BY date DESC LIMIT 100'),
     client.execute('SELECT * FROM weekly_questions'),
     client.execute('SELECT * FROM heartbeat_sessions ORDER BY timestamp DESC LIMIT 10'),
@@ -345,32 +373,16 @@ async function handleSyncGet(env) {
     client.execute("SELECT value FROM app_state WHERE key = 'name_votes_epoch'").catch(() => ({ rows: [] })),
   ]);
 
-  // Build journal payload with strict per-photo size cap to avoid 503s
-  const MAX_PHOTO_BYTES_IN_SYNC = 350_000;
-  const journalRows = [];
-  for (const row of (journalMeta.rows || [])) {
-    let photoBlob = null;
-    const size = Number(row.photo_size || 0);
-
-    if (size > 0 && size <= MAX_PHOTO_BYTES_IN_SYNC) {
-      const photoResult = await client.execute({
-        sql: 'SELECT photo_blob FROM journal_entries WHERE id = ?',
-        args: [row.id],
-      }).catch(() => ({ rows: [] }));
-      photoBlob = photoResult.rows?.[0]?.photo_blob || null;
-    } else if (size > MAX_PHOTO_BYTES_IN_SYNC) {
-      console.warn(`⚠️ Skipping oversized photo in sync for ${row.id} (${size} chars)`);
-    }
-
-    journalRows.push({
-      id: row.id,
-      week_number: row.week_number,
-      photo_blob: photoBlob,
-      note: row.note,
-      entry_date: row.entry_date,
-      created_at: row.created_at,
-    });
-  }
+  const journalRows = (journalMeta.rows || []).map((row) => ({
+    id: row.id,
+    week_number: row.week_number,
+    photo_blob: null,
+    photo_key: row.photo_key || null,
+    photo_url: row.photo_url || makeMediaUrl(request, row.photo_key),
+    note: row.note,
+    entry_date: row.entry_date,
+    created_at: row.created_at,
+  }));
 
   // Transform predictions to { andrine: {}, partner: {} } format
   const predictionsMap = { andrine: {}, partner: {} };
@@ -670,19 +682,36 @@ async function handleUpsertJournal(env, request) {
   if (!id) return json({ success: false, error: 'Missing id' }, { status: 400 });
 
   try {
+    let photoKey = null;
+    let photoUrl = null;
+
+    if (photo_blob) {
+      const uploaded = await uploadJournalPhotoToR2(env, request, id, photo_blob);
+      photoKey = uploaded.photoKey;
+      photoUrl = uploaded.photoUrl;
+    } else {
+      const current = await client.execute({
+        sql: 'SELECT photo_key, photo_url FROM journal_entries WHERE id = ?',
+        args: [id],
+      }).catch(() => ({ rows: [] }));
+      photoKey = current.rows?.[0]?.photo_key || null;
+      photoUrl = current.rows?.[0]?.photo_url || (photoKey ? makeMediaUrl(request, photoKey) : null);
+    }
+
     await client.execute({
-      sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
-            VALUES (?, ?, ?, ?, ?)`,
+      sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, photo_key, photo_url, note, entry_date)
+            VALUES (?, ?, NULL, ?, ?, ?, ?)`,
       args: [
         id,
         Number(week_number || 0),
-        photo_blob || null,
+        photoKey,
+        photoUrl,
         note || '',
         entry_date || new Date().toISOString().split('T')[0],
       ],
     });
 
-    return json({ success: true, id });
+    return json({ success: true, id, photo_key: photoKey, photo_url: photoUrl });
   } catch (err) {
     console.error('Upsert journal error:', err);
     return json({ success: false, error: err.message }, { status: 500 });
@@ -697,6 +726,16 @@ async function handleDeleteJournal(env, id) {
   const client = getClient(env);
 
   try {
+    const current = await client.execute({
+      sql: 'SELECT photo_key FROM journal_entries WHERE id = ?',
+      args: [id]
+    }).catch(() => ({ rows: [] }));
+
+    const photoKey = current.rows?.[0]?.photo_key || null;
+    if (photoKey && env.MEDIA) {
+      await env.MEDIA.delete(photoKey).catch(() => {});
+    }
+
     await client.execute({
       sql: 'DELETE FROM journal_entries WHERE id = ?',
       args: [id]
@@ -1547,7 +1586,7 @@ export default {
 
       // Sync endpoints
       if (url.pathname === '/api/sync' && request.method === 'GET') {
-        return withCors(await handleSyncGet(env), env, request);
+        return withCors(await handleSyncGet(env, request), env, request);
       }
       if (url.pathname === '/api/sync' && request.method === 'POST') {
         return withCors(await handleSyncPost(env, request), env, request);
@@ -1606,6 +1645,24 @@ export default {
       // Love notes
       if (url.pathname === '/api/notes') {
         return withCors(await handleLoveNotes(env, request), env, request);
+      }
+
+      // Media proxy from R2 (Phase B)
+      if (url.pathname.startsWith('/api/media/') && request.method === 'GET') {
+        const key = decodeURIComponent(url.pathname.replace('/api/media/', ''));
+        if (!key || !env.MEDIA) {
+          return withCors(json({ success: false, error: 'Media not available' }, { status: 404 }), env, request);
+        }
+
+        const object = await env.MEDIA.get(key);
+        if (!object) {
+          return withCors(json({ success: false, error: 'Media not found' }, { status: 404 }), env, request);
+        }
+
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('etag', object.httpEtag);
+        return withCors(new Response(object.body, { headers }), env, request);
       }
 
       return withCors(json({ success: false, error: 'Not found' }, { status: 404 }), env, request);

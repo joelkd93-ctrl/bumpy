@@ -122,6 +122,7 @@ export const storage = {
       note: data.note || '',
       photo: null,
       photoRef: photoRef || null,
+      photoUrl: data.photoUrl || null,
     }, true);
 
     if (!localSaved) {
@@ -157,6 +158,14 @@ export const storage = {
         const text = await response.text().catch(() => 'unknown');
         console.warn(`⚠️ Journal upsert failed (${response.status}): ${text}`);
         return false;
+      }
+
+      const result = await response.json().catch(() => ({}));
+      if (result?.photo_url) {
+        this.set(key, {
+          ...this.get(key, {}),
+          photoUrl: result.photo_url,
+        }, true);
       }
 
       return true;
@@ -613,6 +622,7 @@ export const storage = {
                 week: entry.week_number,
                 photo: null,
                 photoRef: photoRef,
+                photoUrl: entry.photo_url || null,
                 note: entry.note,
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
               };
