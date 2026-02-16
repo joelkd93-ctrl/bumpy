@@ -437,33 +437,57 @@ export function initJournal() {
   window._journalDeleteHandler = handleDelete;
 }
 
-// Compress image to reduce localStorage usage
+// Compress image to reduce localStorage usage and prevent memory crashes
 function compressImage(file, callback) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const maxWidth = 800;
-      const maxHeight = 1000;
+  // Use createObjectURL instead of FileReader to avoid massive memory spikes
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  
+  img.onload = () => {
+    // Release memory immediately after loading
+    URL.revokeObjectURL(url);
+    
+    const canvas = document.createElement('canvas');
+    // Slightly reduced max dimensions for better stability on older phones
+    const maxWidth = 800; 
+    const maxHeight = 800;
 
-      let { width, height } = img;
+    let { width, height } = img;
 
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width *= ratio;
-        height *= ratio;
+    // Calculate new dimensions
+    if (width > height) {
+      if (width > maxWidth) {
+        height = Math.round(height * (maxWidth / width));
+        width = maxWidth;
       }
+    } else {
+      if (height > maxHeight) {
+        width = Math.round(width * (maxHeight / height));
+        height = maxHeight;
+      }
+    }
 
-      canvas.width = width;
-      canvas.height = height;
+    canvas.width = width;
+    canvas.height = height;
 
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
 
-      callback(canvas.toDataURL('image/jpeg', 0.8));
-    };
-    img.src = e.target.result;
+    // Compress to JPEG at 70% quality (good balance)
+    try {
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      callback(dataUrl);
+    } catch (e) {
+      console.error('Compression failed:', e);
+      alert('Kunne ikke behandle bildet. Prøv et mindre bilde.');
+    }
   };
-  reader.readAsDataURL(file);
+
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    console.error('Image load failed');
+    alert('Noe gikk galt med bildet. Prøv igjen.');
+  };
+
+  img.src = url;
 }
