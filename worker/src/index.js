@@ -314,7 +314,7 @@ async function handleSyncGet(env) {
 
   const [
     settings,
-    journal,
+    journalMeta,
     moods,
     together,
     heartbeats,
@@ -328,8 +328,11 @@ async function handleSyncGet(env) {
     nameVotesEpochRow,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
-    client.execute('SELECT id, week_number, photo_blob, note, entry_date, created_at FROM journal_entries ORDER BY COALESCE(entry_date, created_at) DESC'),
-    client.execute('SELECT * FROM mood_entries ORDER BY date DESC'),
+    client.execute(`SELECT id, week_number, note, entry_date, created_at, LENGTH(photo_blob) AS photo_size
+                    FROM journal_entries
+                    ORDER BY COALESCE(entry_date, created_at) DESC
+                    LIMIT 30`),
+    client.execute('SELECT * FROM mood_entries ORDER BY date DESC LIMIT 100'),
     client.execute('SELECT * FROM weekly_questions'),
     client.execute('SELECT * FROM heartbeat_sessions ORDER BY timestamp DESC LIMIT 10'),
     client.execute('SELECT * FROM name_votes'),
@@ -341,6 +344,33 @@ async function handleSyncGet(env) {
     client.execute("SELECT value FROM app_state WHERE key = 'love_auction_v2'").catch(() => ({ rows: [] })),
     client.execute("SELECT value FROM app_state WHERE key = 'name_votes_epoch'").catch(() => ({ rows: [] })),
   ]);
+
+  // Build journal payload with strict per-photo size cap to avoid 503s
+  const MAX_PHOTO_BYTES_IN_SYNC = 350_000;
+  const journalRows = [];
+  for (const row of (journalMeta.rows || [])) {
+    let photoBlob = null;
+    const size = Number(row.photo_size || 0);
+
+    if (size > 0 && size <= MAX_PHOTO_BYTES_IN_SYNC) {
+      const photoResult = await client.execute({
+        sql: 'SELECT photo_blob FROM journal_entries WHERE id = ?',
+        args: [row.id],
+      }).catch(() => ({ rows: [] }));
+      photoBlob = photoResult.rows?.[0]?.photo_blob || null;
+    } else if (size > MAX_PHOTO_BYTES_IN_SYNC) {
+      console.warn(`⚠️ Skipping oversized photo in sync for ${row.id} (${size} chars)`);
+    }
+
+    journalRows.push({
+      id: row.id,
+      week_number: row.week_number,
+      photo_blob: photoBlob,
+      note: row.note,
+      entry_date: row.entry_date,
+      created_at: row.created_at,
+    });
+  }
 
   // Transform predictions to { andrine: {}, partner: {} } format
   const predictionsMap = { andrine: {}, partner: {} };
@@ -364,8 +394,8 @@ async function handleSyncGet(env) {
   const schemaResult = await client.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='journal_entries'");
   console.log(`🔽 Database has ${countResult.rows[0]?.total || 0} total journal_entries rows`);
   console.log(`🔽 Table schema:`, schemaResult.rows[0]?.sql);
-  console.log(`🔽 GET /api/sync returning ${journal.rows?.length || 0} journal entries`);
-  console.log(`🔽 Journal IDs:`, journal.rows?.map(r => r.id));
+  console.log(`🔽 GET /api/sync returning ${journalRows.length || 0} journal entries`);
+  console.log(`🔽 Journal IDs:`, journalRows.map(r => r.id));
 
   // Extract matched names and custom names as arrays of strings
   const matchedNames = (matchedNamesResult.rows || []).map(row => row.name);
@@ -375,7 +405,7 @@ async function handleSyncGet(env) {
     success: true,
     data: {
       settings: settings.rows?.[0] || null,
-      journal: journal.rows || [],
+      journal: journalRows || [],
       moods: moods.rows || [],
       together: together.rows || [],
       heartbeats: heartbeats.rows || [],

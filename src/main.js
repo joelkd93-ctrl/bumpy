@@ -770,10 +770,24 @@ document.addEventListener('visibilitychange', async () => {
   }
 });
 
-// Auto-sync every 15 seconds (even when minimized!)
+// Auto-sync with basic failure backoff (to avoid hammering API when unstable)
+let autoPullBackoffMs = 0;
+
 const autoPull = async () => {
+  if (autoPullBackoffMs > 0) {
+    console.log(`⏸️ Auto-pull backoff active (${autoPullBackoffMs}ms left)`);
+    autoPullBackoffMs = Math.max(0, autoPullBackoffMs - 60000);
+    return;
+  }
+
   console.log('⏰ Auto-pull', document.hidden ? '[minimized]' : '[visible]');
   const hasUpdates = await storage.pullFromCloud();
+
+  // If pull failed, storage returns false too; apply gentle backoff only when API seems flaky
+  if (hasUpdates === false) {
+    autoPullBackoffMs = 30000; // 30s cooldown after failure
+  }
+
   // Only refresh UI if app is visible AND modal is not open
   if (hasUpdates && !document.hidden && window.app?.refreshCurrentPage && !isGameModalOpen()) {
     console.log('📱 Auto-refresh triggered');
@@ -789,8 +803,8 @@ setTimeout(() => {
   autoPull().catch(err => console.warn('Initial sync failed:', err));
 }, 2000);
 
-// Then poll every 15 seconds
-setInterval(autoPull, 15000);
+// Then poll every 60 seconds (lighter load on worker)
+setInterval(autoPull, 60000);
 
 // Listen for messages from service worker (periodic sync updates)
 if ('serviceWorker' in navigator) {
