@@ -710,6 +710,33 @@ async function handleDeleteJournal(env, id) {
   }
 }
 
+async function handleUpsertMood(env, request) {
+  const client = getClient(env);
+  const body = await request.json().catch(() => null);
+  if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+
+  const { id, date, mood_emoji, note } = body;
+  if (!id) return json({ success: false, error: 'Missing id' }, { status: 400 });
+
+  try {
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO mood_entries (id, date, mood_emoji, note)
+            VALUES (?, ?, ?, ?)`,
+      args: [
+        id,
+        date || new Date().toISOString(),
+        mood_emoji || '😊',
+        note || '',
+      ],
+    });
+
+    return json({ success: true, id });
+  } catch (err) {
+    console.error('Upsert mood error:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 async function handleDeleteMood(env, id) {
   if (!id) {
     return json({ success: false, error: 'Missing ID' }, { status: 400 });
@@ -1533,6 +1560,9 @@ export default {
       if (url.pathname.startsWith('/api/journal/') && request.method === 'DELETE') {
         const id = url.pathname.split('/').pop();
         return withCors(await handleDeleteJournal(env, id), env, request);
+      }
+      if (url.pathname === '/api/mood' && request.method === 'POST') {
+        return withCors(await handleUpsertMood(env, request), env, request);
       }
       if (url.pathname.startsWith('/api/mood/') && request.method === 'DELETE') {
         const id = url.pathname.split('/').pop();

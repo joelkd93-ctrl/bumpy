@@ -149,6 +149,54 @@ export const storage = {
     }
   },
 
+  async upsertMoodEntry(id, data) {
+    const moodData = {
+      mood: data.mood,
+      note: data.note || '',
+      date: data.date || new Date().toISOString(),
+      timestamp: data.timestamp || new Date().toISOString(),
+    };
+
+    this.set(`feeling:${id}`, {
+      mood: moodData.mood,
+      note: moodData.note,
+      timestamp: moodData.timestamp,
+    }, true);
+
+    const localSaved = this.set(`mood_entries:${id}`, moodData, true);
+    if (!localSaved) throw new Error('Local mood save failed');
+
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/mood`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          id,
+          date: moodData.date,
+          mood_emoji: moodData.mood,
+          note: moodData.note,
+        })
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => 'unknown');
+        console.warn(`⚠️ Mood upsert failed (${response.status}): ${text}`);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('☁️ Mood upsert failed (network):', err.message);
+      return false;
+    }
+  },
+
   // Remove from collection
   async removeFromCollection(prefix, id) {
     // Remove from localStorage first

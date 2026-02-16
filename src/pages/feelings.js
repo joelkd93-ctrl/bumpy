@@ -267,10 +267,12 @@ export function initFeelings() {
     const note = noteInput?.value?.trim() || '';
     const timestamp = new Date().toISOString();
 
-    storage.set(`feeling:${todayKey}`, { mood: selectedMood, note, timestamp });
-    // Stable ID = todayKey prevents duplicates on re-save
-    storage.set(`mood_entries:${todayKey}`, { mood: selectedMood, note, date: timestamp, timestamp }, true);
-    await storage.syncWithCloud({ only: ['mood_entries'] });
+    await storage.upsertMoodEntry(todayKey, {
+      mood: selectedMood,
+      note,
+      date: timestamp,
+      timestamp,
+    });
 
     if (window.app?.refreshCurrentPage) {
       window.app.refreshCurrentPage();
@@ -279,12 +281,11 @@ export function initFeelings() {
     }
   });
 
-  // Change mood (clear today's entry from both keys)
-  changeBtn?.addEventListener('click', () => {
+  // Change mood (clear today's entry)
+  changeBtn?.addEventListener('click', async () => {
     const todayKey = getTodayKey();
     storage.remove(`feeling:${todayKey}`);
-    storage.remove(`mood_entries:${todayKey}`);
-    storage.syncWithCloud({ only: ['mood_entries'] });
+    await storage.removeFromCollection('mood_entries', todayKey);
 
     if (window.app?.refreshCurrentPage) {
       window.app.refreshCurrentPage();

@@ -774,13 +774,17 @@ document.addEventListener('visibilitychange', async () => {
 let autoPullBackoffMs = 0;
 
 const autoPull = async () => {
+  if (document.hidden) {
+    return; // only auto-pull while visible to reduce sync pressure/races
+  }
+
   if (autoPullBackoffMs > 0) {
     console.log(`⏸️ Auto-pull backoff active (${autoPullBackoffMs}ms left)`);
     autoPullBackoffMs = Math.max(0, autoPullBackoffMs - 60000);
     return;
   }
 
-  console.log('⏰ Auto-pull', document.hidden ? '[minimized]' : '[visible]');
+  console.log('⏰ Auto-pull [visible]');
   const hasUpdates = await storage.pullFromCloud();
 
   // If pull failed, storage returns false too; apply gentle backoff only when API seems flaky
