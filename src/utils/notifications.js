@@ -21,6 +21,11 @@ export async function requestNotificationPermission() {
 }
 
 export async function showNotification(title, options = {}) {
+  if (!('Notification' in window)) {
+    console.warn('🔔 Notification API not available in this browser/context');
+    return;
+  }
+
   console.log('🔔 showNotification called:', title, 'hidden:', document.hidden, 'permission:', Notification.permission);
 
   if (Notification.permission !== 'granted') {

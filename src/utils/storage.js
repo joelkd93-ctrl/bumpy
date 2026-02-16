@@ -487,14 +487,33 @@ export const storage = {
           journal.forEach(entry => {
             if (!localIds.has(entry.id)) {
               console.log(`🔽 Adding new entry from cloud: ${entry.id}`);
-              this.set(`journal:${entry.id}`, {
+
+              const baseEntry = {
                 week: entry.week_number,
                 photo: entry.photo_blob,
                 note: entry.note,
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
-              }, true);
-              hasChanged = true;
-              newEntriesCount++;
+              };
+
+              // Try normal save first
+              let saved = this.set(`journal:${entry.id}`, baseEntry, true);
+
+              // Fallback for quota exceeded: save without photo so note/date still syncs
+              if (!saved && baseEntry.photo) {
+                console.warn(`⚠️ Quota hit while syncing ${entry.id}. Retrying without photo blob.`);
+                saved = this.set(`journal:${entry.id}`, {
+                  ...baseEntry,
+                  photo: null,
+                  photoSyncSkipped: true
+                }, true);
+              }
+
+              if (saved) {
+                hasChanged = true;
+                newEntriesCount++;
+              } else {
+                console.error(`❌ Could not save journal entry ${entry.id} locally (even without photo).`);
+              }
             }
           });
 
