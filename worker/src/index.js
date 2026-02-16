@@ -661,6 +661,34 @@ async function handleSyncPost(env, request) {
   return json({ success: true, message: 'Sync complete' });
 }
 
+async function handleUpsertJournal(env, request) {
+  const client = getClient(env);
+  const body = await request.json().catch(() => null);
+  if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+
+  const { id, week_number, photo_blob, note, entry_date } = body;
+  if (!id) return json({ success: false, error: 'Missing id' }, { status: 400 });
+
+  try {
+    await client.execute({
+      sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
+            VALUES (?, ?, ?, ?, ?)`,
+      args: [
+        id,
+        Number(week_number || 0),
+        photo_blob || null,
+        note || '',
+        entry_date || new Date().toISOString().split('T')[0],
+      ],
+    });
+
+    return json({ success: true, id });
+  } catch (err) {
+    console.error('Upsert journal error:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 async function handleDeleteJournal(env, id) {
   if (!id) {
     return json({ success: false, error: 'Missing ID' }, { status: 400 });
@@ -1498,7 +1526,10 @@ export default {
         return withCors(await handleSyncPost(env, request), env, request);
       }
 
-      // Delete endpoints
+      // Journal endpoints
+      if (url.pathname === '/api/journal' && request.method === 'POST') {
+        return withCors(await handleUpsertJournal(env, request), env, request);
+      }
       if (url.pathname.startsWith('/api/journal/') && request.method === 'DELETE') {
         const id = url.pathname.split('/').pop();
         return withCors(await handleDeleteJournal(env, id), env, request);

@@ -106,6 +106,49 @@ export const storage = {
     return id;
   },
 
+  async upsertJournalEntry(id, data) {
+    const key = `journal:${id}`;
+    const localSaved = this.set(key, {
+      ...data,
+      date: data.date || new Date().toISOString().split('T')[0],
+    }, true);
+
+    if (!localSaved) {
+      throw new Error('Local save failed (quota exceeded)');
+    }
+
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/journal`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          id,
+          week_number: data.week,
+          photo_blob: data.photo || null,
+          note: data.note || '',
+          entry_date: data.date || new Date().toISOString().split('T')[0],
+        })
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => 'unknown');
+        console.warn(`⚠️ Journal upsert failed (${response.status}): ${text}`);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('☁️ Journal upsert failed (network):', err.message);
+      return false;
+    }
+  },
+
   // Remove from collection
   async removeFromCollection(prefix, id) {
     // Remove from localStorage first

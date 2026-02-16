@@ -249,18 +249,18 @@ export function initJournal() {
 
     try {
       if (editingEntryId) {
-        // Update existing entry
-        storage.set(`journal:${editingEntryId}`, {
+        // Update existing entry using dedicated endpoint (avoids full collection sync payload)
+        await storage.upsertJournalEntry(editingEntryId, {
           week: progress.weeksPregnant,
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
           note: note
-        }, true); // skipSync - we'll sync manually below
-        await storage.syncWithCloud({ only: ['journal'] });
+        });
         saveBtn.textContent = 'Oppdatert! 💕';
       } else {
-        // Create new entry
-        await storage.addToCollection('journal', {
+        // Create new entry with deterministic id
+        const newId = String(Date.now() + Math.floor(Math.random() * 1000));
+        await storage.upsertJournalEntry(newId, {
           week: progress.weeksPregnant,
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
@@ -425,13 +425,8 @@ export function initJournal() {
       // Haptic feedback
       if (window.haptic) window.haptic.medium();
 
-      // Delete entry locally
+      // Delete entry locally + cloud (removeFromCollection handles both)
       await storage.removeFromCollection('journal', id);
-
-      // Sync deletion to cloud so it deletes on all devices
-      console.log(`🗑️ Syncing journal deletion to cloud: ${id}`);
-      await storage.syncWithCloud({ only: ['journal'] });
-      console.log(`✅ Journal deletion synced to cloud`);
 
       // Refresh page
       if (window.app?.refreshCurrentPage) {
@@ -447,6 +442,17 @@ export function initJournal() {
 
 // Compress image to reduce localStorage usage and prevent memory crashes
 function compressImage(file, callback) {
+  // 1. Check file size (warn if huge)
+  if (file.size > 15 * 1024 * 1024) {
+    alert(`Bildet er veldig stort (${(file.size / 1024 / 1024).toFixed(1)} MB). Det kan hende nettleseren ikke klarer å behandle det.`);
+  }
+
+  // 2. Check file type
+  if (!file.type.match(/image.*/)) {
+    alert(`Filtypen '${file.type}' støttes kanskje ikke. Prøv et vanlig bilde (JPG/PNG).`);
+    return;
+  }
+
   // Use createObjectURL instead of FileReader to avoid massive memory spikes
   const url = URL.createObjectURL(file);
   const img = new Image();
@@ -479,7 +485,14 @@ function compressImage(file, callback) {
     canvas.height = height;
 
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, width, height);
+    
+    try {
+      ctx.drawImage(img, 0, 0, width, height);
+    } catch (e) {
+      console.error('Canvas draw error:', e);
+      alert('Kunne ikke tegne bildet. Det kan være skadet eller for stort for minnet.');
+      return;
+    }
 
     // Compress to JPEG at 60% quality (aggressive compression for localStorage)
     try {
@@ -494,14 +507,14 @@ function compressImage(file, callback) {
       callback(dataUrl);
     } catch (e) {
       console.error('Compression failed:', e);
-      alert('Kunne ikke behandle bildet. Prøv et mindre bilde.');
+      alert(`Komprimering feilet: ${e.message}. Prøv et mindre bilde.`);
     }
   };
 
   img.onerror = () => {
     URL.revokeObjectURL(url);
     console.error('Image load failed');
-    alert('Noe gikk galt med bildet. Prøv igjen.');
+    alert(`Kunne ikke laste bildet. Det kan være formatet (${file.type}) eller filen er skadet.`);
   };
 
   img.src = url;
