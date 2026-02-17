@@ -341,7 +341,7 @@ export function initJournal() {
       await storage.pullFromCloud();
 
       let entries = storage.getCollection('journal');
-      let missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+      let localWithoutMedia = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
 
       // Cloud media status from /sync (works even if /journal/audit fails)
       const getCloudMediaStats = async () => {
@@ -356,7 +356,7 @@ export function initJournal() {
 
       // Hard rebuild local journal cache if local lost media refs but cloud still has media
       let rebuilt = false;
-      if (missingLocal > 0 && cloudWithMedia > 0) {
+      if (localWithoutMedia > 0 && cloudWithMedia > 0) {
         const keysToDelete = [];
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
@@ -367,7 +367,7 @@ export function initJournal() {
         rebuilt = true;
 
         entries = storage.getCollection('journal');
-        missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+        localWithoutMedia = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
       }
 
       let republished = 0;
@@ -396,15 +396,15 @@ export function initJournal() {
           await storage.pullFromCloud();
           ({ cloudJournal, cloudWithMedia } = await getCloudMediaStats());
           entries = storage.getCollection('journal');
-          missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+          localWithoutMedia = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
         }
       }
 
-      const cloudLine = `Cloud media ok: ${cloudWithMedia}/${cloudJournal.length}`;
       const rebuiltLine = rebuilt ? '\nLokal Dagbok-cache ble bygget på nytt.' : '';
       const republishLine = republished > 0 ? `\nRepublished media: ${republished}` : '';
 
-      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal missing refs: ${missingLocal}\n${cloudLine}${rebuiltLine}${republishLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
+      const cloudWithoutMedia = Math.max(0, cloudJournal.length - cloudWithMedia);
+      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal uten media: ${localWithoutMedia}\nCloud media ok: ${cloudWithMedia}/${cloudJournal.length} (uten media: ${cloudWithoutMedia})${rebuiltLine}${republishLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
       window.app?.refreshCurrentPage?.();
     } catch (err) {
       alert(`Media debug feilet: ${err?.message || err}`);
