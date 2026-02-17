@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+worker/node_modules/
+
+# Build artifacts
+dist/
+worker/dist/
+
+# Local runtime/test artifacts
+*.log
+*.tmp
+*.temp
+sync_response.json
+test.json
+test-sync.json
+
+# Local db/backups
+bumpy-db/
+backups/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

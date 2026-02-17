@@ -39,7 +39,7 @@ function getApiUrl() {
 
 import { celebrate } from './confetti.js';
 import { notifyNewEntry, notifyEntryDeleted, notifyKick } from './notifications.js';
-import { putJournalPhoto, getJournalPhotoDataUrl, deleteJournalPhoto } from './media-store.js';
+import { putJournalPhoto, getJournalPhotoDataUrl, deleteJournalPhoto, putJournalMedia, getJournalMediaDataUrl, deleteJournalMedia } from './media-store.js';
 
 export const storage = {
   get(key, defaultValue = null) {
@@ -134,10 +134,15 @@ export const storage = {
     const { fromQueue = false } = options;
     const key = `journal:${id}`;
 
-    // Keep image blobs in IndexedDB, not localStorage
+    // Keep blobs in IndexedDB, not localStorage
     let photoRef = data.photoRef || null;
     if (data.photo && String(data.photo).startsWith('data:image/')) {
       photoRef = await putJournalPhoto(data.photo, id);
+    }
+
+    let mediaRef = data.mediaRef || null;
+    if (data.mediaDataUrl && String(data.mediaDataUrl).startsWith('data:')) {
+      mediaRef = await putJournalMedia(data.mediaDataUrl, id);
     }
 
     const localSaved = this.set(key, {
@@ -146,6 +151,7 @@ export const storage = {
       note: data.note || '',
       photo: null,
       photoRef: photoRef || null,
+      mediaRef: mediaRef || null,
       photoUrl: data.photoUrl || null,
       mediaType: data.mediaType || (data.photo ? 'image' : null),
       mediaUrl: data.mediaUrl || data.photoUrl || null,
@@ -165,9 +171,14 @@ export const storage = {
         photoBlobForCloud = await getJournalPhotoDataUrl(photoRef).catch(() => null);
       }
 
-      const mediaPayload = data.mediaDataUrl ? {
-        type: data.mediaType || (String(data.mediaDataUrl).startsWith('data:video/') ? 'video' : 'image'),
-        data_url: data.mediaDataUrl,
+      let mediaDataUrl = data.mediaDataUrl || null;
+      if (!mediaDataUrl && mediaRef) {
+        mediaDataUrl = await getJournalMediaDataUrl(mediaRef).catch(() => null);
+      }
+
+      const mediaPayload = mediaDataUrl ? {
+        type: data.mediaType || (String(mediaDataUrl).startsWith('data:video/') ? 'video' : 'image'),
+        data_url: mediaDataUrl,
         thumb_url: data.mediaThumbUrl || null,
         duration: data.mediaDuration || null,
       } : null;
@@ -194,18 +205,25 @@ export const storage = {
       if (!response.ok) {
         const text = await response.text().catch(() => 'unknown');
         console.warn(`⚠️ Journal upsert failed (${response.status}): ${text}`);
-        if (!fromQueue && !(data.mediaType === 'video' && !data.mediaUrl)) {
+        if (!fromQueue) {
           enqueueSyncTask({ type: 'journal_upsert', id });
         }
         return false;
       }
 
       const result = await response.json().catch(() => ({}));
+      const resolvedMediaUrl = result?.media_url || this.get(key, {})?.mediaUrl || result?.photo_url || null;
+
+      if (mediaRef && resolvedMediaUrl) {
+        await deleteJournalMedia(mediaRef).catch(() => {});
+      }
+
       this.set(key, {
         ...this.get(key, {}),
+        mediaRef: mediaRef && resolvedMediaUrl ? null : mediaRef,
         photoUrl: result?.photo_url || this.get(key, {})?.photoUrl || null,
         mediaType: result?.media_type || this.get(key, {})?.mediaType || null,
-        mediaUrl: result?.media_url || this.get(key, {})?.mediaUrl || result?.photo_url || null,
+        mediaUrl: resolvedMediaUrl,
         mediaThumbUrl: result?.media_thumb_url || this.get(key, {})?.mediaThumbUrl || null,
         mediaDuration: result?.media_duration || this.get(key, {})?.mediaDuration || null,
         pendingSync: false,
@@ -214,7 +232,7 @@ export const storage = {
       return true;
     } catch (err) {
       console.warn('☁️ Journal upsert failed (network):', err.message);
-      if (!fromQueue && !(data.mediaType === 'video' && !data.mediaUrl)) {
+      if (!fromQueue) {
         enqueueSyncTask({ type: 'journal_upsert', id });
       }
       return false;
@@ -275,11 +293,14 @@ export const storage = {
   // Remove from collection
   async removeFromCollection(prefix, id, options = {}) {
     const { fromQueue = false } = options;
-    // For journal, cleanup IndexedDB photo first
+    // For journal, cleanup IndexedDB media first
     if (prefix === 'journal') {
       const existing = this.get(`journal:${id}`);
       if (existing?.photoRef) {
         await deleteJournalPhoto(existing.photoRef).catch(() => {});
+      }
+      if (existing?.mediaRef) {
+        await deleteJournalMedia(existing.mediaRef).catch(() => {});
       }
     }
 
@@ -517,6 +538,7 @@ export const storage = {
             date: local.date,
             note: local.note,
             photoRef: local.photoRef,
+            mediaRef: local.mediaRef,
             photoUrl: local.photoUrl,
             mediaType: local.mediaType,
             mediaUrl: local.mediaUrl,

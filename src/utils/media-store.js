@@ -6,6 +6,7 @@
 const DB_NAME = 'bumpy-media-v1';
 const DB_VERSION = 1;
 const STORE_PHOTOS = 'journal_photos';
+const STORE_MEDIA = 'journal_media';
 const MIGRATION_FLAG_KEY = 'bumpy:journal_media_migrated_v1';
 const LS_PREFIX = 'bumpy:';
 
@@ -22,6 +23,10 @@ function openDB() {
       if (!db.objectStoreNames.contains(STORE_PHOTOS)) {
         const store = db.createObjectStore(STORE_PHOTOS, { keyPath: 'id' });
         store.createIndex('createdAt', 'createdAt', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(STORE_MEDIA)) {
+        const mediaStore = db.createObjectStore(STORE_MEDIA, { keyPath: 'id' });
+        mediaStore.createIndex('createdAt', 'createdAt', { unique: false });
       }
     };
 
@@ -90,6 +95,50 @@ export async function deleteJournalPhoto(photoRef) {
   await new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_PHOTOS, 'readwrite');
     tx.objectStore(STORE_PHOTOS).delete(photoRef);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('IndexedDB delete failed'));
+  });
+}
+
+export async function putJournalMedia(dataUrl, idHint = '') {
+  if (!dataUrl || !String(dataUrl).startsWith('data:')) return null;
+
+  const db = await openDB();
+  const id = `jm_${idHint || Date.now()}_${Math.floor(Math.random() * 10000)}`;
+  const blob = dataUrlToBlob(dataUrl);
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_MEDIA, 'readwrite');
+    tx.objectStore(STORE_MEDIA).put({ id, blob, createdAt: Date.now() });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('IndexedDB put failed'));
+  });
+
+  return id;
+}
+
+export async function getJournalMediaDataUrl(mediaRef) {
+  if (!mediaRef) return null;
+  const db = await openDB();
+
+  const row = await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_MEDIA, 'readonly');
+    const req = tx.objectStore(STORE_MEDIA).get(mediaRef);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error || new Error('IndexedDB get failed'));
+  });
+
+  if (!row?.blob) return null;
+  return blobToDataUrl(row.blob);
+}
+
+export async function deleteJournalMedia(mediaRef) {
+  if (!mediaRef) return;
+  const db = await openDB();
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_MEDIA, 'readwrite');
+    tx.objectStore(STORE_MEDIA).delete(mediaRef);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error || new Error('IndexedDB delete failed'));
   });
