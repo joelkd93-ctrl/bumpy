@@ -340,17 +340,35 @@ export function initJournal() {
       await fetch(`${base}/api/media/repair?limit=200`, { method: 'POST', mode: 'cors', credentials: 'omit' }).catch(() => null);
       await storage.pullFromCloud();
 
-      const entries = storage.getCollection('journal');
-      const missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+      let entries = storage.getCollection('journal');
+      let missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
 
-      const auditResp = await fetch(`${base}/api/journal/audit`, { method: 'GET', mode: 'cors', credentials: 'omit' }).catch(() => null);
-      const audit = auditResp && auditResp.ok ? await auditResp.json().catch(() => null) : null;
+      // Cloud media status from /sync (works even if /journal/audit fails)
+      const syncResp = await fetch(`${base}/api/sync?t=${Date.now()}`, { method: 'GET', mode: 'cors', credentials: 'omit' }).catch(() => null);
+      const syncJson = syncResp && syncResp.ok ? await syncResp.json().catch(() => null) : null;
+      const cloudJournal = syncJson?.data?.journal || [];
+      const cloudWithMedia = cloudJournal.filter(e => e.photo_blob || e.photo_key || e.photo_url || e.media_key || e.media_url).length;
 
-      const cloudLine = audit?.success
-        ? `Cloud media ok: ${audit.withMedia}/${audit.total} (missing: ${audit.missingAll})`
-        : 'Cloud audit: utilgjengelig';
+      // Hard rebuild local journal cache if local lost media refs but cloud still has media
+      let rebuilt = false;
+      if (missingLocal > 0 && cloudWithMedia > 0) {
+        const keysToDelete = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('bumpy:journal:')) keysToDelete.push(k);
+        }
+        keysToDelete.forEach((k) => localStorage.removeItem(k));
+        await storage.pullFromCloud();
+        rebuilt = true;
 
-      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal missing refs: ${missingLocal}\n${cloudLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
+        entries = storage.getCollection('journal');
+        missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+      }
+
+      const cloudLine = `Cloud media ok: ${cloudWithMedia}/${cloudJournal.length}`;
+      const rebuiltLine = rebuilt ? '\nLokal Dagbok-cache ble bygget på nytt.' : '';
+
+      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal missing refs: ${missingLocal}\n${cloudLine}${rebuiltLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
       window.app?.refreshCurrentPage?.();
     } catch (err) {
       alert(`Media debug feilet: ${err?.message || err}`);
