@@ -151,6 +151,7 @@ export const storage = {
       mediaUrl: data.mediaUrl || data.photoUrl || null,
       mediaThumbUrl: data.mediaThumbUrl || null,
       mediaDuration: data.mediaDuration || null,
+      pendingSync: true,
     }, true);
 
     if (!localSaved) {
@@ -207,6 +208,7 @@ export const storage = {
         mediaUrl: result?.media_url || this.get(key, {})?.mediaUrl || result?.photo_url || null,
         mediaThumbUrl: result?.media_thumb_url || this.get(key, {})?.mediaThumbUrl || null,
         mediaDuration: result?.media_duration || this.get(key, {})?.mediaDuration || null,
+        pendingSync: false,
       }, true);
 
       return true;
@@ -782,6 +784,12 @@ export const storage = {
               if (!isNaN(entryTime) && age < GRACE_PERIOD_MS) {
                 console.log(`🛡️ Protecting new local entry from sync deletion: ${local.id} (Age: ${age}ms)`);
                 return; // Skip deletion
+              }
+
+              // Keep local entry if it has not synced yet (e.g. failed upload/network)
+              if (local.pendingSync) {
+                console.log(`🛡️ Keeping pendingSync local entry: ${local.id}`);
+                return;
               }
 
               console.log(`🔽 Removing deleted entry from local: ${local.id}`);

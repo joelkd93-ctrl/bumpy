@@ -34,16 +34,18 @@ export function renderJournal() {
             </div>
           </div>
           ${entry.mediaType === 'video' && entry.mediaUrl
-        ? `<div style="position:relative;">
-             <video src="${entry.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>
-             ${entry.mediaDuration ? `<span style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;">${Math.floor(entry.mediaDuration / 60)}:${String(entry.mediaDuration % 60).padStart(2, '0')}</span>` : ''}
-           </div>`
-        : (entry.photo
-            ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
-            : (entry.photoRef
-                ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-                : (entry.photoUrl ? `<img src="${entry.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')))
-      }
+            ? `<div style="position:relative;">
+                 <video src="${entry.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>
+                 ${entry.mediaDuration ? `<span style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;">${Math.floor(entry.mediaDuration / 60)}:${String(entry.mediaDuration % 60).padStart(2, '0')}</span>` : ''}
+               </div>`
+            : entry.mediaType === 'video' && entry.mediaThumbUrl
+              ? `<img src="${entry.mediaThumbUrl}" alt="Videoforhåndsvisning" class="journal-photo"/>`
+              : entry.photo
+                ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
+                : entry.photoRef
+                  ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
+                  : (entry.photoUrl ? `<img src="${entry.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')
+          }
           ${entry.note ? `<p class="journal-note">${entry.note}</p>` : ''}
         </div>
       `).join('')
@@ -190,11 +192,13 @@ function renderJourneyEvent(event) {
         </div>
         ${event.mediaType === 'video' && event.mediaUrl
           ? `<video src="${event.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
-          : (event.photo
+          : event.mediaType === 'video' && event.mediaThumbUrl
+            ? `<img src="${event.mediaThumbUrl}" alt="Videoforhåndsvisning" class="journal-photo"/>`
+            : event.photo
               ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
-              : (event.photoRef
-                  ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-                  : (event.photoUrl ? `<img src="${event.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')))
+              : event.photoRef
+                ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
+                : (event.photoUrl ? `<img src="${event.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')
         }
         ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
       </div>
@@ -437,7 +441,7 @@ export function initJournal() {
     try {
       if (editingEntryId) {
         // Update existing entry using dedicated endpoint (avoids full collection sync payload)
-        await storage.upsertJournalEntry(editingEntryId, {
+        const ok = await storage.upsertJournalEntry(editingEntryId, {
           week: progress.weeksPregnant,
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
@@ -447,11 +451,12 @@ export function initJournal() {
           mediaThumbUrl: currentMediaThumbUrl,
           note: note
         });
+        if (!ok) throw new Error('Cloud save failed');
         saveBtn.textContent = 'Oppdatert! 💕';
       } else {
         // Create new entry with deterministic id
         const newId = String(Date.now() + Math.floor(Math.random() * 1000));
-        await storage.upsertJournalEntry(newId, {
+        const ok = await storage.upsertJournalEntry(newId, {
           week: progress.weeksPregnant,
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
@@ -461,6 +466,7 @@ export function initJournal() {
           mediaThumbUrl: currentMediaThumbUrl,
           note: note
         });
+        if (!ok) throw new Error('Cloud save failed');
         saveBtn.textContent = 'Lagret! 💕';
       }
 
