@@ -84,24 +84,55 @@ async function ensureSchema(env) {
   await schemaEnsureInFlight;
 }
 
-async function uploadJournalPhotoToR2(env, request, id, photoBlob) {
-  if (!photoBlob || !env.MEDIA) return { photoKey: null, photoUrl: null };
-
-  const key = `journal/${id}.jpg`;
-  const base64 = String(photoBlob).split(',')[1] || '';
+function parseDataUrl(dataUrl) {
+  const str = String(dataUrl || '');
+  const match = /^data:([^;]+);base64,(.+)$/i.exec(str);
+  if (!match) return null;
+  const mime = match[1];
+  const base64 = match[2];
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return { mime, bytes };
+}
+
+function extFromMime(mime) {
+  if (!mime) return 'bin';
+  if (mime.includes('jpeg')) return 'jpg';
+  if (mime.includes('png')) return 'png';
+  if (mime.includes('webp')) return 'webp';
+  if (mime.includes('mp4')) return 'mp4';
+  if (mime.includes('quicktime')) return 'mov';
+  if (mime.includes('webm')) return 'webm';
+  return 'bin';
+}
+
+async function uploadMediaToR2(env, request, { id, dataUrl, folder = 'journal' }) {
+  if (!dataUrl || !env.MEDIA) return { key: null, url: null, mime: null, size: 0 };
+
+  const parsed = parseDataUrl(dataUrl);
+  if (!parsed) throw new Error('Invalid data URL for media upload');
+
+  const { mime, bytes } = parsed;
+  const ext = extFromMime(mime);
+  const key = `${folder}/${id}.${ext}`;
 
   await env.MEDIA.put(key, bytes, {
     httpMetadata: {
-      contentType: 'image/jpeg',
+      contentType: mime,
       cacheControl: 'public, max-age=31536000, immutable',
     },
   });
 
   return {
-    photoKey: key,
-    photoUrl: makeMediaUrl(request, key),
+    key,
+    url: makeMediaUrl(request, key),
+    mime,
+    size: bytes.byteLength,
   };
+}
+
+async function uploadJournalPhotoToR2(env, request, id, photoBlob) {
+  const res = await uploadMediaToR2(env, request, { id, dataUrl: photoBlob, folder: 'journal' });
+  return { photoKey: res.key, photoUrl: res.url };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -256,6 +287,11 @@ async function handleInit(env) {
     `ALTER TABLE journal_entries ADD COLUMN entry_date TEXT`,
     `ALTER TABLE journal_entries ADD COLUMN photo_key TEXT`,
     `ALTER TABLE journal_entries ADD COLUMN photo_url TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN media_type TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN media_key TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN media_url TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN media_thumb_url TEXT`,
+    `ALTER TABLE journal_entries ADD COLUMN media_duration INTEGER`,
 
     // Indexes
     `CREATE INDEX IF NOT EXISTS idx_kick_sessions_time ON kick_sessions(start_time DESC)`,
@@ -382,7 +418,8 @@ async function handleSyncGet(env, request) {
     nameVotesEpochRow,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
-    client.execute(`SELECT id, week_number, note, entry_date, created_at, photo_key, photo_url
+    client.execute(`SELECT id, week_number, note, entry_date, created_at, photo_key, photo_url,
+                           media_type, media_key, media_url, media_thumb_url, media_duration
                     FROM journal_entries
                     ORDER BY COALESCE(entry_date, created_at) DESC
                     LIMIT 50`),
@@ -405,6 +442,11 @@ async function handleSyncGet(env, request) {
     photo_blob: null,
     photo_key: row.photo_key || null,
     photo_url: row.photo_url || makeMediaUrl(request, row.photo_key),
+    media_type: row.media_type || null,
+    media_key: row.media_key || null,
+    media_url: row.media_url || makeMediaUrl(request, row.media_key),
+    media_thumb_url: row.media_thumb_url || null,
+    media_duration: row.media_duration || null,
     note: row.note,
     entry_date: row.entry_date,
     created_at: row.created_at,
@@ -704,40 +746,71 @@ async function handleUpsertJournal(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { id, week_number, photo_blob, note, entry_date } = body;
+  const { id, week_number, photo_blob, media, note, entry_date } = body;
   if (!id) return json({ success: false, error: 'Missing id' }, { status: 400 });
 
   try {
     let photoKey = null;
     let photoUrl = null;
+    let mediaType = null;
+    let mediaKey = null;
+    let mediaUrl = null;
+    let mediaThumbUrl = null;
+    let mediaDuration = null;
+
+    const current = await client.execute({
+      sql: 'SELECT photo_key, photo_url, media_type, media_key, media_url, media_thumb_url, media_duration FROM journal_entries WHERE id = ?',
+      args: [id],
+    }).catch(() => ({ rows: [] }));
 
     if (photo_blob) {
       const uploaded = await uploadJournalPhotoToR2(env, request, id, photo_blob);
       photoKey = uploaded.photoKey;
       photoUrl = uploaded.photoUrl;
+      mediaType = 'image';
+      mediaKey = uploaded.photoKey;
+      mediaUrl = uploaded.photoUrl;
+    } else if (media?.data_url) {
+      const uploaded = await uploadMediaToR2(env, request, { id, dataUrl: media.data_url, folder: 'journal' });
+      mediaType = media.type || (uploaded.mime?.startsWith('video/') ? 'video' : 'image');
+      mediaKey = uploaded.key;
+      mediaUrl = uploaded.url;
+      mediaThumbUrl = media.thumb_url || null;
+      mediaDuration = Number(media.duration || 0) || null;
+
+      if (mediaType === 'image') {
+        photoKey = uploaded.key;
+        photoUrl = uploaded.url;
+      }
     } else {
-      const current = await client.execute({
-        sql: 'SELECT photo_key, photo_url FROM journal_entries WHERE id = ?',
-        args: [id],
-      }).catch(() => ({ rows: [] }));
       photoKey = current.rows?.[0]?.photo_key || null;
       photoUrl = current.rows?.[0]?.photo_url || (photoKey ? makeMediaUrl(request, photoKey) : null);
+      mediaType = current.rows?.[0]?.media_type || null;
+      mediaKey = current.rows?.[0]?.media_key || null;
+      mediaUrl = current.rows?.[0]?.media_url || (mediaKey ? makeMediaUrl(request, mediaKey) : null);
+      mediaThumbUrl = current.rows?.[0]?.media_thumb_url || null;
+      mediaDuration = current.rows?.[0]?.media_duration || null;
     }
 
     await client.execute({
-      sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, photo_key, photo_url, note, entry_date)
-            VALUES (?, ?, NULL, ?, ?, ?, ?)`,
+      sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, photo_key, photo_url, media_type, media_key, media_url, media_thumb_url, media_duration, note, entry_date)
+            VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id,
         Number(week_number || 0),
         photoKey,
         photoUrl,
+        mediaType,
+        mediaKey,
+        mediaUrl,
+        mediaThumbUrl,
+        mediaDuration,
         note || '',
         entry_date || new Date().toISOString().split('T')[0],
       ],
     });
 
-    return json({ success: true, id, photo_key: photoKey, photo_url: photoUrl });
+    return json({ success: true, id, photo_key: photoKey, photo_url: photoUrl, media_type: mediaType, media_key: mediaKey, media_url: mediaUrl, media_thumb_url: mediaThumbUrl, media_duration: mediaDuration });
   } catch (err) {
     console.error('Upsert journal error:', err);
     return json({ success: false, error: err.message }, { status: 500 });
@@ -753,13 +826,16 @@ async function handleDeleteJournal(env, id) {
 
   try {
     const current = await client.execute({
-      sql: 'SELECT photo_key FROM journal_entries WHERE id = ?',
+      sql: 'SELECT photo_key, media_key FROM journal_entries WHERE id = ?',
       args: [id]
     }).catch(() => ({ rows: [] }));
 
     const photoKey = current.rows?.[0]?.photo_key || null;
-    if (photoKey && env.MEDIA) {
-      await env.MEDIA.delete(photoKey).catch(() => {});
+    const mediaKey = current.rows?.[0]?.media_key || null;
+
+    if (env.MEDIA) {
+      if (photoKey) await env.MEDIA.delete(photoKey).catch(() => {});
+      if (mediaKey && mediaKey !== photoKey) await env.MEDIA.delete(mediaKey).catch(() => {});
     }
 
     await client.execute({
@@ -819,6 +895,44 @@ async function handleDeleteMood(env, id) {
     return json({ success: true, message: 'Mood entry deleted' });
   } catch (err) {
     console.error('Delete mood error:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+async function handleMediaUpload(env, request) {
+  if (!env.MEDIA) {
+    return json({ success: false, error: 'MEDIA bucket not configured' }, { status: 503 });
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+
+  const { id, data_url, type, folder } = body;
+  if (!id || !data_url) {
+    return json({ success: false, error: 'Missing id or data_url' }, { status: 400 });
+  }
+
+  try {
+    const uploaded = await uploadMediaToR2(env, request, {
+      id,
+      dataUrl: data_url,
+      folder: folder || 'journal',
+    });
+
+    const kind = type || (uploaded.mime?.startsWith('video/') ? 'video' : 'image');
+
+    return json({
+      success: true,
+      media: {
+        type: kind,
+        key: uploaded.key,
+        url: uploaded.url,
+        mime: uploaded.mime,
+        size: uploaded.size,
+      },
+    });
+  } catch (err) {
+    console.error('Media upload error:', err);
     return json({ success: false, error: err.message }, { status: 500 });
   }
 }
@@ -1676,7 +1790,11 @@ export default {
         return withCors(await handleLoveNotes(env, request), env, request);
       }
 
-      // Media proxy from R2 (Phase B)
+      // Media upload/proxy from R2 (Phase B)
+      if (url.pathname === '/api/media/upload' && request.method === 'POST') {
+        return withCors(await handleMediaUpload(env, request), env, request);
+      }
+
       if (url.pathname.startsWith('/api/media/') && request.method === 'GET') {
         const key = decodeURIComponent(url.pathname.replace('/api/media/', ''));
         if (!key || !env.MEDIA) {

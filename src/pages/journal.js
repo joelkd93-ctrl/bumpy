@@ -33,11 +33,13 @@ export function renderJournal() {
               </button>
             </div>
           </div>
-          ${entry.photo
-        ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
-        : (entry.photoRef
-            ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-            : (entry.photoUrl ? `<img src="${entry.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : ''))
+          ${entry.mediaType === 'video' && entry.mediaUrl
+        ? `<video src="${entry.mediaUrl}" class="journal-photo" controls playsinline preload="metadata"></video>`
+        : (entry.photo
+            ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
+            : (entry.photoRef
+                ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
+                : (entry.photoUrl ? `<img src="${entry.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')))
       }
           ${entry.note ? `<p class="journal-note">${entry.note}</p>` : ''}
         </div>
@@ -89,8 +91,8 @@ export function renderJournal() {
               </button>
             </div>
           </div>
-          <input type="file" id="photo-input-camera" accept="image/*" capture="environment" style="display: none;"/>
-          <input type="file" id="photo-input-gallery" accept="image/*" style="display: none;"/>
+          <input type="file" id="photo-input-camera" accept="image/*,video/*" capture="environment" style="display: none;"/>
+          <input type="file" id="photo-input-gallery" accept="image/*,video/*" style="display: none;"/>
         </div>
 
         <div id="photo-preview" class="text-center" style="display: none;">
@@ -161,6 +163,8 @@ export function initJournal() {
   const uploadText = document.getElementById('upload-text');
 
   let currentPhoto = null;
+  let currentMediaDataUrl = null;
+  let currentMediaType = null;
   let editingEntryId = null;
 
   // Hydrate deferred photos from IndexedDB
@@ -205,37 +209,50 @@ export function initJournal() {
     photoInputGallery?.click();
   });
 
-  // Handle file selection from camera
-  photoInputCamera?.addEventListener('change', (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      compressImage(file, (result) => {
-        currentPhoto = result;
-        previewImg.src = currentPhoto;
+  const handleSelectedFile = (file) => {
+    if (!file) return;
+
+    if (file.type?.startsWith('video/')) {
+      if (file.size > 100 * 1024 * 1024) {
+        alert('Videoen er for stor (maks 100MB akkurat nå).');
+        return;
+      }
+
+      fileToDataUrl(file, (dataUrl) => {
+        currentPhoto = null;
+        currentMediaDataUrl = dataUrl;
+        currentMediaType = 'video';
+        previewImg.removeAttribute('src');
+        previewImg.alt = 'Video valgt';
         photoUpload.style.display = 'none';
         photoPreview.style.display = 'block';
         updateUploadButton(true);
       });
+      return;
     }
-  });
+
+    compressImage(file, (result) => {
+      currentPhoto = result;
+      currentMediaDataUrl = null;
+      currentMediaType = 'image';
+      previewImg.src = currentPhoto;
+      photoUpload.style.display = 'none';
+      photoPreview.style.display = 'block';
+      updateUploadButton(true);
+    });
+  };
+
+  // Handle file selection from camera
+  photoInputCamera?.addEventListener('change', (e) => handleSelectedFile(e.target.files?.[0]));
 
   // Handle file selection from gallery
-  photoInputGallery?.addEventListener('change', (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      compressImage(file, (result) => {
-        currentPhoto = result;
-        previewImg.src = currentPhoto;
-        photoUpload.style.display = 'none';
-        photoPreview.style.display = 'block';
-        updateUploadButton(true);
-      });
-    }
-  });
+  photoInputGallery?.addEventListener('change', (e) => handleSelectedFile(e.target.files?.[0]));
 
   // Remove photo
   removePhotoBtn?.addEventListener('click', () => {
     currentPhoto = null;
+    currentMediaDataUrl = null;
+    currentMediaType = null;
     photoPreview.style.display = 'none';
     photoUpload.style.display = 'flex';
     photoInputCamera.value = '';
@@ -272,6 +289,8 @@ export function initJournal() {
           week: progress.weeksPregnant,
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
+          mediaDataUrl: currentMediaDataUrl,
+          mediaType: currentMediaType,
           note: note
         });
         saveBtn.textContent = 'Oppdatert! 💕';
@@ -282,6 +301,8 @@ export function initJournal() {
           week: progress.weeksPregnant,
           date: selectedDate || new Date().toISOString().split('T')[0],
           photo: currentPhoto,
+          mediaDataUrl: currentMediaDataUrl,
+          mediaType: currentMediaType,
           note: note
         });
         saveBtn.textContent = 'Lagret! 💕';
@@ -290,6 +311,8 @@ export function initJournal() {
       setTimeout(() => {
         // Reset form
         currentPhoto = null;
+        currentMediaDataUrl = null;
+        currentMediaType = null;
         editingEntryId = null;
         noteInput.value = '';
         dateInput.value = new Date().toISOString().split('T')[0];
@@ -400,7 +423,16 @@ export function initJournal() {
       noteInput.value = entry.note || '';
       dateInput.value = entry.date;
 
-      if (entry.photo || entry.photoRef) {
+      if (entry.mediaType === 'video' && entry.mediaUrl) {
+        currentPhoto = null;
+        currentMediaType = 'video';
+        currentMediaDataUrl = null; // keep existing cloud media unless replaced
+        previewImg.removeAttribute('src');
+        previewImg.alt = 'Video valgt';
+        photoUpload.style.display = 'none';
+        photoPreview.style.display = 'block';
+        updateUploadButton(true);
+      } else if (entry.photo || entry.photoRef) {
         let photoData = entry.photo || null;
         if (!photoData && entry.photoRef) {
           photoData = await getJournalPhotoDataUrl(entry.photoRef).catch(() => null);
@@ -408,6 +440,8 @@ export function initJournal() {
 
         if (photoData) {
           currentPhoto = photoData;
+          currentMediaType = 'image';
+          currentMediaDataUrl = null;
           previewImg.src = photoData;
           photoUpload.style.display = 'none';
           photoPreview.style.display = 'block';
@@ -463,6 +497,15 @@ export function initJournal() {
 
   document.addEventListener('click', handleDelete);
   window._journalDeleteHandler = handleDelete;
+}
+
+function fileToDataUrl(file, callback) {
+  const reader = new FileReader();
+  reader.onload = () => callback(reader.result);
+  reader.onerror = () => {
+    alert('Kunne ikke lese mediafil. Prøv igjen.');
+  };
+  reader.readAsDataURL(file);
 }
 
 // Compress image to reduce localStorage usage and prevent memory crashes

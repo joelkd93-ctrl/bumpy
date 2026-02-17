@@ -110,7 +110,7 @@ export const storage = {
   async upsertJournalEntry(id, data) {
     const key = `journal:${id}`;
 
-    // Keep photo blob in IndexedDB, not localStorage
+    // Keep image blobs in IndexedDB, not localStorage
     let photoRef = data.photoRef || null;
     if (data.photo && String(data.photo).startsWith('data:image/')) {
       photoRef = await putJournalPhoto(data.photo, id);
@@ -123,6 +123,10 @@ export const storage = {
       photo: null,
       photoRef: photoRef || null,
       photoUrl: data.photoUrl || null,
+      mediaType: data.mediaType || (data.photo ? 'image' : null),
+      mediaUrl: data.mediaUrl || data.photoUrl || null,
+      mediaThumbUrl: data.mediaThumbUrl || null,
+      mediaDuration: data.mediaDuration || null,
     }, true);
 
     if (!localSaved) {
@@ -136,6 +140,13 @@ export const storage = {
         photoBlobForCloud = await getJournalPhotoDataUrl(photoRef).catch(() => null);
       }
 
+      const mediaPayload = data.mediaDataUrl ? {
+        type: data.mediaType || (String(data.mediaDataUrl).startsWith('data:video/') ? 'video' : 'image'),
+        data_url: data.mediaDataUrl,
+        thumb_url: data.mediaThumbUrl || null,
+        duration: data.mediaDuration || null,
+      } : null;
+
       const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/journal`, {
         method: 'POST',
@@ -148,7 +159,8 @@ export const storage = {
         body: JSON.stringify({
           id,
           week_number: data.week,
-          photo_blob: photoBlobForCloud,
+          photo_blob: mediaPayload ? null : photoBlobForCloud,
+          media: mediaPayload,
           note: data.note || '',
           entry_date: data.date || new Date().toISOString().split('T')[0],
         })
@@ -161,12 +173,14 @@ export const storage = {
       }
 
       const result = await response.json().catch(() => ({}));
-      if (result?.photo_url) {
-        this.set(key, {
-          ...this.get(key, {}),
-          photoUrl: result.photo_url,
-        }, true);
-      }
+      this.set(key, {
+        ...this.get(key, {}),
+        photoUrl: result?.photo_url || this.get(key, {})?.photoUrl || null,
+        mediaType: result?.media_type || this.get(key, {})?.mediaType || null,
+        mediaUrl: result?.media_url || this.get(key, {})?.mediaUrl || result?.photo_url || null,
+        mediaThumbUrl: result?.media_thumb_url || this.get(key, {})?.mediaThumbUrl || null,
+        mediaDuration: result?.media_duration || this.get(key, {})?.mediaDuration || null,
+      }, true);
 
       return true;
     } catch (err) {
@@ -623,6 +637,10 @@ export const storage = {
                 photo: null,
                 photoRef: photoRef,
                 photoUrl: entry.photo_url || null,
+                mediaType: entry.media_type || (entry.photo_url ? 'image' : null),
+                mediaUrl: entry.media_url || entry.photo_url || null,
+                mediaThumbUrl: entry.media_thumb_url || null,
+                mediaDuration: entry.media_duration || null,
                 note: entry.note,
                 date: entry.entry_date || entry.created_at?.split(' ')[0] || new Date().toISOString().split('T')[0]
               };

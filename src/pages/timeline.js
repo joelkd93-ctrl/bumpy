@@ -62,11 +62,13 @@ function renderEvent(event) {
             </button>
           </div>
         </div>
-        ${event.photo
-          ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
-          : (event.photoRef
-              ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-              : (event.photoUrl ? `<img src="${event.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : ''))
+        ${event.mediaType === 'video' && event.mediaUrl
+          ? `<video src="${event.mediaUrl}" class="journal-photo" controls playsinline preload="metadata"></video>`
+          : (event.photo
+              ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
+              : (event.photoRef
+                  ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
+                  : (event.photoUrl ? `<img src="${event.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')))
         }
         ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
       </div>
