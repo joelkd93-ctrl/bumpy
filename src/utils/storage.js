@@ -624,14 +624,14 @@ export const storage = {
       if (localStorage.getItem('bumpy:skip_pull') === 'true') {
         console.log('⏭️ Skipping pull - reset flag set');
         localStorage.removeItem('bumpy:skip_pull'); // Clear flag
-        return false;
+        return null;
       }
 
       // Prevent pulling immediately after pushing to avoid race condition
       const timeSinceLastPush = Date.now() - lastPushSyncTime;
       if (timeSinceLastPush < 5000) {
         console.log(`⏭️ Skipping pull - just pushed ${timeSinceLastPush}ms ago`);
-        return false;
+        return null;
       }
 
       try {
@@ -1000,7 +1000,7 @@ export const storage = {
           return true;
         }
         console.log('🔽 No changes detected, skipping update');
-        return false;
+        return null;
       }
       } catch (err) {
         console.error('☁️ Cloud pull failed with error:', err);
