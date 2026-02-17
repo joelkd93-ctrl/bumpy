@@ -17,7 +17,7 @@ import { modal } from './utils/modal.js';
 import { notifyHeart, notifyKick } from './utils/notifications.js';
 import { renderHome, initHome } from './pages/home.js';
 import { renderJournal, initJournal } from './pages/journal.js';
-import { renderTimeline, initTimeline } from './pages/timeline.js';
+// timeline merged into Dagbok page
 import { renderFeelings, initFeelings } from './pages/feelings.js';
 import { renderTogether, initTogether } from './pages/together.js';
 import { renderKicks, initKicks } from './pages/kicks.js';
@@ -129,7 +129,6 @@ function handleSwipe() {
 
 const TABS = [
   { id: 'home',     icon: '<img src="/icons/nav/nav-hjem.png" class="nav-icon-img" alt="Hjem">', label: 'Hjem', render: renderHome, init: initHome },
-  { id: 'timeline', icon: '<img src="/icons/nav/nav-reise.png" class="nav-icon-img" alt="Reise">', label: 'Reise', render: renderTimeline, init: initTimeline },
   { id: 'kicks',    icon: '<img src="/icons/nav/nav-spark.png" class="nav-icon-img" alt="Spark">', label: 'Spark', render: renderKicks, init: initKicks },
   { id: 'feelings', icon: '<img src="/icons/nav/nav-folelser.png" class="nav-icon-img" alt="Følelser">', label: 'Følelser', render: renderFeelings, init: initFeelings },
   { id: 'journal',  icon: '<img src="/icons/nav/nav-dagbok.png" class="nav-icon-img" alt="Dagbok">', label: 'Dagbok', render: renderJournal, init: initJournal },
@@ -886,7 +885,7 @@ function setupDailyRefresh() {
         lastDay = currentDay;
 
         // Refresh only if we are on a page that benefits from daily updates
-        if (['home', 'together', 'timeline'].includes(currentTab)) {
+        if (['home', 'together', 'journal'].includes(currentTab)) {
           refreshCurrentPage();
         }
       }
