@@ -271,9 +271,10 @@ function navigate(tabId) {
     isNavigating = false;
   }
 
-  // Scroll to top
+  // Scroll to top/left (prevent horizontal drift on iOS)
   try {
-    content.scrollTo({ top: 0, behavior: 'auto' });
+    content.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    content.scrollLeft = 0;
   } catch (err) {
     console.warn('Scroll error:', err);
   }

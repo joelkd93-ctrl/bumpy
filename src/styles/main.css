@@ -5992,3 +5992,20 @@ body,
 .page-settings #enable-notifications.is-disabled .settings-toggle {
   filter: grayscale(.25);
 }
+
+/* iOS horizontal drift guard */
+.app-content {
+  overflow-x: hidden;
+}
+
+.page-together,
+.page-together #together-content,
+.page-together .game-grid {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.page-together .game-card {
+  min-width: 0;
+}
