@@ -616,7 +616,7 @@ function showGlobalHeartbeat() {
   });
 
   const label = overlay.querySelector('.global-heartbeat-label');
-  label.innerHTML = `Deler litt kjærlighet med deg 💚<br><small style="opacity: 0.8; font-size: 0.7em;">Fra deg 💚</small>`;
+  label.textContent = 'Deler litt kjærlighet med deg 💚';
 
   // Trigger animation
   requestAnimationFrame(() => {
