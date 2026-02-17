@@ -283,6 +283,34 @@ async function handleInit(env) {
       added_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`,
 
+    // Weekly Q&A game state
+    `CREATE TABLE IF NOT EXISTS weekly_questions (
+      id TEXT PRIMARY KEY,
+      week_number INTEGER,
+      question TEXT,
+      andrine_answer TEXT,
+      partner_answer TEXT,
+      both_answered INTEGER DEFAULT 0,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Heartbeat game history
+    `CREATE TABLE IF NOT EXISTS heartbeat_sessions (
+      id TEXT PRIMARY KEY,
+      timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+      sync_result TEXT,
+      duration_seconds INTEGER DEFAULT 0,
+      high_score INTEGER DEFAULT 0
+    )`,
+
+    // Optional love notes stream
+    `CREATE TABLE IF NOT EXISTS love_notes (
+      id TEXT PRIMARY KEY,
+      role TEXT,
+      note TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
     // Add columns to journal_entries if not exists (for existing databases)
     `ALTER TABLE journal_entries ADD COLUMN entry_date TEXT`,
     `ALTER TABLE journal_entries ADD COLUMN photo_key TEXT`,
@@ -416,6 +444,7 @@ async function handleSyncGet(env, request) {
     kicks,
     auctionStateRow,
     nameVotesEpochRow,
+    clientStateRows,
   ] = await Promise.all([
     client.execute('SELECT * FROM user_settings WHERE id = 1'),
     client.execute(`SELECT id, week_number, note, entry_date, created_at, photo_key, photo_url,
@@ -424,9 +453,9 @@ async function handleSyncGet(env, request) {
                     ORDER BY COALESCE(entry_date, created_at) DESC
                     LIMIT 50`),
     client.execute('SELECT * FROM mood_entries ORDER BY date DESC LIMIT 100'),
-    client.execute('SELECT * FROM weekly_questions'),
-    client.execute('SELECT * FROM heartbeat_sessions ORDER BY timestamp DESC LIMIT 10'),
-    client.execute('SELECT * FROM name_votes'),
+    client.execute('SELECT * FROM weekly_questions').catch(() => ({ rows: [] })),
+    client.execute('SELECT * FROM heartbeat_sessions ORDER BY timestamp DESC LIMIT 10').catch(() => ({ rows: [] })),
+    client.execute('SELECT * FROM name_votes').catch(() => ({ rows: [] })),
     client.execute('SELECT name FROM matched_names ORDER BY matched_at DESC').catch(() => ({ rows: [] })),
     client.execute('SELECT name FROM custom_names ORDER BY added_at DESC').catch(() => ({ rows: [] })),
     client.execute('SELECT * FROM love_notes').catch(() => ({ rows: [] })),
@@ -434,6 +463,7 @@ async function handleSyncGet(env, request) {
     client.execute('SELECT * FROM kick_sessions ORDER BY start_time DESC LIMIT 20').catch(() => ({ rows: [] })),
     client.execute("SELECT value FROM app_state WHERE key = 'love_auction_v2'").catch(() => ({ rows: [] })),
     client.execute("SELECT value FROM app_state WHERE key = 'name_votes_epoch'").catch(() => ({ rows: [] })),
+    client.execute("SELECT key, value FROM app_state WHERE key LIKE 'client:%'").catch(() => ({ rows: [] })),
   ]);
 
   const journalRows = (journalMeta.rows || []).map((row) => ({
@@ -481,6 +511,18 @@ async function handleSyncGet(env, request) {
   const matchedNames = (matchedNamesResult.rows || []).map(row => row.name);
   const customNames = (customNamesResult.rows || []).map(row => row.name);
 
+  const clientState = {};
+  for (const row of (clientStateRows.rows || [])) {
+    const key = String(row.key || '');
+    const localKey = key.startsWith('client:') ? key.slice(7) : key;
+    if (!localKey) continue;
+    try {
+      clientState[localKey] = JSON.parse(row.value);
+    } catch {
+      clientState[localKey] = row.value;
+    }
+  }
+
   return json({
     success: true,
     data: {
@@ -497,6 +539,7 @@ async function handleSyncGet(env, request) {
       predictions: predictionsMap,
       kicks: kicks.rows || [],
       auctionState: auctionState,
+      clientState,
     },
   });
 }
@@ -506,7 +549,7 @@ async function handleSyncPost(env, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
 
-  const { settings, journal, moods, together, nameVotes, matchedNames, customNames, nameVotesEpoch, resetNameVotes, predictions, kicks, deletedKickIds, auctionState } = body;
+  const { settings, journal, moods, together, nameVotes, matchedNames, customNames, nameVotesEpoch, resetNameVotes, predictions, kicks, deletedKickIds, auctionState, clientState } = body;
 
   // 1) Settings
   if (settings) {
@@ -728,7 +771,19 @@ async function handleSyncPost(env, request) {
     }
   }
 
-  // 8) Auction State (store as JSON blob)
+  // 8) Lightweight client state (weekly_*, mood_guess_today, mission_completed_*)
+  if (clientState && typeof clientState === 'object') {
+    for (const [k, v] of Object.entries(clientState)) {
+      if (!k) continue;
+      await client.execute({
+        sql: `INSERT OR REPLACE INTO app_state (key, value, updated_at)
+              VALUES (?, ?, CURRENT_TIMESTAMP)`,
+        args: [`client:${k}`, JSON.stringify(v ?? null)],
+      });
+    }
+  }
+
+  // 9) Auction State (store as JSON blob)
   if (auctionState) {
     console.log(`💾 Syncing auction state`);
     await client.execute({

@@ -418,6 +418,23 @@ export const storage = {
         payload.predictions = this.get('baby_predictions', { andrine: {}, partner: {} });
       }
 
+      // Lightweight app state sync for Together game keys not modeled as first-class tables
+      const dynamicClientStateKeys = [];
+      if (Array.isArray(only)) {
+        for (const k of only) {
+          if (!k) continue;
+          if (k === 'mood_guess_today' || k.startsWith('weekly_') || k.startsWith('mission_completed_')) {
+            dynamicClientStateKeys.push(k);
+          }
+        }
+      }
+      if (dynamicClientStateKeys.length > 0) {
+        payload.clientState = {};
+        dynamicClientStateKeys.forEach((k) => {
+          payload.clientState[k] = this.get(k);
+        });
+      }
+
       // Auction state moved to server-authoritative /api/auction actions
 
       const apiUrl = getApiUrl();
@@ -609,7 +626,7 @@ export const storage = {
       console.log('🔽 Pull result:', result);
 
       if (result.success && result.data) {
-        const { settings, journal, moods, together, nameVotes, nameVotesEpoch, matchedNames, customNames, predictions, kicks } = result.data;
+        const { settings, journal, moods, together, nameVotes, nameVotesEpoch, matchedNames, customNames, predictions, kicks, clientState } = result.data;
         let hasChanged = false;
 
         if (settings) {
@@ -702,6 +719,16 @@ export const storage = {
             console.log('♻️ Syncing baby predictions');
             this.set('baby_predictions', predictions, true);
             hasChanged = true;
+          }
+        }
+
+        if (clientState && typeof clientState === 'object') {
+          for (const [key, value] of Object.entries(clientState)) {
+            const current = this.get(key);
+            if (JSON.stringify(current) !== JSON.stringify(value)) {
+              this.set(key, value, true);
+              hasChanged = true;
+            }
           }
         }
 
