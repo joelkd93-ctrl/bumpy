@@ -6,74 +6,83 @@ import { storage } from '../utils/storage.js';
 
 export function renderKicks() {
   const session = storage.get('current_kick_session');
-  // If Yoel, use the synced session from Andrine if available
   const role = localStorage.getItem('who_am_i') || 'andrine';
   const displayedSession = (role === 'andrine') ? session : window.app.andrineActiveSession;
-
-  console.log(`🦶 Rendering Kicks: Role=${role}, LocalSession=${!!session}, SyncedSession=${!!window.app.andrineActiveSession}`);
-
   const history = storage.getCollection('kicks');
 
   return `
-    <div class="page-kicks fade-in">
-      <div class="page-header-hero page-header-kicks">
-        <h1 class="page-header-hero-title">Sparketeller 🦶</h1>
-        <p class="page-header-hero-sub">Spor babyens små bevegelser</p>
+    <div class="page-kicks kick-pearl-page fade-in">
+      <div class="kick-pearl-topbar">
+        <button class="kick-pearl-icon-btn" aria-label="Tilbake" type="button" onclick="window.app?.navigate('home')">←</button>
+        <h1 class="kick-pearl-title">Sparketeller</h1>
+        <button class="kick-pearl-icon-btn" aria-label="Info" type="button">i</button>
       </div>
 
-      <!-- Active Counter -->
-      <div class="kick-hero-card">
-        ${displayedSession ? `
-          <div class="kick-active-display">
-            <div class="kick-count-big">${displayedSession.count}</div>
-            <div class="kick-count-sub">spark</div>
-            <p class="text-muted mb-4 text-small">Økt startet ${new Date(displayedSession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-            
-            ${role === 'andrine' ? `
-              <button class="kick-btn-big" id="add-kick">🦶 Tell et Spark!</button>
-              <button class="btn btn-soft btn-block mt-3" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3);" id="finish-session">Avslutt &amp; Lagre</button>
-            ` : `
-              <p class="text-warm font-medium">Andrine teller spark nå... 🤰</p>
-            `}
-          </div>
-        ` : `
-          <div class="kick-start-display">
-            <div class="kick-icon-big">🦶</div>
-            ${role === 'andrine' ? `
-              <p class="heading-section mb-2">Klar til å telle?</p>
-              <p class="text-warm mb-6">Finn et koselig sted, slapp av, og trykk start når du kjenner det første sparket.</p>
-              <button class="kick-btn-big" id="start-kicks">Start Telling 💕</button>
-            ` : `
-              <p class="heading-section mb-2">Ingen aktiv telling</p>
-              <p class="text-warm mb-6">Yoel, du får beskjed når Andrine begynner å telle spark! 👶🦶</p>
-            `}
-          </div>
-        `}
+      <div class="kick-pearl-hero">
+        <div class="kick-pearl-circle" id="add-kick" role="button" aria-label="Registrer spark">
+          <span class="kick-pearl-circle-label">I dag</span>
+          <span class="kick-pearl-circle-count">${displayedSession?.count || 0}</span>
+          <span class="kick-pearl-circle-sub">SPARK</span>
+        </div>
+
+        ${displayedSession
+          ? `<p class="kick-pearl-help">Trykk på perlen for å registrere et nytt spark</p>
+             ${role === 'andrine' ? `<button class="kick-pearl-finish" id="finish-session">Avslutt økt</button>` : `<p class="kick-pearl-help">Andrine teller spark nå…</p>`}`
+          : `${role === 'andrine'
+              ? `<p class="kick-pearl-help">Trykk på perlen for å starte telling</p><button class="kick-pearl-start" id="start-kicks">Start telling</button>`
+              : `<p class="kick-pearl-help">Venter på at Andrine starter telling…</p>`}`
+        }
       </div>
 
-      <!-- History -->
-      <div class="mt-6">
-        <h2 class="heading-section mb-3">Nylige Økter</h2>
-        <div class="kick-history">
-          ${history.length > 0 ? history.slice(0, 5).map(s => `
-            <div class="card mb-3 p-4 flex-between">
-              <div>
-                <p class="font-medium mb-1">${new Date(s.startTime).toLocaleDateString()}</p>
-                <p class="text-xs text-muted">${new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+      <div class="kick-pearl-sheet">
+        <div class="kick-pearl-sheet-handle"></div>
+        <div class="kick-pearl-sheet-head">
+          <h2>Tidligere økter</h2>
+          <span>Vis alle</span>
+        </div>
+
+        <div class="kick-pearl-history">
+          ${history.length > 0 ? history.slice(0, 8).map(s => {
+            const start = new Date(s.startTime);
+            const end = s.endTime ? new Date(s.endTime) : null;
+            const label = getSessionLabel(start);
+            const from = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const to = end ? end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const duration = Number(s.duration || 0);
+            return `
+              <div class="kick-pearl-row">
+                <div class="kick-pearl-row-left">
+                  <div class="kick-pearl-row-icon">${getSessionIcon(start)}</div>
+                  <div>
+                    <div class="kick-pearl-row-title">${label}</div>
+                    <div class="kick-pearl-row-meta">${from} - ${to} <span>|</span> ${duration} min</div>
+                  </div>
+                </div>
+                <div class="kick-pearl-row-right">
+                  <div class="kick-pearl-row-count">${s.count || 0}</div>
+                  <div class="kick-pearl-row-sub">SPARK</div>
+                </div>
               </div>
-              <div class="text-right">
-                <span class="text-love font-bold text-xl">${s.count}</span>
-                <span class="text-xs text-muted block">spark</span>
-              </div>
-            </div>
-          `).join('') : `
-            <p class="text-muted text-center py-4">Ingen økter ennå. Start en over!</p>
-          `}
+            `;
+          }).join('') : `<p class="text-muted text-center py-4">Ingen økter ennå.</p>`}
         </div>
       </div>
-      
     </div>
   `;
+}
+
+function getSessionLabel(date) {
+  const h = date.getHours();
+  if (h < 11) return 'Morgenøkt';
+  if (h < 17) return 'Ettermiddagsøkt';
+  return 'Kveldsøkt';
+}
+
+function getSessionIcon(date) {
+  const h = date.getHours();
+  if (h < 11) return '⚡';
+  if (h < 17) return '☀️';
+  return '☾';
 }
 
 async function notifySync(role, session) {
@@ -134,34 +143,46 @@ export function initKicks() {
     window.app.refreshCurrentPage();
   });
 
-  // Add Kick
-  addBtn?.addEventListener('click', () => {
-    const session = storage.get('current_kick_session');
-    if (session) {
-      session.count++;
-      storage.set('current_kick_session', session);
+  // Add Kick (or start via pearl tap when no active session)
+  addBtn?.addEventListener('click', async () => {
+    let session = storage.get('current_kick_session');
 
-      // Notify partner of update
-      console.log('🦶 Adding kick, notifying partner...', session);
-      notifySync(role, session);
-
-      // Haptic & Visual Feedback
-      if (navigator.vibrate) navigator.vibrate(50);
-
-      // Celebrate every 10 kicks
-      if (session.count > 0 && session.count % 10 === 0) {
-        if (window.confetti) {
-          window.confetti({
-            particleCount: 50,
-            spread: 60,
-            origin: { y: 0.7 },
-            colors: ['#FF8FAB', '#FFC2D1', '#FFF']
-          });
-        }
-      }
-
+    if (!session) {
+      if (role !== 'andrine') return;
+      const newSession = {
+        startTime: new Date().toISOString(),
+        count: 1
+      };
+      storage.set('current_kick_session', newSession);
+      await notifySync(role, newSession);
+      if (navigator.vibrate) navigator.vibrate(40);
       window.app.refreshCurrentPage();
+      return;
     }
+
+    session.count++;
+    storage.set('current_kick_session', session);
+
+    // Notify partner of update
+    console.log('🦶 Adding kick, notifying partner...', session);
+    notifySync(role, session);
+
+    // Haptic & Visual Feedback
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    // Celebrate every 10 kicks
+    if (session.count > 0 && session.count % 10 === 0) {
+      if (window.confetti) {
+        window.confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#C5D9CD', '#749E91', '#FFFFFF']
+        });
+      }
+    }
+
+    window.app.refreshCurrentPage();
   });
 
   // Finish Session

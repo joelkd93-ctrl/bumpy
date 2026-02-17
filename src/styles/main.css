@@ -5383,3 +5383,33 @@ body,
 .page-journal #journal-compose #save-entry:active {
   background: #41665d !important;
 }
+
+/* Sparketeller pearl 1:1 style */
+.kick-pearl-page { background:#fdfcfb; }
+.kick-pearl-topbar { display:flex; align-items:center; justify-content:space-between; padding:8px 4px 6px; }
+.kick-pearl-title { margin:0; font-family:'Playfair Display', Georgia, serif; font-size:42px; font-style:italic; font-weight:500; color:#2f2a25; }
+.kick-pearl-icon-btn { width:40px; height:40px; border-radius:999px; border:1px solid rgba(224,219,207,.8); background:rgba(255,255,255,.72); color:#6d655a; font-size:20px; }
+
+.kick-pearl-hero { display:flex; flex-direction:column; align-items:center; padding:8px 0 18px; }
+.kick-pearl-circle { width:260px; height:260px; border-radius:50%; background:linear-gradient(135deg, rgba(255,255,255,.95) 0%, rgba(244,247,245,.75) 60%, rgba(255,255,255,.95) 100%); border:1px solid rgba(255,255,255,.85); box-shadow: inset 0 0 24px rgba(255,255,255,.9), 0 16px 40px rgba(169,159,136,.16); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.kick-pearl-circle-label { font-family:'Playfair Display', Georgia, serif; font-size:30px; font-style:italic; color:#a7a094; line-height:1; }
+.kick-pearl-circle-count { font-family:'Playfair Display', Georgia, serif; font-size:100px; line-height:.9; color:#2f2a25; margin-top:4px; }
+.kick-pearl-circle-sub { font-size:18px; letter-spacing:.2em; color:#548275; font-weight:600; margin-top:8px; }
+.kick-pearl-help { max-width:260px; text-align:center; margin:20px 0 10px; font-family:'Playfair Display', Georgia, serif; font-style:italic; color:#6f675c; font-size:20px; line-height:1.35; }
+.kick-pearl-start,.kick-pearl-finish { border-radius:999px; border:1px solid #c5d9cd; background:#f4f7f5; color:#41665d; font-weight:700; padding:12px 26px; }
+
+.kick-pearl-sheet { margin:10px calc(-1 * var(--space-4)) 0; background:rgba(255,255,255,.72); border-top:1px solid rgba(255,255,255,.9); border-radius:40px 40px 0 0; box-shadow:0 -10px 30px rgba(169,159,136,.12); padding-bottom:8px; }
+.kick-pearl-sheet-handle { width:48px; height:4px; border-radius:999px; background:#e4dfd6; margin:10px auto 8px; }
+.kick-pearl-sheet-head { display:flex; justify-content:space-between; align-items:flex-end; padding:0 20px 8px; border-bottom:1px solid rgba(229,225,217,.6); }
+.kick-pearl-sheet-head h2 { margin:0; font-family:'Playfair Display', Georgia, serif; font-style:italic; font-size:34px; color:#4a433a; font-weight:500; }
+.kick-pearl-sheet-head span { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#548275; font-weight:700; background:#f4f7f5; border:1px solid #e3ebe5; border-radius:999px; padding:6px 10px; }
+.kick-pearl-history { padding:14px 14px calc(var(--tab-bar-height) + 22px); display:flex; flex-direction:column; gap:12px; }
+.kick-pearl-row { background:#fff; border:1px solid #f2eeea; border-radius:24px; padding:14px 14px; box-shadow:0 6px 20px rgba(169,159,136,.08); display:flex; justify-content:space-between; align-items:center; }
+.kick-pearl-row-left { display:flex; align-items:center; gap:12px; }
+.kick-pearl-row-icon { width:44px; height:44px; border-radius:999px; background:#f4f7f5; border:1px solid #e3ebe5; display:flex; align-items:center; justify-content:center; font-size:19px; }
+.kick-pearl-row-title { font-family:'Playfair Display', Georgia, serif; font-size:30px; font-style:italic; color:#2f2a25; line-height:1.05; }
+.kick-pearl-row-meta { margin-top:4px; color:#8a8378; font-size:13px; }
+.kick-pearl-row-meta span { color:#cdc7bc; margin:0 5px; }
+.kick-pearl-row-right { text-align:right; }
+.kick-pearl-row-count { font-family:'Playfair Display', Georgia, serif; font-size:44px; line-height:.9; color:#2f2a25; }
+.kick-pearl-row-sub { margin-top:6px; font-size:10px; letter-spacing:.16em; color:#9a9388; }
