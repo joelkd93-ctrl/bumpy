@@ -209,9 +209,9 @@ export function renderTogether() {
 
   return `
     <div class="page-together">
-      <div class="page-header-hero page-header-together">
-        <h1 class="page-header-hero-title">Sammen 💗</h1>
-        <p class="page-header-hero-sub">Små øyeblikk å dele med partneren din</p>
+      <div class="together-header-pearl">
+        <h1 class="together-header-title">Sammen</h1>
+        <p class="together-header-sub">Små øyeblikk å dele med partneren din</p>
       </div>
       
       <div id="together-content">

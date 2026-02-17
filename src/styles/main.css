@@ -5471,3 +5471,101 @@ body,
 .page-feelings .history-note-content {
   color: #6f675c !important;
 }
+
+/* Together + games pearl/sage language */
+.page-together .page-header-hero,
+.page-together .page-header-together { display:none !important; }
+
+.together-header-pearl { padding: 10px 2px 8px; margin-bottom: 10px; }
+.together-header-title { margin:0; font-family:'Playfair Display', Georgia, serif; font-style:italic; font-size:46px; line-height:1; color:#2f2a25; font-weight:500; }
+.together-header-sub { margin:8px 0 0; color:#8b8378; font-size:15px; }
+
+.page-together,
+.page-together #together-content { background:#fdfcfb; }
+
+.page-together .game-grid { gap: 14px; }
+.page-together .game-card {
+  background: rgba(255,255,255,0.78) !important;
+  border: 1px solid rgba(233,227,217,0.9) !important;
+  box-shadow: 0 8px 26px rgba(169,159,136,0.11) !important;
+}
+.page-together .game-card:hover,
+.page-together .game-card:active {
+  box-shadow: 0 10px 30px rgba(116,158,145,0.18) !important;
+}
+.page-together .game-chip {
+  background: #f4f7f5 !important;
+  color: #41665d !important;
+  border: 1px solid #c5d9cd !important;
+}
+.page-together .game-title { color:#2f2a25 !important; }
+.page-together .game-desc { color:#7d7569 !important; }
+
+.page-together .identity-selection,
+.page-together .identity-badge,
+.page-together .answer-card,
+.page-together .name-card,
+.page-together .presence-badge,
+.page-together .card,
+#game-modal .card {
+  background: rgba(255,255,255,0.82) !important;
+  border: 1px solid rgba(233,227,217,0.9) !important;
+  box-shadow: 0 8px 24px rgba(169,159,136,0.11) !important;
+}
+
+.page-together .btn,
+#game-modal .btn,
+.page-together button,
+#game-modal button {
+  border-radius: 999px;
+}
+
+.page-together .btn-primary,
+#game-modal .btn-primary,
+.page-together .btn-bytt,
+#game-modal .btn-bytt {
+  background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
+  border: 1px solid #41665d !important;
+  color: #fff !important;
+  box-shadow: 0 6px 20px rgba(84,130,117,.22) !important;
+}
+
+.page-together .btn-soft,
+#game-modal .btn-soft,
+.page-together .btn-ghost,
+#game-modal .btn-ghost {
+  background: #f4f7f5 !important;
+  border: 1px solid #c5d9cd !important;
+  color: #41665d !important;
+}
+
+.page-together .text-love,
+#game-modal .text-love,
+.page-together .heading-love,
+#game-modal .heading-love {
+  color: #41665d !important;
+}
+
+.page-together .name-card {
+  background: linear-gradient(135deg, #fbfaf8 0%, #f4f7f5 100%) !important;
+}
+
+.page-together .tag.love { background:#e3ebe5 !important; color:#41665d !important; border-color:#c5d9cd !important; }
+.page-together .tag.maybe { background:#f5f3ef !important; color:#6f675c !important; border-color:#e0dbcf !important; }
+.page-together .tag.nope { background:#f7f3f1 !important; color:#8b8378 !important; border-color:#ece6df !important; }
+
+#game-modal .game-modal-content {
+  background: #fdfcfb !important;
+  border-radius: 30px 30px 0 0 !important;
+}
+
+#game-modal .game-modal-close {
+  background: #f4f7f5 !important;
+  border: 1px solid #c5d9cd !important;
+  color: #41665d !important;
+}
+
+.page-together .progress-fill,
+#game-modal .progress-fill {
+  background: linear-gradient(90deg, #749e91, #548275) !important;
+}
