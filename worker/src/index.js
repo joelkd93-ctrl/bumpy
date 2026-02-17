@@ -147,7 +147,7 @@ async function sendPushToRole(env, role, payload) {
   const { publicKey, privateKey, subject } = getVapidConfig(env);
   if (!publicKey || !privateKey) {
     console.warn('Push skipped: missing VAPID keys');
-    return { sent: 0, failed: 0, skipped: 1 };
+    return { sent: 0, failed: 0, skipped: 1, errors: [] };
   }
 
   const client = getClient(env);
@@ -157,12 +157,13 @@ async function sendPushToRole(env, role, payload) {
   }).catch(() => ({ rows: [] }));
 
   const subscriptions = rows.rows || [];
-  if (!subscriptions.length) return { sent: 0, failed: 0, skipped: 0 };
+  if (!subscriptions.length) return { sent: 0, failed: 0, skipped: 0, errors: [] };
 
   webpush.setVapidDetails(subject, publicKey, privateKey);
 
   let sent = 0;
   let failed = 0;
+  const errors = [];
 
   for (const row of subscriptions) {
     const sub = {
@@ -176,14 +177,18 @@ async function sendPushToRole(env, role, payload) {
     } catch (err) {
       failed++;
       const status = Number(err?.statusCode || err?.status || 0);
-      if (status === 404 || status === 410) {
+      const msg = String(err?.body || err?.message || err || 'push failed');
+      if (errors.length < 5) errors.push({ status, message: msg.slice(0, 240) });
+
+      // Remove bad subscriptions on any permanent client-side error
+      if (status >= 400 && status < 500) {
         await client.execute({ sql: 'DELETE FROM push_subscriptions WHERE endpoint = ?', args: [row.endpoint] }).catch(() => {});
       }
-      console.warn('Push send failed:', status || err?.message || err);
+      console.warn('Push send failed:', status || msg);
     }
   }
 
-  return { sent, failed, skipped: 0 };
+  return { sent, failed, skipped: 0, errors };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
