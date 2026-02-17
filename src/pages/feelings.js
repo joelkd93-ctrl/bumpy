@@ -129,9 +129,9 @@ export function renderFeelings() {
 
   return `
     <div class="page-feelings">
-      <div class="page-header-hero page-header-feelings">
-        <h1 class="page-header-hero-title">Mine Følelser</h1>
-        <p class="page-header-hero-sub">Ingen fasit, bare en sjekk inn</p>
+      <div class="feelings-header-pearl">
+        <h1 class="feelings-header-title">Følelser</h1>
+        <p class="feelings-header-sub">Ingen fasit, bare en sjekk inn</p>
       </div>
 
       <!-- Today's Mood Card -->

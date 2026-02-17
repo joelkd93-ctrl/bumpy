@@ -5413,3 +5413,61 @@ body,
 .kick-pearl-row-right { text-align:right; }
 .kick-pearl-row-count { font-family:'Playfair Display', Georgia, serif; font-size:44px; line-height:.9; color:#2f2a25; }
 .kick-pearl-row-sub { margin-top:6px; font-size:10px; letter-spacing:.16em; color:#9a9388; }
+
+/* Feelings pearl redesign language */
+.page-feelings .page-header-hero,
+.page-feelings .page-header-feelings { display:none !important; }
+
+.feelings-header-pearl {
+  padding: 10px 2px 8px;
+  margin-bottom: 10px;
+}
+
+.feelings-header-title {
+  margin: 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 46px;
+  line-height: 1;
+  color: #2f2a25;
+  font-weight: 500;
+}
+
+.feelings-header-sub {
+  margin: 8px 0 0;
+  color: #8b8378;
+  font-size: 15px;
+}
+
+.page-feelings .feelings-today-card {
+  background: rgba(255,255,255,0.78) !important;
+  border: 1px solid rgba(233,227,217,0.9) !important;
+  box-shadow: 0 10px 30px rgba(169,159,136,0.12) !important;
+}
+
+.page-feelings .mood-btn.selected {
+  background: #f4f7f5 !important;
+  border-color: #749e91 !important;
+  box-shadow: 0 0 0 3px rgba(116,158,145,0.16), 0 4px 14px rgba(116,158,145,0.24) !important;
+}
+
+.page-feelings #save-mood,
+.page-feelings .btn-primary {
+  background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
+  border: 1px solid #41665d !important;
+  color: #fff !important;
+}
+
+.page-feelings #save-mood:disabled {
+  opacity: .5;
+}
+
+.page-feelings #selected-mood .text-love,
+.page-feelings .text-love,
+.page-feelings .mood-selected-label {
+  color: #548275 !important;
+}
+
+.page-feelings .history-note-content {
+  color: #6f675c !important;
+}
