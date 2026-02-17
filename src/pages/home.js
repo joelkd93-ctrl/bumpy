@@ -29,7 +29,6 @@ export function renderHome() {
             <p class="home-greeting-label">God dag,</p>
             <h1 class="home-greeting-name">${firstName}</h1>
           </div>
-          <button class="home-settings-btn" id="home-settings-btn" aria-label="Innstillinger">⚙️</button>
         </div>
 
         <div class="home-week-pill">
@@ -157,8 +156,6 @@ export function initHome() {
     if (devControls) devControls.style.display = 'flex';
   }
 
-  document.getElementById('home-settings-btn')?.addEventListener('click', () => window.app?.navigate('settings'));
-
   const fab = document.getElementById('dev-fab');
   const panel = document.getElementById('dev-panel');
   const applyBtn = document.getElementById('dev-apply');
@@ -183,3 +180,4 @@ export function initHome() {
     if (window.celebrate) window.celebrate();
   });
 }
+
