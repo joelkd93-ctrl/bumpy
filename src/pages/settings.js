@@ -21,9 +21,9 @@ export function renderSettings() {
 
   return `
     <div class="page-settings">
-      <div class="page-header-hero page-header-settings">
-        <h1 class="page-header-hero-title">Innstillinger ⚙️</h1>
-        <p class="page-header-hero-sub">Tilpass opplevelsen din</p>
+      <div class="settings-header-pearl">
+        <h1 class="settings-header-title">Innstillinger</h1>
+        <p class="settings-header-sub">Tilpass opplevelsen din</p>
       </div>
       
       <!-- Profile Section -->

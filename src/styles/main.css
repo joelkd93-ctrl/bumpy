@@ -5725,3 +5725,40 @@ body,
   word-break: break-word;
   width: 100%;
 }
+
+/* Settings pearl/sage redesign */
+.page-settings .page-header-hero,
+.page-settings .page-header-settings { display:none !important; }
+
+.settings-header-pearl { padding: 10px 2px 8px; margin-bottom: 10px; }
+.settings-header-title { margin:0; font-family:'Playfair Display', Georgia, serif; font-style:italic; font-size:46px; line-height:1; color:#2f2a25; font-weight:500; }
+.settings-header-sub { margin:8px 0 0; color:#8b8378; font-size:15px; }
+
+.page-settings .text-tiny { color:#9a9287; letter-spacing:.12em; font-weight:700; }
+
+.page-settings .settings-list {
+  background: rgba(255,255,255,.82) !important;
+  border: 1px solid rgba(233,227,217,.9) !important;
+  box-shadow: 0 8px 26px rgba(169,159,136,.11) !important;
+}
+
+.page-settings .settings-item { min-height: 58px; }
+.page-settings .settings-item:active { background:#f4f7f5 !important; }
+.page-settings .settings-label { color:#3f3932 !important; }
+.page-settings .settings-value,
+.page-settings .settings-icon,
+.page-settings .settings-input { color:#6f675c !important; }
+.page-settings .settings-input::placeholder { color:#b3aca1 !important; }
+
+.page-settings .settings-item-danger .settings-label { color:#8f5148 !important; }
+
+.page-settings #save-settings,
+.page-settings .btn-primary {
+  background: linear-gradient(135deg,#749e91 0%,#548275 55%,#41665d 100%) !important;
+  border: 1px solid #41665d !important;
+  color: #fff !important;
+  box-shadow: 0 6px 20px rgba(84,130,117,.22) !important;
+}
+
+.page-settings .settings-footer p:first-child { color:#6f675c; }
+.page-settings .settings-footer .text-muted { color:#8e867a !important; }
