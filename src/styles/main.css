@@ -5077,3 +5077,85 @@ body.night-mode::after {
   font-size: 0 !important;
   line-height: 0;
 }
+
+/* === Pearl Ring Override (reference-inspired, ring-only change) === */
+.home-ring-stage-pearl {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.home-ring-stage-pearl .home-ring-svg {
+  width: 260px;
+  height: 260px;
+  filter: none;
+}
+
+.home-ring-center-pearl {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.home-ring-week-label {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 22px;
+  color: rgba(255,255,255,0.72);
+  line-height: 1;
+}
+
+.home-ring-week {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 96px;
+  line-height: 0.9;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.03em;
+  margin: 2px 0 6px;
+}
+
+.home-ring-label-pearl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+}
+
+.home-days-bubble {
+  position: absolute;
+  right: 28px;
+  bottom: 26px;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.home-days-bubble-num {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 24px;
+  line-height: 1;
+  color: #675f56;
+}
+
+.home-days-bubble-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8c857b;
+  margin-top: 2px;
+}

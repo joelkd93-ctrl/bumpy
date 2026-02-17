@@ -15,7 +15,7 @@ export function renderHome() {
   const loveNote = getRandomLoveNote();
   const firstName = (settings.name || 'Andrine').split(' ')[0];
 
-  const C = 628; // ring circumference (2π × 100)
+  const C = 653.45; // ring circumference (2π × 104)
   const offset = C - (C * progress.percentage / 100);
 
   return `
@@ -38,40 +38,32 @@ export function renderHome() {
           <span class="home-week-sub">${progress.daysIntoWeek} dager inn</span>
         </div>
 
-        <div class="home-ring-stage">
-          <div class="home-ring-glow"></div>
-          <svg class="home-ring-svg" width="240" height="240" viewBox="0 0 240 240">
+        <div class="home-ring-stage home-ring-stage-pearl">
+          <svg class="home-ring-svg" width="260" height="260" viewBox="0 0 260 260">
             <defs>
               <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#FFB8D9"/>
-                <stop offset="50%" stop-color="#FF4DA6"/>
-                <stop offset="100%" stop-color="#C4307A"/>
+                <stop offset="0%" stop-color="#d4cfc0"/>
+                <stop offset="50%" stop-color="#f5e6d3"/>
+                <stop offset="100%" stop-color="#d4cfc0"/>
               </linearGradient>
-              <filter id="ringGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="5" result="blur"/>
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
             </defs>
-            <!-- Track -->
-            <circle cx="120" cy="120" r="100" fill="none"
-              stroke="rgba(255,255,255,0.12)" stroke-width="10"
-              transform="rotate(-90 120 120)"/>
-            <!-- Progress fill -->
-            <circle cx="120" cy="120" r="100" fill="none"
-              stroke="url(#heroGrad)" stroke-width="10" stroke-linecap="round"
+            <circle cx="130" cy="130" r="104" fill="none"
+              stroke="rgba(215,210,195,0.24)" stroke-width="4"
+              transform="rotate(-90 130 130)"/>
+            <circle cx="130" cy="130" r="104" fill="none"
+              stroke="url(#heroGrad)" stroke-width="4" stroke-linecap="round"
               stroke-dasharray="${C}" stroke-dashoffset="${offset}"
-              transform="rotate(-90 120 120)"
-              filter="url(#ringGlow)"/>
+              transform="rotate(-90 130 130)"/>
           </svg>
-          <div class="home-ring-center">
-            <div class="home-ring-pct">${progress.percentage.toFixed(1)}<span class="home-ring-pct-sym">%</span></div>
-            <div class="home-ring-label">fullført</div>
+          <div class="home-ring-center home-ring-center-pearl">
+            <div class="home-ring-week-label">Uke</div>
+            <div class="home-ring-week">${progress.weeksPregnant}</div>
+            <div class="home-ring-label-pearl">Trimester ${progress.trimester}</div>
           </div>
-        </div>
-
-        <div class="home-days-badge">
-          <span class="home-days-num">${progress.daysLeft}</span>
-          <span class="home-days-label">&nbsp;dager igjen · Termin ${new Date(settings.dueDate).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}</span>
+          <div class="home-days-bubble">
+            <div class="home-days-bubble-num">${progress.daysLeft}</div>
+            <div class="home-days-bubble-label">dager</div>
+          </div>
         </div>
 
       </div>
