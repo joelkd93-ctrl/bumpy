@@ -147,6 +147,41 @@ function formatDate(dateStr) {
   });
 }
 
+function ensureMediaLightboxStyles() {
+  if (document.getElementById('media-lightbox-style')) return;
+  const style = document.createElement('style');
+  style.id = 'media-lightbox-style';
+  style.textContent = `
+    .media-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .media-lightbox img {
+      max-width: 95vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function openImageLightbox(src) {
+  if (!src) return;
+  ensureMediaLightboxStyles();
+  const overlay = document.createElement('div');
+  overlay.className = 'media-lightbox';
+  overlay.innerHTML = `<img src="${src}" alt="Forstørret bilde"/>`;
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
+}
+
 export function initJournal() {
   const photoUpload = document.getElementById('photo-upload');
   const cameraBtn = document.getElementById('camera-btn');
@@ -519,6 +554,18 @@ export function initJournal() {
 
   document.addEventListener('click', handleDelete);
   window._journalDeleteHandler = handleDelete;
+
+  // Tap image to zoom
+  if (window._journalMediaZoomHandler) document.removeEventListener('click', window._journalMediaZoomHandler);
+  const handleZoom = (e) => {
+    const img = e.target.closest('.journal-entry img.journal-photo');
+    if (!img) return;
+    const src = img.getAttribute('src');
+    if (!src) return;
+    openImageLightbox(src);
+  };
+  document.addEventListener('click', handleZoom);
+  window._journalMediaZoomHandler = handleZoom;
 }
 
 function fileToDataUrl(file, callback) {
