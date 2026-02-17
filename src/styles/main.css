@@ -5159,3 +5159,89 @@ body.night-mode::after {
   color: #8c857b;
   margin-top: 2px;
 }
+
+/* === Home Pearl Theme Override (remove pink from home) === */
+.page-home {
+  background: #fdfcfb;
+}
+
+.home-hero {
+  background:
+    radial-gradient(ellipse 140% 80% at 50% -10%, rgba(255,255,255,0.85) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 60% at 90% 110%, rgba(196,214,206,0.22) 0%, transparent 55%),
+    linear-gradient(160deg, #fdfcf9 0%, #f3efe8 55%, #ebe5db 100%) !important;
+  box-shadow: 0 20px 60px -15px rgba(180,168,146,0.25);
+}
+
+.home-hero::after {
+  background: #fdfcfb !important;
+}
+
+.home-greeting-label {
+  color: #938a7d !important;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: 11px;
+}
+
+.home-greeting-name {
+  color: #2f2a25 !important;
+  text-shadow: none !important;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.home-settings-btn {
+  background: rgba(255,255,255,0.6) !important;
+  border: 1px solid rgba(255,255,255,0.9) !important;
+  color: #7f7668;
+}
+
+.home-week-pill {
+  background: rgba(255,255,255,0.62) !important;
+  border: 1px solid rgba(255,255,255,0.9) !important;
+}
+
+.home-week-num,
+.home-week-sub {
+  color: #6f675c !important;
+}
+
+.home-week-dot { color: #b7aea0 !important; }
+
+.home-ring-week-label,
+.home-ring-label-pearl {
+  color: #8f877b !important;
+}
+
+.home-ring-week {
+  color: #2f2a25 !important;
+}
+
+.home-days-num,
+.home-days-label {
+  color: #6f675c !important;
+  text-shadow: none !important;
+}
+
+.home-baby-card,
+.home-message-card,
+.home-stats-row,
+.home-fact-card,
+.home-lovenote-card {
+  background: rgba(255,255,255,0.75) !important;
+  border: 1px solid rgba(233,227,217,0.9) !important;
+  box-shadow: 0 8px 28px rgba(162,149,128,0.1) !important;
+}
+
+.home-baby-card::before {
+  background: linear-gradient(90deg, #d8d1c4, #ece4d6, #d8d1c4) !important;
+}
+
+.home-baby-name,
+.home-fact-title,
+.home-lovenote-label,
+.home-message-from {
+  color: #5e766b !important;
+}
