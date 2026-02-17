@@ -404,15 +404,15 @@ function renderHeartbeatGame(container, cleanupStack) {
 
       <div class="heartbeat-area" id="heartbeat-area" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 260px; position: relative;">
         <button id="heart-icon" class="heart-pulse heart-tap" aria-label="Send hjerteslag">
-          <svg class="heart-tap-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="heart-tap-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
-              <linearGradient id="heartbeatSage" x1="0" y1="0" x2="1" y2="1">
+              <linearGradient id="green_heart_gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stop-color="#749e91"/>
-                <stop offset="55%" stop-color="#548275"/>
+                <stop offset="50%" stop-color="#548275"/>
                 <stop offset="100%" stop-color="#41665d"/>
               </linearGradient>
             </defs>
-            <path fill="url(#heartbeatSage)" d="M12 21s-7.5-4.9-9.3-8.7C1.4 9.6 2.5 6.5 5.6 5.5c2.1-.7 4 .2 5.2 1.8 1.2-1.6 3.1-2.5 5.2-1.8 3.1 1 4.2 4.1 2.9 6.8C19.5 16.1 12 21 12 21z"/>
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#green_heart_gradient)"/>
           </svg>
         </button>
       </div>
