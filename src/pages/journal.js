@@ -344,10 +344,15 @@ export function initJournal() {
       let missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
 
       // Cloud media status from /sync (works even if /journal/audit fails)
-      const syncResp = await fetch(`${base}/api/sync?t=${Date.now()}`, { method: 'GET', mode: 'cors', credentials: 'omit' }).catch(() => null);
-      const syncJson = syncResp && syncResp.ok ? await syncResp.json().catch(() => null) : null;
-      const cloudJournal = syncJson?.data?.journal || [];
-      const cloudWithMedia = cloudJournal.filter(e => e.photo_blob || e.photo_key || e.photo_url || e.media_key || e.media_url).length;
+      const getCloudMediaStats = async () => {
+        const syncResp = await fetch(`${base}/api/sync?t=${Date.now()}`, { method: 'GET', mode: 'cors', credentials: 'omit' }).catch(() => null);
+        const syncJson = syncResp && syncResp.ok ? await syncResp.json().catch(() => null) : null;
+        const cloudJournal = syncJson?.data?.journal || [];
+        const cloudWithMedia = cloudJournal.filter(e => e.photo_blob || e.photo_key || e.photo_url || e.media_key || e.media_url).length;
+        return { cloudJournal, cloudWithMedia };
+      };
+
+      let { cloudJournal, cloudWithMedia } = await getCloudMediaStats();
 
       // Hard rebuild local journal cache if local lost media refs but cloud still has media
       let rebuilt = false;
@@ -389,6 +394,7 @@ export function initJournal() {
 
         if (republished > 0) {
           await storage.pullFromCloud();
+          ({ cloudJournal, cloudWithMedia } = await getCloudMediaStats());
           entries = storage.getCollection('journal');
           missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
         }
