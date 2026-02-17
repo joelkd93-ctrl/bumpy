@@ -417,7 +417,7 @@ export function initJournal() {
     const note = noteInput?.value?.trim();
     const selectedDate = dateInput?.value;
 
-    if (!currentPhoto && !note) {
+    if (!currentPhoto && !currentMediaDataUrl && !note) {
       // Subtle shake animation
       saveBtn.style.animation = 'shake 0.3s';
       setTimeout(() => saveBtn.style.animation = '', 300);
