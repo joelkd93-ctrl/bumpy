@@ -398,12 +398,23 @@ function renderHeartbeatGame(container, cleanupStack) {
   container.innerHTML = `
     <div class="text-center" style="display: flex; flex-direction: column; min-height: 100%; padding-top: 20px;">
       <div style="flex: 0 0 auto;">
-        <h2 class="heading-section mb-2">Hjerteslag 💚</h2>
+        <h2 class="heading-section mb-2">Hjerteslag</h2>
         <p class="text-warm mb-4">Trykk på hjertet for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
       </div>
 
       <div class="heartbeat-area" id="heartbeat-area" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 260px; position: relative;">
-        <button id="heart-icon" class="heart-pulse heart-tap" aria-label="Send hjerteslag">💚</button>
+        <button id="heart-icon" class="heart-pulse heart-tap" aria-label="Send hjerteslag">
+          <svg class="heart-tap-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="heartbeatSage" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#749e91"/>
+                <stop offset="55%" stop-color="#548275"/>
+                <stop offset="100%" stop-color="#41665d"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#heartbeatSage)" d="M12 21s-7.5-4.9-9.3-8.7C1.4 9.6 2.5 6.5 5.6 5.5c2.1-.7 4 .2 5.2 1.8 1.2-1.6 3.1-2.5 5.2-1.8 3.1 1 4.2 4.1 2.9 6.8C19.5 16.1 12 21 12 21z"/>
+          </svg>
+        </button>
       </div>
 
       <div style="flex: 0 0 auto; margin-bottom: 16px;">
@@ -426,7 +437,7 @@ function renderHeartbeatGame(container, cleanupStack) {
     if (!heartArea) return;
     const fl = document.createElement('span');
     fl.className = 'mini-heart-float';
-    fl.textContent = '💚';
+    fl.textContent = '♥';
     fl.style.left = `${40 + Math.random() * 20}%`;
     fl.style.bottom = `${18 + Math.random() * 8}%`;
     heartArea.appendChild(fl);
