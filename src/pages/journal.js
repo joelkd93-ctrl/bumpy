@@ -6,6 +6,19 @@ import { storage } from '../utils/storage.js';
 import { getPregnancyProgress } from '../utils/pregnancy.js';
 import { getJournalPhotoDataUrl } from '../utils/media-store.js';
 
+function mediaUrlFromKey(key) {
+  if (!key) return null;
+  const base = (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev').replace(/\/$/, '');
+  return `${base}/api/media/${key}`;
+}
+
+function resolveJournalMedia(entry) {
+  const photoUrl = entry.photoUrl || mediaUrlFromKey(entry.photoKey);
+  const mediaUrl = entry.mediaUrl || photoUrl || mediaUrlFromKey(entry.mediaKey);
+  const mediaType = entry.mediaType || (mediaUrl ? 'image' : null);
+  return { photoUrl, mediaUrl, mediaType };
+}
+
 export function renderJournal() {
   const storedSettings = storage.get('settings');
   const settings = {
@@ -17,7 +30,9 @@ export function renderJournal() {
   const entries = storage.getCollection('journal');
 
   const entriesHTML = entries.length > 0
-    ? entries.map(entry => `
+    ? entries.map(entry => {
+        const resolved = resolveJournalMedia(entry);
+        return `
         <div class="journal-entry" data-id="${entry.id}">
           <div class="journal-header">
             <div>
@@ -33,22 +48,22 @@ export function renderJournal() {
               </button>
             </div>
           </div>
-          ${entry.mediaType === 'video' && entry.mediaUrl
+          ${resolved.mediaType === 'video' && resolved.mediaUrl
             ? `<div style="position:relative;">
-                 <video src="${entry.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>
+                 <video src="${resolved.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>
                  ${entry.mediaDuration ? `<span style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;">${Math.floor(entry.mediaDuration / 60)}:${String(entry.mediaDuration % 60).padStart(2, '0')}</span>` : ''}
                </div>`
-            : entry.mediaType === 'video' && entry.mediaThumbUrl
+            : resolved.mediaType === 'video' && entry.mediaThumbUrl
               ? `<img src="${entry.mediaThumbUrl}" alt="Videoforhåndsvisning" class="journal-photo"/>`
               : entry.photo
                 ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
                 : entry.photoRef
                   ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-                  : (entry.photoUrl ? `<img src="${entry.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')
+                  : (resolved.photoUrl ? `<img src="${resolved.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')
           }
           ${entry.note ? `<p class="journal-note">${entry.note}</p>` : ''}
         </div>
-      `).join('')
+      `}).join('')
     : `
         <div class="empty-state">
           <div class="empty-state-icon">📸</div>
@@ -71,7 +86,10 @@ export function renderJournal() {
     <div class="page-journal">
       <div class="journal-header-pearl">
         <h1 class="journal-header-title">Dagbok</h1>
-        <button id="journal-add-btn" class="journal-add-btn" type="button" aria-label="Nytt innlegg">+</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="journal-media-debug-btn" class="btn-icon-small" type="button" aria-label="Media debug">🔧</button>
+          <button id="journal-add-btn" class="journal-add-btn" type="button" aria-label="Nytt innlegg">+</button>
+        </div>
       </div>
       
       <div class="journal-tabs mb-4">
@@ -181,6 +199,7 @@ function renderJourneyEvent(event) {
   const dateStr = new Date(event.sortDate).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' });
 
   if (event.type === 'journal') {
+    const resolved = resolveJournalMedia(event);
     return `
       <div class="journal-entry" data-id="${event.id}">
         <div class="journal-header">
@@ -190,15 +209,15 @@ function renderJourneyEvent(event) {
           </div>
           <div><button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="journal" aria-label="Slett">🗑️</button></div>
         </div>
-        ${event.mediaType === 'video' && event.mediaUrl
-          ? `<video src="${event.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
-          : event.mediaType === 'video' && event.mediaThumbUrl
+        ${resolved.mediaType === 'video' && resolved.mediaUrl
+          ? `<video src="${resolved.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
+          : resolved.mediaType === 'video' && event.mediaThumbUrl
             ? `<img src="${event.mediaThumbUrl}" alt="Videoforhåndsvisning" class="journal-photo"/>`
             : event.photo
               ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
               : event.photoRef
                 ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-                : (event.photoUrl ? `<img src="${event.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')
+                : (resolved.photoUrl ? `<img src="${resolved.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')
         }
         ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
       </div>
@@ -281,6 +300,7 @@ export function initJournal() {
   const saveBtn = document.getElementById('save-entry');
   const noteInput = document.getElementById('journal-note');
   const addBtn = document.getElementById('journal-add-btn');
+  const mediaDebugBtn = document.getElementById('journal-media-debug-btn');
   const compose = document.getElementById('journal-compose');
   const dateInput = document.getElementById('entry-date');
   const uploadIcon = document.getElementById('upload-icon');
@@ -312,6 +332,20 @@ export function initJournal() {
   addBtn?.addEventListener('click', () => {
     setTab('dagbok');
     if (compose) compose.style.display = compose.style.display === 'none' ? '' : 'none';
+  });
+
+  mediaDebugBtn?.addEventListener('click', async () => {
+    try {
+      const entries = storage.getCollection('journal');
+      const missing = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+      const base = (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev').replace(/\/$/, '');
+      await fetch(`${base}/api/media/repair?limit=200`, { method: 'POST', mode: 'cors', credentials: 'omit' }).catch(() => null);
+      await storage.pullFromCloud();
+      alert(`Media debug:\nEntries: ${entries.length}\nMissing media refs: ${missing}\nKjørte repair + pull. Siden oppdateres nå.`);
+      window.app?.refreshCurrentPage?.();
+    } catch (err) {
+      alert(`Media debug feilet: ${err?.message || err}`);
+    }
   });
 
   // Hydrate deferred photos from IndexedDB

@@ -152,8 +152,10 @@ export const storage = {
       photo: null,
       photoRef: photoRef || null,
       mediaRef: mediaRef || null,
+      photoKey: data.photoKey || null,
       photoUrl: data.photoUrl || null,
       mediaType: data.mediaType || (data.photo ? 'image' : null),
+      mediaKey: data.mediaKey || null,
       mediaUrl: data.mediaUrl || data.photoUrl || null,
       mediaThumbUrl: data.mediaThumbUrl || null,
       mediaDuration: data.mediaDuration || null,
@@ -221,8 +223,10 @@ export const storage = {
       this.set(key, {
         ...this.get(key, {}),
         mediaRef: mediaRef && resolvedMediaUrl ? null : mediaRef,
+        photoKey: result?.photo_key || this.get(key, {})?.photoKey || null,
         photoUrl: result?.photo_url || this.get(key, {})?.photoUrl || null,
         mediaType: result?.media_type || this.get(key, {})?.mediaType || null,
+        mediaKey: result?.media_key || this.get(key, {})?.mediaKey || null,
         mediaUrl: resolvedMediaUrl,
         mediaThumbUrl: result?.media_thumb_url || this.get(key, {})?.mediaThumbUrl || null,
         mediaDuration: result?.media_duration || this.get(key, {})?.mediaDuration || null,
@@ -380,8 +384,10 @@ export const storage = {
           id: entry.id,
           week_number: entry.week,
           photo_blob: entry.photo,
+          photo_key: entry.photoKey || null,
           photo_url: entry.photoUrl || null,
           media_type: entry.mediaType || null,
+          media_key: entry.mediaKey || null,
           media_url: entry.mediaUrl || null,
           media_thumb_url: entry.mediaThumbUrl || null,
           media_duration: entry.mediaDuration || null,
@@ -544,8 +550,10 @@ export const storage = {
             note: local.note,
             photoRef: local.photoRef,
             mediaRef: local.mediaRef,
+            photoKey: local.photoKey,
             photoUrl: local.photoUrl,
             mediaType: local.mediaType,
+            mediaKey: local.mediaKey,
             mediaUrl: local.mediaUrl,
             mediaThumbUrl: local.mediaThumbUrl,
             mediaDuration: local.mediaDuration,
@@ -785,8 +793,10 @@ export const storage = {
                 week: entry.week_number,
                 photo: null,
                 photoRef: photoRef,
+                photoKey: entry.photo_key || null,
                 photoUrl: entry.photo_url || null,
                 mediaType: entry.media_type || (entry.photo_url ? 'image' : null),
+                mediaKey: entry.media_key || null,
                 mediaUrl: entry.media_url || entry.photo_url || null,
                 mediaThumbUrl: entry.media_thumb_url || null,
                 mediaDuration: entry.media_duration || null,
@@ -831,14 +841,18 @@ export const storage = {
             const local = this.get(key, {});
             if (!local) continue;
 
+            const remotePhotoKey = entry.photo_key || null;
             const remotePhotoUrl = entry.photo_url || null;
+            const remoteMediaKey = entry.media_key || null;
             const remoteMediaUrl = entry.media_url || remotePhotoUrl || null;
             const remoteMediaType = entry.media_type || (remotePhotoUrl ? 'image' : null);
             const remoteThumb = entry.media_thumb_url || null;
             const remoteDuration = entry.media_duration || null;
 
             const needsMediaHeal =
+              (!local.photoKey && !!remotePhotoKey) ||
               (!local.photoUrl && !!remotePhotoUrl) ||
+              (!local.mediaKey && !!remoteMediaKey) ||
               (!local.mediaUrl && !!remoteMediaUrl) ||
               (!local.mediaType && !!remoteMediaType) ||
               (!local.mediaThumbUrl && !!remoteThumb) ||
@@ -848,7 +862,9 @@ export const storage = {
 
             const saved = this.set(key, {
               ...local,
+              photoKey: local.photoKey || remotePhotoKey,
               photoUrl: local.photoUrl || remotePhotoUrl,
+              mediaKey: local.mediaKey || remoteMediaKey,
               mediaUrl: local.mediaUrl || remoteMediaUrl,
               mediaType: local.mediaType || remoteMediaType,
               mediaThumbUrl: local.mediaThumbUrl || remoteThumb,
