@@ -3,7 +3,7 @@
  * Gentle customization options
  */
 import { storage } from '../utils/storage.js';
-import { requestNotificationPermission } from '../utils/notifications.js';
+import { requestNotificationPermission, getNotificationSupportStatus } from '../utils/notifications.js';
 
 export function renderSettings() {
   const settings = storage.get('settings') || {
@@ -156,14 +156,23 @@ export function initSettings() {
 
   function updateNotificationToggleUI() {
     if (!notificationToggle) return;
+    const support = getNotificationSupportStatus();
     const currentSettings = storage.get('settings') || {};
-    const enabled = Notification.permission === 'granted' && currentSettings.notifications !== false;
+    const enabled = support.supported && Notification.permission === 'granted' && currentSettings.notifications !== false;
     notificationToggle.classList.toggle('is-on', enabled);
+    notificationsBtn?.classList.toggle('is-disabled', !support.supported);
   }
 
   // Enable/disable notifications (pill slider)
   notificationsBtn?.addEventListener('click', async () => {
+    const support = getNotificationSupportStatus();
     const currentSettings = storage.get('settings') || {};
+
+    if (!support.supported) {
+      alert(support.reason);
+      updateNotificationToggleUI();
+      return;
+    }
 
     // Browser-level denied cannot be toggled by app
     if (Notification.permission === 'denied') {

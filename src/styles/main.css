@@ -5984,3 +5984,11 @@ body,
 .page-settings #enable-notifications.is-loading {
   opacity: .7;
 }
+
+.page-settings #enable-notifications.is-disabled {
+  opacity: .65;
+}
+
+.page-settings #enable-notifications.is-disabled .settings-toggle {
+  filter: grayscale(.25);
+}

@@ -2,6 +2,15 @@
  * Push Notifications for Bumpy
  */
 
+function isIos() {
+  const ua = navigator.userAgent || '';
+  return /iPhone|iPad|iPod/i.test(ua);
+}
+
+function isStandalonePwa() {
+  return window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone === true;
+}
+
 function appNotificationsEnabled() {
   try {
     const raw = localStorage.getItem('bumpy:settings');
@@ -13,9 +22,29 @@ function appNotificationsEnabled() {
   }
 }
 
-export async function requestNotificationPermission() {
+export function getNotificationSupportStatus() {
   if (!('Notification' in window)) {
-    console.warn('Notifications not supported');
+    return { supported: false, reason: 'Denne nettleseren støtter ikke varsler.' };
+  }
+
+  if (!('serviceWorker' in navigator)) {
+    return { supported: false, reason: 'Service Worker mangler i denne nettleseren.' };
+  }
+
+  if (isIos() && !isStandalonePwa()) {
+    return {
+      supported: false,
+      reason: 'På iPhone/iPad må appen installeres på hjemskjermen for varsler (Del → Legg til på Hjem-skjerm).'
+    };
+  }
+
+  return { supported: true, reason: '' };
+}
+
+export async function requestNotificationPermission() {
+  const support = getNotificationSupportStatus();
+  if (!support.supported) {
+    console.warn('Notifications not supported:', support.reason);
     return false;
   }
 
