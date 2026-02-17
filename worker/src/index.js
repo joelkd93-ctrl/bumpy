@@ -1157,6 +1157,40 @@ async function handleMediaRepair(env, request) {
   }
 }
 
+async function handleJournalAudit(env) {
+  const client = getClient(env);
+  try {
+    const rows = await client.execute({
+      sql: `SELECT id, photo_blob, photo_key, photo_url, media_key, media_url, media_type
+            FROM journal_entries
+            ORDER BY COALESCE(entry_date, created_at) DESC
+            LIMIT 500`,
+    });
+
+    const list = rows.rows || [];
+    const withMedia = list.filter((r) =>
+      (r.photo_blob && String(r.photo_blob).length > 0) ||
+      (r.photo_key && String(r.photo_key).length > 0) ||
+      (r.photo_url && String(r.photo_url).length > 0) ||
+      (r.media_key && String(r.media_key).length > 0) ||
+      (r.media_url && String(r.media_url).length > 0)
+    );
+
+    const missingAll = list.filter((r) => !withMedia.find((m) => m.id === r.id)).map((r) => r.id);
+
+    return json({
+      success: true,
+      total: list.length,
+      withMedia: withMedia.length,
+      missingAll: missingAll.length,
+      missingSample: missingAll.slice(0, 20),
+    });
+  } catch (err) {
+    console.error('Journal audit failed:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 async function handleDeleteKick(env, id) {
   if (!id) {
     return json({ success: false, error: 'Missing ID' }, { status: 400 });
@@ -2118,6 +2152,9 @@ export default {
       }
       if (url.pathname === '/api/media/repair' && request.method === 'POST') {
         return withCors(await handleMediaRepair(env, request), env, request);
+      }
+      if (url.pathname === '/api/journal/audit' && request.method === 'GET') {
+        return withCors(await handleJournalAudit(env), env, request);
       }
 
       if (url.pathname.startsWith('/api/media/') && request.method === 'GET') {

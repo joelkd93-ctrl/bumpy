@@ -336,12 +336,21 @@ export function initJournal() {
 
   mediaDebugBtn?.addEventListener('click', async () => {
     try {
-      const entries = storage.getCollection('journal');
-      const missing = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
       const base = (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev').replace(/\/$/, '');
       await fetch(`${base}/api/media/repair?limit=200`, { method: 'POST', mode: 'cors', credentials: 'omit' }).catch(() => null);
       await storage.pullFromCloud();
-      alert(`Media debug:\nEntries: ${entries.length}\nMissing media refs: ${missing}\nKjørte repair + pull. Siden oppdateres nå.`);
+
+      const entries = storage.getCollection('journal');
+      const missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+
+      const auditResp = await fetch(`${base}/api/journal/audit`, { method: 'GET', mode: 'cors', credentials: 'omit' }).catch(() => null);
+      const audit = auditResp && auditResp.ok ? await auditResp.json().catch(() => null) : null;
+
+      const cloudLine = audit?.success
+        ? `Cloud media ok: ${audit.withMedia}/${audit.total} (missing: ${audit.missingAll})`
+        : 'Cloud audit: utilgjengelig';
+
+      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal missing refs: ${missingLocal}\n${cloudLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
       window.app?.refreshCurrentPage?.();
     } catch (err) {
       alert(`Media debug feilet: ${err?.message || err}`);
