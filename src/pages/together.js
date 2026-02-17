@@ -766,8 +766,8 @@ function renderNamesGame(container, cleanupStack) {
   const content = `
     <div class="text-center" id="name-game-container">
       <div class="header-row mb-4">
-        <h2 class="heading-section">Navnelek 🍼</h2>
-        <button class="btn-text text-small underline" id="view-results">Se Resultater 📜</button>
+        <h2 class="heading-section">Navnelek</h2>
+        <button class="btn-text text-small" id="view-results">Se resultater</button>
       </div>
       
       ${!isFinished ? `
@@ -791,15 +791,21 @@ function renderNamesGame(container, cleanupStack) {
           
           <div class="swipe-buttons">
             <button class="swipe-btn nope" data-vote="nope" data-name="${safeCurrentName}">
-              <span>❌</span>
+              <span class="swipe-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+              </span>
               <small>Nei</small>
             </button>
             <button class="swipe-btn maybe" data-vote="maybe" data-name="${safeCurrentName}">
-              <span>😐</span>
+              <span class="swipe-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 12h12"/></svg>
+              </span>
               <small>Kanskje</small>
             </button>
             <button class="swipe-btn love" data-vote="love" data-name="${safeCurrentName}">
-              <span>💗</span>
+              <span class="swipe-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-9.3-8.7C1.4 9.6 2.5 6.5 5.6 5.5c2.1-.7 4 .2 5.2 1.8 1.2-1.6 3.1-2.5 5.2-1.8 3.1 1 4.2 4.1 2.9 6.8C19.5 16.1 12 21 12 21z"/></svg>
+              </span>
               <small>Elsker</small>
             </button>
           </div>

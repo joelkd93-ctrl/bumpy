@@ -5812,3 +5812,68 @@ body,
   text-overflow: clip !important;
   word-break: normal !important;
 }
+
+/* Navnelek redesign (modal) - svg icons + premium sage controls */
+#game-modal #name-game-container .header-row .btn-text {
+  color: #548275 !important;
+  border: 1px solid #c5d9cd;
+  background: #f4f7f5;
+  border-radius: 999px;
+  padding: 6px 12px;
+  text-decoration: none !important;
+}
+
+#game-modal #name-game-container .name-card {
+  background: linear-gradient(135deg, #fbfaf8 0%, #f4f7f5 100%) !important;
+  border: 1px solid #e3ebe5 !important;
+  box-shadow: 0 10px 26px rgba(169,159,136,.12) !important;
+}
+
+#game-modal #name-game-container .name-text {
+  color: #2f2a25 !important;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 500;
+}
+
+#game-modal #name-game-container .swipe-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+#game-modal #name-game-container .swipe-btn {
+  min-height: 92px;
+  border-radius: 18px;
+  border: 1px solid #d8e5df;
+  background: #f4f7f5;
+  color: #41665d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 6px 16px rgba(84,130,117,.10);
+}
+
+#game-modal #name-game-container .swipe-btn.nope { border-color:#e6d9d6; color:#8b5e55; background:#f8f4f3; }
+#game-modal #name-game-container .swipe-btn.maybe { border-color:#ddd8cf; color:#6f675c; background:#f7f5f1; }
+#game-modal #name-game-container .swipe-btn.love { border-color:#c5d9cd; color:#41665d; background:#e3ebe5; }
+
+#game-modal #name-game-container .swipe-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-modal #name-game-container .swipe-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+#game-modal #name-game-container .swipe-btn small {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
