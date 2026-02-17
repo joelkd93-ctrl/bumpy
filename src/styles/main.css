@@ -5607,3 +5607,31 @@ body,
   background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
   opacity: .65 !important;
 }
+
+/* Together game cards: prevent text clipping */
+.page-together .game-card {
+  min-height: 220px !important;
+  height: auto !important;
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 8px;
+}
+
+.page-together .game-card-top {
+  margin-bottom: 6px;
+}
+
+.page-together .game-title {
+  margin-top: 0 !important;
+  line-height: 1.15 !important;
+  overflow-wrap: anywhere;
+}
+
+.page-together .game-desc {
+  line-height: 1.3 !important;
+  display: block !important;
+  white-space: normal !important;
+  overflow: visible !important;
+}
