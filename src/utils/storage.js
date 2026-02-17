@@ -824,6 +824,42 @@ export const storage = {
             notifyNewEntry('journal');
           }
 
+          // Heal existing local entries that are missing media URLs but cloud has them
+          for (const entry of journal) {
+            if (!localIds.has(entry.id)) continue;
+            const key = `journal:${entry.id}`;
+            const local = this.get(key, {});
+            if (!local) continue;
+
+            const remotePhotoUrl = entry.photo_url || null;
+            const remoteMediaUrl = entry.media_url || remotePhotoUrl || null;
+            const remoteMediaType = entry.media_type || (remotePhotoUrl ? 'image' : null);
+            const remoteThumb = entry.media_thumb_url || null;
+            const remoteDuration = entry.media_duration || null;
+
+            const needsMediaHeal =
+              (!local.photoUrl && !!remotePhotoUrl) ||
+              (!local.mediaUrl && !!remoteMediaUrl) ||
+              (!local.mediaType && !!remoteMediaType) ||
+              (!local.mediaThumbUrl && !!remoteThumb) ||
+              (!local.mediaDuration && !!remoteDuration);
+
+            if (!needsMediaHeal) continue;
+
+            const saved = this.set(key, {
+              ...local,
+              photoUrl: local.photoUrl || remotePhotoUrl,
+              mediaUrl: local.mediaUrl || remoteMediaUrl,
+              mediaType: local.mediaType || remoteMediaType,
+              mediaThumbUrl: local.mediaThumbUrl || remoteThumb,
+              mediaDuration: local.mediaDuration || remoteDuration,
+            }, true);
+
+            if (saved) {
+              hasChanged = true;
+            }
+          }
+
           // Remove local entries that no longer exist in cloud (with grace period)
           let deletedEntriesCount = 0;
           const GRACE_PERIOD_MS = 60 * 1000; // 1 minute grace period for new entries
