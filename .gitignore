@@ -23,3 +23,9 @@ backups/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local secrets
+worker/LOCAL_SECRETS_DO_NOT_COMMIT.txt
+.env
+.env.*
+
