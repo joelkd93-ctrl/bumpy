@@ -2,6 +2,17 @@
  * Push Notifications for Bumpy
  */
 
+function appNotificationsEnabled() {
+  try {
+    const raw = localStorage.getItem('bumpy:settings');
+    if (!raw) return true;
+    const parsed = JSON.parse(raw);
+    return parsed?.notifications !== false;
+  } catch {
+    return true;
+  }
+}
+
 export async function requestNotificationPermission() {
   if (!('Notification' in window)) {
     console.warn('Notifications not supported');
@@ -27,6 +38,11 @@ export async function showNotification(title, options = {}) {
   }
 
   console.log('🔔 showNotification called:', title, 'hidden:', document.hidden, 'permission:', Notification.permission);
+
+  if (!appNotificationsEnabled()) {
+    console.log('🔕 Notifications disabled in app settings');
+    return;
+  }
 
   if (Notification.permission !== 'granted') {
     console.warn('🔔 Notification permission not granted');

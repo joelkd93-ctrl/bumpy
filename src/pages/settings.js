@@ -179,6 +179,17 @@ export function initSettings() {
       storage.set('settings', updated);
       storage.syncWithCloud({ only: ['settings'] });
       if (window.haptic) window.haptic.light();
+
+      if (nextEnabled && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification('Varsler aktivert', {
+            body: 'Du vil nå motta varsler fra Bumpy',
+            icon: '/icons/icon-192.png',
+            vibrate: [120, 60, 120]
+          });
+        }).catch(() => {});
+      }
+
       updateNotificationToggleUI();
       return;
     }
