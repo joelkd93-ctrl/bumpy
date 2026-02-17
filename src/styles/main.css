@@ -5245,3 +5245,36 @@ body.night-mode::after {
 .home-message-from {
   color: #5e766b !important;
 }
+
+/* === Home hotfix: remove all pink + tighten hero gap === */
+body,
+.app-shell,
+#app,
+.page-home {
+  background: #fdfcfb !important;
+}
+
+.home-hero::after {
+  height: 26px !important;
+  background: #fdfcfb !important;
+  border-radius: 28px 28px 0 0 !important;
+}
+
+.home-content {
+  padding-top: 6px !important;
+}
+
+.home-stat-value {
+  color: #2f2a25 !important;
+  font-family: 'Playfair Display', Georgia, serif !important;
+  font-weight: 500 !important;
+}
+
+.home-days-num,
+.home-days-label,
+.home-ring-pct,
+.home-ring-pct-sym,
+.home-ring-label {
+  color: #2f2a25 !important;
+  text-shadow: none !important;
+}

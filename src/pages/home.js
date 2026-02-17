@@ -27,7 +27,7 @@ export function renderHome() {
         <div class="home-topbar">
           <div>
             <p class="home-greeting-label">God dag,</p>
-            <h1 class="home-greeting-name">${firstName} 💕</h1>
+            <h1 class="home-greeting-name">${firstName}</h1>
           </div>
           <button class="home-settings-btn" id="home-settings-btn" aria-label="Innstillinger">⚙️</button>
         </div>
