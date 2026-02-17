@@ -1160,23 +1160,37 @@ async function handleMediaRepair(env, request) {
 async function handleJournalAudit(env) {
   const client = getClient(env);
   try {
+    const tableInfo = await client.execute(`PRAGMA table_info(journal_entries)`).catch(() => ({ rows: [] }));
+    const cols = new Set((tableInfo.rows || []).map((r) => r.name));
+
+    const selectFields = ['id'];
+    const optional = ['photo_blob', 'photo_key', 'photo_url', 'media_key', 'media_url', 'media_type', 'entry_date', 'created_at'];
+    optional.forEach((c) => {
+      if (cols.has(c)) selectFields.push(c);
+    });
+
+    const orderField = cols.has('entry_date') ? 'entry_date' : (cols.has('created_at') ? 'created_at' : 'id');
+
     const rows = await client.execute({
-      sql: `SELECT id, photo_blob, photo_key, photo_url, media_key, media_url, media_type
+      sql: `SELECT ${selectFields.join(', ')}
             FROM journal_entries
-            ORDER BY COALESCE(entry_date, created_at) DESC
+            ORDER BY ${orderField} DESC
             LIMIT 500`,
     });
 
     const list = rows.rows || [];
+    const hasValue = (v) => v !== null && v !== undefined && String(v).length > 0;
+
     const withMedia = list.filter((r) =>
-      (r.photo_blob && String(r.photo_blob).length > 0) ||
-      (r.photo_key && String(r.photo_key).length > 0) ||
-      (r.photo_url && String(r.photo_url).length > 0) ||
-      (r.media_key && String(r.media_key).length > 0) ||
-      (r.media_url && String(r.media_url).length > 0)
+      hasValue(r.photo_blob) ||
+      hasValue(r.photo_key) ||
+      hasValue(r.photo_url) ||
+      hasValue(r.media_key) ||
+      hasValue(r.media_url)
     );
 
-    const missingAll = list.filter((r) => !withMedia.find((m) => m.id === r.id)).map((r) => r.id);
+    const withMediaIds = new Set(withMedia.map((m) => m.id));
+    const missingAll = list.filter((r) => !withMediaIds.has(r.id)).map((r) => r.id);
 
     return json({
       success: true,
@@ -1184,6 +1198,7 @@ async function handleJournalAudit(env) {
       withMedia: withMedia.length,
       missingAll: missingAll.length,
       missingSample: missingAll.slice(0, 20),
+      columns: Array.from(cols),
     });
   } catch (err) {
     console.error('Journal audit failed:', err);
