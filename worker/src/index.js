@@ -1120,6 +1120,43 @@ async function handleMediaMigration(env, request) {
   }
 }
 
+async function handleMediaRepair(env, request) {
+  const client = getClient(env);
+  const url = new URL(request.url);
+  const limit = Math.max(1, Math.min(200, Number(url.searchParams.get('limit') || 100)));
+
+  try {
+    const rows = await client.execute({
+      sql: `SELECT id, photo_key, photo_url, media_key, media_url, media_type
+            FROM journal_entries
+            WHERE (photo_key IS NOT NULL AND photo_key != '' AND (photo_url IS NULL OR photo_url = ''))
+               OR (media_key IS NOT NULL AND media_key != '' AND (media_url IS NULL OR media_url = ''))
+            LIMIT ?`,
+      args: [limit],
+    });
+
+    let repaired = 0;
+    for (const row of (rows.rows || [])) {
+      const photoUrl = row.photo_url || (row.photo_key ? makeMediaUrl(request, row.photo_key) : null);
+      const mediaUrl = row.media_url || (row.media_key ? makeMediaUrl(request, row.media_key) : null);
+
+      await client.execute({
+        sql: `UPDATE journal_entries
+              SET photo_url = COALESCE(?, photo_url),
+                  media_url = COALESCE(?, media_url)
+              WHERE id = ?`,
+        args: [photoUrl, mediaUrl, row.id],
+      });
+      repaired++;
+    }
+
+    return json({ success: true, repaired, requested: limit });
+  } catch (err) {
+    console.error('Media repair failed:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 async function handleDeleteKick(env, id) {
   if (!id) {
     return json({ success: false, error: 'Missing ID' }, { status: 400 });
@@ -2078,6 +2115,9 @@ export default {
       }
       if (url.pathname === '/api/media/migrate' && request.method === 'POST') {
         return withCors(await handleMediaMigration(env, request), env, request);
+      }
+      if (url.pathname === '/api/media/repair' && request.method === 'POST') {
+        return withCors(await handleMediaRepair(env, request), env, request);
       }
 
       if (url.pathname.startsWith('/api/media/') && request.method === 'GET') {

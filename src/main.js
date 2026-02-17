@@ -166,6 +166,13 @@ function initApp() {
     credentials: 'omit',
   }).catch(() => {});
 
+  // Best-effort media URL repair for older rows where key exists but URL is missing
+  fetch(`${window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev'}/api/media/repair?limit=100`, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'omit',
+  }).catch(() => {});
+
   // Render app shell
   const app = document.getElementById('app');
   app.classList.add('app-shell');
