@@ -5898,3 +5898,33 @@ body,
   text-overflow: unset !important;
   word-break: normal !important;
 }
+
+/* Heartbeat game refresh: green tappable heart + floating mini hearts */
+#game-modal .heart-pulse.heart-tap {
+  font-size: 148px !important;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: #548275;
+  filter: drop-shadow(0 10px 18px rgba(84,130,117,.24));
+}
+
+#game-modal .heart-pulse.heart-tap:active {
+  transform: scale(0.94);
+}
+
+#game-modal .mini-heart-float {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  opacity: 0;
+  animation: miniHeartUp 950ms ease-out forwards;
+  filter: drop-shadow(0 4px 8px rgba(84,130,117,.24));
+}
+
+@keyframes miniHeartUp {
+  0% { transform: translateY(0) scale(.85); opacity: .95; }
+  100% { transform: translateY(-110px) scale(1.25); opacity: 0; }
+}

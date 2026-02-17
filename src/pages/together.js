@@ -398,31 +398,39 @@ function renderHeartbeatGame(container, cleanupStack) {
   container.innerHTML = `
     <div class="text-center" style="display: flex; flex-direction: column; min-height: 100%; padding-top: 20px;">
       <div style="flex: 0 0 auto;">
-        <h2 class="heading-section mb-2">Hjerteslag 💓</h2>
-        <p class="text-warm mb-4">Trykk for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
+        <h2 class="heading-section mb-2">Hjerteslag 💚</h2>
+        <p class="text-warm mb-4">Trykk på hjertet for å sende et dunk til ${role === 'andrine' ? 'Yoel 👨🏾' : 'Andrine 👩'}.</p>
       </div>
 
-      <div class="heartbeat-area" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 200px;">
-        <span id="heart-icon" class="heart-pulse reveal-emoji-big">💗</span>
+      <div class="heartbeat-area" id="heartbeat-area" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 260px; position: relative;">
+        <button id="heart-icon" class="heart-pulse heart-tap" aria-label="Send hjerteslag">💚</button>
       </div>
 
       <div style="flex: 0 0 auto; margin-bottom: 16px;">
         <div id="heart-status" class="text-muted mb-4 text-sm">Ser etter partner...</div>
-        <button class="btn btn-primary btn-block" id="tap-heart" style="min-height: 100px;">
-          Send hjertebank 💕
-        </button>
       </div>
     </div>
   `;
 
   const heart = document.getElementById('heart-icon');
+  const heartArea = document.getElementById('heartbeat-area');
   const status = document.getElementById('heart-status');
-  const tapBtn = document.getElementById('tap-heart');
 
   function pulse() {
     heart.classList.add('beat');
     setTimeout(() => heart.classList.remove('beat'), 150);
     if (navigator.vibrate) navigator.vibrate(50);
+  }
+
+  function floatHeart() {
+    if (!heartArea) return;
+    const fl = document.createElement('span');
+    fl.className = 'mini-heart-float';
+    fl.textContent = '💚';
+    fl.style.left = `${40 + Math.random() * 20}%`;
+    fl.style.bottom = `${18 + Math.random() * 8}%`;
+    heartArea.appendChild(fl);
+    setTimeout(() => fl.remove(), 950);
   }
 
   // Polling loop
@@ -437,18 +445,15 @@ function renderHeartbeatGame(container, cleanupStack) {
 
   cleanupStack.push(() => clearInterval(statusInterval));
 
-  if (!tapBtn) {
-    console.error('❌ Tap button not found! DOM:', document.getElementById('tap-heart'));
+  if (!heart) {
+    console.error('❌ Heart tap target not found!');
     return;
   }
 
-  console.log('✅ Heartbeat initialized, button found:', tapBtn);
-
-  tapBtn.addEventListener('click', async () => {
-    console.log('💓 Heart button clicked!');
-
+  heart.addEventListener('click', async () => {
     try {
       pulse();
+      floatHeart();
       if (window.app?.triggerHeartbeat) window.app.triggerHeartbeat();
       const response = await fetch(`${window.API_BASE}/api/presence`, {
         method: 'POST',
@@ -456,7 +461,7 @@ function renderHeartbeatGame(container, cleanupStack) {
         body: JSON.stringify({ role, tap: true })
       });
       if (response.ok && status) {
-        status.textContent = '💕 Sendt!';
+        status.textContent = '💚 Sendt!';
         setTimeout(() => {
           if (status) status.textContent = window.app?.isPartnerOnline?.()
             ? `${role === 'andrine' ? 'Yoel' : 'Andrine'} er pålogget 🟢`
