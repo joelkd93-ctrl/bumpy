@@ -5676,3 +5676,37 @@ body,
 .page-feelings .mood-btn.mood-btn-text.selected .mood-label-text {
   color: #2f4f46 !important;
 }
+
+/* Sparketeller typography resize (reduce oversized text) */
+.kick-pearl-title {
+  font-size: 26px !important;
+}
+
+.kick-pearl-circle-label {
+  font-size: 18px !important;
+}
+
+.kick-pearl-circle-count {
+  font-size: 72px !important;
+}
+
+.kick-pearl-circle-sub {
+  font-size: 12px !important;
+}
+
+.kick-pearl-help {
+  font-size: 18px !important;
+  line-height: 1.3 !important;
+}
+
+.kick-pearl-sheet-head h2 {
+  font-size: 24px !important;
+}
+
+.kick-pearl-row-title {
+  font-size: 20px !important;
+}
+
+.kick-pearl-row-count {
+  font-size: 34px !important;
+}
