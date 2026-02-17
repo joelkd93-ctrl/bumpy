@@ -34,7 +34,7 @@ export function renderJournal() {
             </div>
           </div>
           ${entry.mediaType === 'video' && entry.mediaUrl
-        ? `<video src="${entry.mediaUrl}" class="journal-photo" controls playsinline preload="metadata"></video>`
+        ? `<video src="${entry.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
         : (entry.photo
             ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
             : (entry.photoRef
@@ -165,6 +165,8 @@ export function initJournal() {
   let currentPhoto = null;
   let currentMediaDataUrl = null;
   let currentMediaType = null;
+  let currentMediaDuration = null;
+  let currentMediaThumbUrl = null;
   let editingEntryId = null;
 
   // Hydrate deferred photos from IndexedDB
@@ -218,11 +220,16 @@ export function initJournal() {
         return;
       }
 
-      fileToDataUrl(file, (dataUrl) => {
+      fileToDataUrl(file, async (dataUrl) => {
         currentPhoto = null;
         currentMediaDataUrl = dataUrl;
         currentMediaType = 'video';
-        previewImg.removeAttribute('src');
+
+        const meta = await getVideoMetadata(file).catch(() => null);
+        currentMediaDuration = meta?.duration || null;
+        currentMediaThumbUrl = meta?.thumbDataUrl || null;
+
+        previewImg.src = currentMediaThumbUrl || '';
         previewImg.alt = 'Video valgt';
         photoUpload.style.display = 'none';
         photoPreview.style.display = 'block';
@@ -235,6 +242,8 @@ export function initJournal() {
       currentPhoto = result;
       currentMediaDataUrl = null;
       currentMediaType = 'image';
+      currentMediaDuration = null;
+      currentMediaThumbUrl = null;
       previewImg.src = currentPhoto;
       photoUpload.style.display = 'none';
       photoPreview.style.display = 'block';
@@ -253,6 +262,8 @@ export function initJournal() {
     currentPhoto = null;
     currentMediaDataUrl = null;
     currentMediaType = null;
+    currentMediaDuration = null;
+    currentMediaThumbUrl = null;
     photoPreview.style.display = 'none';
     photoUpload.style.display = 'flex';
     photoInputCamera.value = '';
@@ -291,6 +302,8 @@ export function initJournal() {
           photo: currentPhoto,
           mediaDataUrl: currentMediaDataUrl,
           mediaType: currentMediaType,
+          mediaDuration: currentMediaDuration,
+          mediaThumbUrl: currentMediaThumbUrl,
           note: note
         });
         saveBtn.textContent = 'Oppdatert! 💕';
@@ -303,6 +316,8 @@ export function initJournal() {
           photo: currentPhoto,
           mediaDataUrl: currentMediaDataUrl,
           mediaType: currentMediaType,
+          mediaDuration: currentMediaDuration,
+          mediaThumbUrl: currentMediaThumbUrl,
           note: note
         });
         saveBtn.textContent = 'Lagret! 💕';
@@ -313,6 +328,8 @@ export function initJournal() {
         currentPhoto = null;
         currentMediaDataUrl = null;
         currentMediaType = null;
+        currentMediaDuration = null;
+        currentMediaThumbUrl = null;
         editingEntryId = null;
         noteInput.value = '';
         dateInput.value = new Date().toISOString().split('T')[0];
@@ -427,7 +444,10 @@ export function initJournal() {
         currentPhoto = null;
         currentMediaType = 'video';
         currentMediaDataUrl = null; // keep existing cloud media unless replaced
-        previewImg.removeAttribute('src');
+        currentMediaDuration = entry.mediaDuration || null;
+        currentMediaThumbUrl = entry.mediaThumbUrl || null;
+        if (currentMediaThumbUrl) previewImg.src = currentMediaThumbUrl;
+        else previewImg.removeAttribute('src');
         previewImg.alt = 'Video valgt';
         photoUpload.style.display = 'none';
         photoPreview.style.display = 'block';
@@ -442,6 +462,8 @@ export function initJournal() {
           currentPhoto = photoData;
           currentMediaType = 'image';
           currentMediaDataUrl = null;
+          currentMediaDuration = null;
+          currentMediaThumbUrl = null;
           previewImg.src = photoData;
           photoUpload.style.display = 'none';
           photoPreview.style.display = 'block';
@@ -506,6 +528,51 @@ function fileToDataUrl(file, callback) {
     alert('Kunne ikke lese mediafil. Prøv igjen.');
   };
   reader.readAsDataURL(file);
+}
+
+function getVideoMetadata(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
+    video.src = url;
+
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.removeAttribute('src');
+      video.load();
+    };
+
+    video.onloadedmetadata = () => {
+      const duration = Number(video.duration || 0);
+      const captureAt = Math.min(1, Math.max(0.1, duration / 4 || 0.1));
+      video.currentTime = captureAt;
+    };
+
+    video.onseeked = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 180;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const thumbDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        const duration = Number(video.duration || 0);
+        cleanup();
+        resolve({ duration: Math.round(duration), thumbDataUrl });
+      } catch (e) {
+        cleanup();
+        resolve({ duration: Number(video.duration || 0) || null, thumbDataUrl: null });
+      }
+    };
+
+    video.onerror = () => {
+      cleanup();
+      reject(new Error('Video metadata load failed'));
+    };
+  });
 }
 
 // Compress image to reduce localStorage usage and prevent memory crashes

@@ -63,7 +63,7 @@ function renderEvent(event) {
           </div>
         </div>
         ${event.mediaType === 'video' && event.mediaUrl
-          ? `<video src="${event.mediaUrl}" class="journal-photo" controls playsinline preload="metadata"></video>`
+          ? `<video src="${event.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
           : (event.photo
               ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
               : (event.photoRef
