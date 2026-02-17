@@ -380,6 +380,11 @@ export const storage = {
           id: entry.id,
           week_number: entry.week,
           photo_blob: entry.photo,
+          photo_url: entry.photoUrl || null,
+          media_type: entry.mediaType || null,
+          media_url: entry.mediaUrl || null,
+          media_thumb_url: entry.mediaThumbUrl || null,
+          media_duration: entry.mediaDuration || null,
           note: entry.note,
           entry_date: entry.date
         }));

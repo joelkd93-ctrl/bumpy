@@ -718,25 +718,33 @@ async function handleSyncPost(env, request) {
       }
       console.log(`💾 Inserting journal entry ${entry.id}`);
       try {
-        const insertResult = await client.execute({
-          sql: `INSERT OR REPLACE INTO journal_entries (id, week_number, photo_blob, note, entry_date)
-                VALUES (?, ?, ?, ?, ?)`,
+        const existing = await client.execute({
+          sql: `SELECT photo_key, photo_url, media_type, media_key, media_url, media_thumb_url, media_duration
+                FROM journal_entries WHERE id = ?`,
+          args: [entry.id],
+        }).catch(() => ({ rows: [] }));
+
+        const current = existing.rows?.[0] || {};
+
+        await client.execute({
+          sql: `INSERT OR REPLACE INTO journal_entries
+                (id, week_number, photo_blob, photo_key, photo_url, media_type, media_key, media_url, media_thumb_url, media_duration, note, entry_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [
             entry.id,
             entry.week || entry.week_number || 0,
             entry.photo || entry.photo_blob || null,
+            current.photo_key || null,
+            entry.photo_url || current.photo_url || null,
+            entry.media_type || current.media_type || null,
+            current.media_key || null,
+            entry.media_url || current.media_url || null,
+            entry.media_thumb_url || current.media_thumb_url || null,
+            entry.media_duration || current.media_duration || null,
             entry.note || '',
             entry.date || entry.entry_date || new Date().toISOString().split('T')[0],
           ],
         });
-        console.log(`✅ INSERT result for ${entry.id}:`, insertResult);
-
-        // Verify the insert
-        const verify = await client.execute({
-          sql: 'SELECT * FROM journal_entries WHERE id = ?',
-          args: [entry.id]
-        });
-        console.log(`🔍 Verification for ${entry.id}:`, verify.rows.length > 0 ? 'FOUND' : 'NOT FOUND');
       } catch (err) {
         console.error(`❌ Failed to insert ${entry.id}:`, err.message);
       }
