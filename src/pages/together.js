@@ -4,6 +4,7 @@
  */
 import { storage } from '../utils/storage.js';
 import { modal as modalManager } from '../utils/modal.js';
+import { syncPushSubscription } from '../utils/notifications.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 🎮 GAME CONFIGURATION
@@ -284,9 +285,12 @@ export function initTogether() {
 
       // Handle selection
       contentArea.querySelectorAll('.identity-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const id = btn.dataset.id;
           localStorage.setItem('who_am_i', id);
+          if (Notification.permission === 'granted') {
+            await syncPushSubscription(id).catch(() => {});
+          }
           window.app.refreshCurrentPage();
         });
       });

@@ -6,10 +6,13 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ALLOWED_ORIGINS = "*"
 
-# ⚠️ SECRETS - Already configured in your Cloudflare dashboard
-# TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set via:
-#   wrangler secret put TURSO_DATABASE_URL
-#   wrangler secret put TURSO_AUTH_TOKEN
+# ⚠️ SECRETS - configure in Cloudflare dashboard / wrangler secret put
+#   TURSO_DATABASE_URL
+#   TURSO_AUTH_TOKEN
+#   VAPID_PUBLIC_KEY
+#   VAPID_PRIVATE_KEY
+# Optional:
+#   VAPID_SUBJECT  (default: mailto:admin@bumpy.app)
 
 [dev]
 port = 8787

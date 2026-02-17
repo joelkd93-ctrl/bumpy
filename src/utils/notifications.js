@@ -169,3 +169,72 @@ export function notifyKick() {
     vibrate: [200, 100, 200]
   });
 }
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+export async function syncPushSubscription(role) {
+  const support = getNotificationSupportStatus();
+  if (!support.supported) return false;
+  if (!role || !['andrine', 'partner'].includes(role)) return false;
+  if (Notification.permission !== 'granted') return false;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+
+  const registration = await navigator.serviceWorker.ready;
+
+  const keyResp = await fetch(`${window.API_BASE}/api/push/public-key`, {
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'omit',
+  }).catch(() => null);
+
+  if (!keyResp?.ok) return false;
+  const keyData = await keyResp.json().catch(() => ({}));
+  const publicKey = keyData?.publicKey;
+  if (!publicKey) return false;
+
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    });
+  }
+
+  const subJson = subscription.toJSON();
+  const saveResp = await fetch(`${window.API_BASE}/api/push/subscribe`, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'omit',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, subscription: subJson }),
+  }).catch(() => null);
+
+  return !!saveResp?.ok;
+}
+
+export async function unsubscribePush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  if (!subscription) return true;
+
+  const endpoint = subscription.endpoint;
+  await subscription.unsubscribe().catch(() => {});
+
+  await fetch(`${window.API_BASE}/api/push/unsubscribe`, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'omit',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint }),
+  }).catch(() => {});
+
+  return true;
+}

@@ -14,7 +14,7 @@ import './styles/modal-system.css?v=20260212d1'; // Native app modal system
 // import './styles/performance-fix.css?v=20260212d1'; // disabled: was overriding viewport/modal mechanics
 import { storage, initializeDefaults } from './utils/storage.js';
 import { modal } from './utils/modal.js';
-import { notifyHeart, notifyKick } from './utils/notifications.js';
+import { notifyHeart, notifyKick, syncPushSubscription } from './utils/notifications.js';
 import { renderHome, initHome } from './pages/home.js';
 import { renderJournal, initJournal } from './pages/journal.js';
 // timeline merged into Dagbok page
@@ -367,6 +367,12 @@ function registerSW() {
           }
         } else {
           console.log('ℹ️ Periodic background sync not supported (likely Safari/iOS)');
+        }
+
+        // Keep push subscription in sync (for closed-app notifications)
+        const role = localStorage.getItem('who_am_i');
+        if (role && Notification.permission === 'granted') {
+          await syncPushSubscription(role).catch(() => {});
         }
       } catch (err) {
         console.warn('Offline mode not available:', err);

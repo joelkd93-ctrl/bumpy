@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { createClient } from '@libsql/client/web';
+import webpush from 'web-push';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🛠️ HELPERS
@@ -133,6 +134,56 @@ async function uploadMediaToR2(env, request, { id, dataUrl, folder = 'journal' }
 async function uploadJournalPhotoToR2(env, request, id, photoBlob) {
   const res = await uploadMediaToR2(env, request, { id, dataUrl: photoBlob, folder: 'journal' });
   return { photoKey: res.key, photoUrl: res.url };
+}
+
+function getVapidConfig(env) {
+  const publicKey = env.VAPID_PUBLIC_KEY || '';
+  const privateKey = env.VAPID_PRIVATE_KEY || '';
+  const subject = env.VAPID_SUBJECT || 'mailto:admin@bumpy.app';
+  return { publicKey, privateKey, subject };
+}
+
+async function sendPushToRole(env, role, payload) {
+  const { publicKey, privateKey, subject } = getVapidConfig(env);
+  if (!publicKey || !privateKey) {
+    console.warn('Push skipped: missing VAPID keys');
+    return { sent: 0, failed: 0, skipped: 1 };
+  }
+
+  const client = getClient(env);
+  const rows = await client.execute({
+    sql: 'SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE role = ? AND enabled = 1',
+    args: [role],
+  }).catch(() => ({ rows: [] }));
+
+  const subscriptions = rows.rows || [];
+  if (!subscriptions.length) return { sent: 0, failed: 0, skipped: 0 };
+
+  webpush.setVapidDetails(subject, publicKey, privateKey);
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const row of subscriptions) {
+    const sub = {
+      endpoint: row.endpoint,
+      keys: { p256dh: row.p256dh, auth: row.auth },
+    };
+
+    try {
+      await webpush.sendNotification(sub, JSON.stringify(payload));
+      sent++;
+    } catch (err) {
+      failed++;
+      const status = Number(err?.statusCode || err?.status || 0);
+      if (status === 404 || status === 410) {
+        await client.execute({ sql: 'DELETE FROM push_subscriptions WHERE endpoint = ?', args: [row.endpoint] }).catch(() => {});
+      }
+      console.warn('Push send failed:', status || err?.message || err);
+    }
+  }
+
+  return { sent, failed, skipped: 0 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -309,6 +360,18 @@ async function handleInit(env) {
       role TEXT,
       note TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    // Web push subscriptions (per role/device)
+    `CREATE TABLE IF NOT EXISTS push_subscriptions (
+      endpoint TEXT PRIMARY KEY,
+      role TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      user_agent TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      enabled INTEGER DEFAULT 1
     )`,
 
     // Add columns to journal_entries if not exists (for existing databases)
@@ -1069,6 +1132,69 @@ async function handleDeleteKick(env, id) {
 // 👥 PRESENCE & HEARTBEAT
 // ─────────────────────────────────────────────────────────────────────────────
 
+async function handlePushPublicKey(env) {
+  const { publicKey } = getVapidConfig(env);
+  return json({ success: !!publicKey, publicKey: publicKey || null });
+}
+
+async function handlePushSubscribe(env, request) {
+  const body = await request.json().catch(() => null);
+  if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+
+  const { role, subscription } = body;
+  if (!role || !['andrine', 'partner'].includes(role)) {
+    return json({ success: false, error: 'Invalid role' }, { status: 400 });
+  }
+
+  const endpoint = subscription?.endpoint;
+  const p256dh = subscription?.keys?.p256dh;
+  const auth = subscription?.keys?.auth;
+
+  if (!endpoint || !p256dh || !auth) {
+    return json({ success: false, error: 'Invalid subscription' }, { status: 400 });
+  }
+
+  const client = getClient(env);
+  await client.execute({
+    sql: `INSERT OR REPLACE INTO push_subscriptions (endpoint, role, p256dh, auth, user_agent, enabled, updated_at)
+          VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)`,
+    args: [endpoint, role, p256dh, auth, request.headers.get('user-agent') || null],
+  });
+
+  return json({ success: true });
+}
+
+async function handlePushUnsubscribe(env, request) {
+  const body = await request.json().catch(() => null);
+  if (!body) return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+
+  const endpoint = body?.endpoint;
+  if (!endpoint) return json({ success: false, error: 'Missing endpoint' }, { status: 400 });
+
+  const client = getClient(env);
+  await client.execute({ sql: 'DELETE FROM push_subscriptions WHERE endpoint = ?', args: [endpoint] });
+  return json({ success: true });
+}
+
+async function handlePushTest(env, request) {
+  const body = await request.json().catch(() => ({}));
+  const role = body?.role;
+  if (!role || !['andrine', 'partner'].includes(role)) {
+    return json({ success: false, error: 'Invalid role' }, { status: 400 });
+  }
+
+  const result = await sendPushToRole(env, role, {
+    title: '💕 Bumpy',
+    body: 'Testvarsel fra Bumpy',
+    icon: '/icons/icon-192.png',
+    tag: `test-${Date.now()}`,
+    url: '/',
+    vibrate: [120, 60, 120],
+  });
+
+  return json({ success: true, result });
+}
+
 async function handleReset(env) {
   const client = getClient(env);
 
@@ -1154,12 +1280,34 @@ async function handlePresence(env, request) {
     });
   }
 
+  // Send real push on heart tap
+  if (tap) {
+    const targetRole = role === 'andrine' ? 'partner' : 'andrine';
+    sendPushToRole(env, targetRole, {
+      title: '💕 Bumpy',
+      body: 'Deler litt kjærlighet med deg 💚',
+      icon: '/icons/icon-192.png',
+      tag: `heart-${Date.now()}`,
+      url: '/',
+      vibrate: [100, 50, 100],
+    }).catch(() => {});
+  }
+
   // Handle kick session start
   if (kickStart && role === 'andrine') {
     await client.execute({
       sql: `UPDATE presence SET andrine_kick = ? WHERE id = 1`,
       args: [now],
     });
+
+    sendPushToRole(env, 'partner', {
+      title: '🦶 Baby sparker!',
+      body: 'Andrine registrerte et spark nå.',
+      icon: '/icons/icon-192.png',
+      tag: `kick-${Date.now()}`,
+      url: '/?tab=kicks',
+      vibrate: [180, 80, 180],
+    }).catch(() => {});
   }
 
   // Handle active kick session updates
@@ -1870,6 +2018,20 @@ export default {
       // Presence
       if (url.pathname === '/api/presence' && request.method === 'POST') {
         return withCors(await handlePresence(env, request), env, request);
+      }
+
+      // Web Push
+      if (url.pathname === '/api/push/public-key' && request.method === 'GET') {
+        return withCors(await handlePushPublicKey(env), env, request);
+      }
+      if (url.pathname === '/api/push/subscribe' && request.method === 'POST') {
+        return withCors(await handlePushSubscribe(env, request), env, request);
+      }
+      if (url.pathname === '/api/push/unsubscribe' && request.method === 'POST') {
+        return withCors(await handlePushUnsubscribe(env, request), env, request);
+      }
+      if (url.pathname === '/api/push/test' && request.method === 'POST') {
+        return withCors(await handlePushTest(env, request), env, request);
       }
 
       // Kicks

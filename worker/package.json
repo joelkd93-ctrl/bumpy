@@ -10,7 +10,8 @@
     "tail": "wrangler tail"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0"
+    "@libsql/client": "^0.14.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "wrangler": "^4.64.0"

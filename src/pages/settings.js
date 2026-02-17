@@ -3,7 +3,7 @@
  * Gentle customization options
  */
 import { storage } from '../utils/storage.js';
-import { requestNotificationPermission, getNotificationSupportStatus } from '../utils/notifications.js';
+import { requestNotificationPermission, getNotificationSupportStatus, syncPushSubscription, unsubscribePush } from '../utils/notifications.js';
 
 export function renderSettings() {
   const settings = storage.get('settings') || {
@@ -190,6 +190,8 @@ export function initSettings() {
       if (window.haptic) window.haptic.light();
 
       if (nextEnabled && 'serviceWorker' in navigator) {
+        const role = localStorage.getItem('who_am_i');
+        if (role) await syncPushSubscription(role).catch(() => {});
         navigator.serviceWorker.ready.then(registration => {
           registration.showNotification('Varsler aktivert', {
             body: 'Du vil nå motta varsler fra Bumpy',
@@ -197,6 +199,8 @@ export function initSettings() {
             vibrate: [120, 60, 120]
           });
         }).catch(() => {});
+      } else {
+        await unsubscribePush().catch(() => {});
       }
 
       updateNotificationToggleUI();
@@ -212,6 +216,8 @@ export function initSettings() {
       storage.syncWithCloud({ only: ['settings'] });
 
       if (granted) {
+        const role = localStorage.getItem('who_am_i');
+        if (role) await syncPushSubscription(role).catch(() => {});
         if (window.haptic) window.haptic.medium();
         setTimeout(() => {
           if ('serviceWorker' in navigator) {
