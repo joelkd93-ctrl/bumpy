@@ -5339,3 +5339,47 @@ body,
 .page-journal .page-header-journal {
   display: none !important;
 }
+
+/* Journal compose: remove pink accents, use reference sage palette */
+.page-journal #journal-compose .journal-week-badge {
+  background: #e3ebe5 !important;
+  color: #41665d !important;
+}
+
+.page-journal #journal-compose .journal-photo-placeholder {
+  border-color: #9bbdb1 !important;
+  background: #f4f7f5 !important;
+}
+
+.page-journal #journal-compose .journal-photo-placeholder:active {
+  border-color: #548275 !important;
+  background: #e3ebe5 !important;
+}
+
+.page-journal #journal-compose .photo-upload-text {
+  color: #548275 !important;
+}
+
+.page-journal #journal-compose .btn-soft {
+  background: #f4f7f5 !important;
+  border: 1px solid #c5d9cd !important;
+  color: #41665d !important;
+}
+
+.page-journal #journal-compose .emoji-picker-toggle {
+  color: #548275 !important;
+  border-color: #c5d9cd !important;
+  background: #f4f7f5 !important;
+}
+
+.page-journal #journal-compose .btn-primary,
+.page-journal #journal-compose #save-entry {
+  background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #41665d !important;
+}
+
+.page-journal #journal-compose .btn-primary:active,
+.page-journal #journal-compose #save-entry:active {
+  background: #41665d !important;
+}
