@@ -5781,3 +5781,12 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Together fix: keep normal card corners (remove unintended white circle look) */
+.page-together button.game-card {
+  border-radius: var(--radius-xl) !important;
+}
+
+.page-together .game-card::after {
+  border-radius: var(--radius-xl) !important;
+}
