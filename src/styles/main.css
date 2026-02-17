@@ -5877,3 +5877,24 @@ body,
   font-weight: 700;
   letter-spacing: .01em;
 }
+
+/* Feelings layout tweak: 2 columns, still no truncation */
+.page-feelings .mood-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+}
+
+.page-feelings .mood-btn.mood-btn-text {
+  min-height: 66px !important;
+  padding: 10px 12px !important;
+  justify-content: center !important;
+}
+
+.page-feelings .mood-label-text {
+  font-size: 16px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: normal !important;
+}
