@@ -5305,3 +5305,37 @@ body,
   color: #3f3932;
   box-shadow: 0 2px 8px rgba(120,110,95,0.12);
 }
+
+/* Journal header (pearl, no orange) */
+.journal-header-pearl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 2px 6px;
+}
+
+.journal-header-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 46px;
+  line-height: 1;
+  color: #2f2a25;
+  margin: 0;
+  font-weight: 500;
+}
+
+.journal-add-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(224,219,207,0.8);
+  background: rgba(255,255,255,0.72);
+  color: #6d655a;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.page-journal .page-header-hero,
+.page-journal .page-header-journal {
+  display: none !important;
+}

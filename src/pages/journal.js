@@ -67,9 +67,9 @@ export function renderJournal() {
 
   return `
     <div class="page-journal">
-      <div class="page-header-hero page-header-journal">
-        <h1 class="page-header-hero-title">Min Dagbok 📔</h1>
-        <p class="page-header-hero-sub">Fang øyeblikk for ${settings.name}</p>
+      <div class="journal-header-pearl">
+        <h1 class="journal-header-title">Dagbok</h1>
+        <button id="journal-add-btn" class="journal-add-btn" type="button" aria-label="Nytt innlegg">+</button>
       </div>
       
       <div class="journal-tabs mb-4">
@@ -78,6 +78,7 @@ export function renderJournal() {
       </div>
 
       <div id="journal-pane-dagbok">
+      <div id="journal-compose" style="display:none;">
       <!-- Add New Entry Card -->
       <div class="card card-soft mb-6">
         <div class="journal-week-badge mb-4">
@@ -136,6 +137,7 @@ export function renderJournal() {
         <button class="btn btn-primary btn-block mt-4" id="save-entry">
           Lagre Minne 💕
         </button>
+      </div>
       </div>
       
       <!-- Timeline Header -->
@@ -274,6 +276,8 @@ export function initJournal() {
   const removePhotoBtn = document.getElementById('remove-photo');
   const saveBtn = document.getElementById('save-entry');
   const noteInput = document.getElementById('journal-note');
+  const addBtn = document.getElementById('journal-add-btn');
+  const compose = document.getElementById('journal-compose');
   const dateInput = document.getElementById('entry-date');
   const uploadIcon = document.getElementById('upload-icon');
   const uploadText = document.getElementById('upload-text');
@@ -300,6 +304,11 @@ export function initJournal() {
 
   tabDagbok?.addEventListener('click', () => setTab('dagbok'));
   tabReise?.addEventListener('click', () => setTab('reise'));
+
+  addBtn?.addEventListener('click', () => {
+    setTab('dagbok');
+    if (compose) compose.style.display = compose.style.display === 'none' ? '' : 'none';
+  });
 
   // Hydrate deferred photos from IndexedDB
   const hydrateDeferredPhotos = async () => {
@@ -473,6 +482,8 @@ export function initJournal() {
         saveBtn.disabled = false;
         updateUploadButton(false);
 
+        if (compose) compose.style.display = 'none';
+
         // Refresh entries - now safe because cloud sync completed
         if (window.app?.refreshCurrentPage) {
           window.app.refreshCurrentPage();
@@ -569,6 +580,7 @@ export function initJournal() {
 
       // Populate form with entry data
       editingEntryId = id;
+      if (compose) compose.style.display = '';
       noteInput.value = entry.note || '';
       dateInput.value = entry.date;
 
