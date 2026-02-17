@@ -365,10 +365,40 @@ export function initJournal() {
         missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
       }
 
+      let republished = 0;
+      if (cloudWithMedia === 0 && entries.length > 0) {
+        for (const e of entries) {
+          const hasAnyMedia = !!(e.photo || e.photoRef || e.photoUrl || e.mediaRef || e.mediaUrl || e.photoKey || e.mediaKey);
+          if (!hasAnyMedia) continue;
+          const ok = await storage.upsertJournalEntry(e.id, {
+            week: e.week,
+            date: e.date,
+            note: e.note,
+            photoRef: e.photoRef || null,
+            mediaRef: e.mediaRef || null,
+            photoKey: e.photoKey || null,
+            photoUrl: e.photoUrl || null,
+            mediaType: e.mediaType || null,
+            mediaKey: e.mediaKey || null,
+            mediaUrl: e.mediaUrl || null,
+            mediaThumbUrl: e.mediaThumbUrl || null,
+            mediaDuration: e.mediaDuration || null,
+          }, { fromQueue: true });
+          if (ok) republished++;
+        }
+
+        if (republished > 0) {
+          await storage.pullFromCloud();
+          entries = storage.getCollection('journal');
+          missingLocal = entries.filter(e => !e.photo && !e.photoRef && !e.photoUrl && !e.mediaUrl && !e.mediaKey && !e.photoKey).length;
+        }
+      }
+
       const cloudLine = `Cloud media ok: ${cloudWithMedia}/${cloudJournal.length}`;
       const rebuiltLine = rebuilt ? '\nLokal Dagbok-cache ble bygget på nytt.' : '';
+      const republishLine = republished > 0 ? `\nRepublished media: ${republished}` : '';
 
-      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal missing refs: ${missingLocal}\n${cloudLine}${rebuiltLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
+      alert(`Media debug:\nLocal entries: ${entries.length}\nLocal missing refs: ${missingLocal}\n${cloudLine}${rebuiltLine}${republishLine}\n\nKjørte repair + pull. Siden oppdateres nå.`);
       window.app?.refreshCurrentPage?.();
     } catch (err) {
       alert(`Media debug feilet: ${err?.message || err}`);
