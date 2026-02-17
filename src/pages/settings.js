@@ -63,9 +63,11 @@ export function renderSettings() {
       <!-- Notifications Section -->
       <p class="text-tiny mb-2">VARSLER</p>
       <div class="settings-list mb-6">
-        <div class="settings-item" id="enable-notifications">
+        <div class="settings-item settings-item-static" id="enable-notifications" role="button" aria-label="Push-varsler">
           <span class="settings-label">Push-varsler</span>
-          <span class="settings-icon" id="notification-status">${Notification.permission === 'granted' ? '✅ Aktivert' : '🔔 Aktiver'}</span>
+          <span class="settings-toggle ${Notification.permission === 'granted' && settings.notifications !== false ? 'is-on' : ''}" id="notification-toggle" aria-hidden="true">
+            <span class="settings-toggle-knob"></span>
+          </span>
         </div>
       </div>
 
@@ -120,6 +122,7 @@ export function initSettings() {
   const dueDateInput = document.getElementById('setting-due-date');
   const saveBtn = document.getElementById('save-settings');
   const notificationsBtn = document.getElementById('enable-notifications');
+  const notificationToggle = document.getElementById('notification-toggle');
   const forceSyncBtn = document.getElementById('force-sync');
   const exportBtn = document.getElementById('export-data');
   const clearBtn = document.getElementById('clear-data');
@@ -151,59 +154,67 @@ export function initSettings() {
     }, 1500);
   });
 
-  // Enable notifications
+  function updateNotificationToggleUI() {
+    if (!notificationToggle) return;
+    const currentSettings = storage.get('settings') || {};
+    const enabled = Notification.permission === 'granted' && currentSettings.notifications !== false;
+    notificationToggle.classList.toggle('is-on', enabled);
+  }
+
+  // Enable/disable notifications (pill slider)
   notificationsBtn?.addEventListener('click', async () => {
-    const icon = notificationsBtn.querySelector('.settings-icon');
+    const currentSettings = storage.get('settings') || {};
 
-    // If already granted, just show status
-    if (Notification.permission === 'granted') {
-      icon.textContent = '✅ Aktivert';
-      if (window.haptic) window.haptic.light();
-      return;
-    }
-
-    // If denied, can't do anything
+    // Browser-level denied cannot be toggled by app
     if (Notification.permission === 'denied') {
-      icon.textContent = '❌ Blokkert';
-      alert('Varsler er blokkert. Gå til nettleserinnstillinger for å aktivere.');
-      setTimeout(() => {
-        icon.textContent = '🔔 Aktiver';
-      }, 3000);
+      alert('Varsler er blokkert i nettleseren. Gå til nettleserinnstillinger for å aktivere.');
+      updateNotificationToggleUI();
       return;
     }
 
-    // Request permission
+    // If permission already granted, this acts as in-app ON/OFF
+    if (Notification.permission === 'granted') {
+      const nextEnabled = !(currentSettings.notifications !== false);
+      const updated = { ...currentSettings, notifications: nextEnabled };
+      storage.set('settings', updated);
+      storage.syncWithCloud({ only: ['settings'] });
+      if (window.haptic) window.haptic.light();
+      updateNotificationToggleUI();
+      return;
+    }
+
+    // Not granted yet: request permission and enable on success
     try {
-      const originalText = icon.textContent;
-      icon.textContent = '⏳ Ber om tillatelse...';
+      notificationsBtn.classList.add('is-loading');
       const granted = await requestNotificationPermission();
+      const updated = { ...currentSettings, notifications: !!granted };
+      storage.set('settings', updated);
+      storage.syncWithCloud({ only: ['settings'] });
 
       if (granted) {
-        icon.textContent = '✅ Aktivert';
         if (window.haptic) window.haptic.medium();
-        // Show test notification
         setTimeout(() => {
-          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {
-              registration.showNotification('Varsler aktivert! 💕', {
+              registration.showNotification('Varsler aktivert', {
                 body: 'Du vil nå motta varsler fra Bumpy',
                 icon: '/icons/icon-192.png',
-                vibrate: [200, 100, 200]
+                vibrate: [120, 60, 120]
               });
-            });
+            }).catch(() => {});
           }
-        }, 500);
-      } else {
-        icon.textContent = '❌ Avvist';
-        setTimeout(() => {
-          icon.textContent = originalText;
-        }, 3000);
+        }, 350);
       }
     } catch (err) {
       console.error('Notification permission error:', err);
-      icon.textContent = '🔔 Aktiver';
+    } finally {
+      notificationsBtn.classList.remove('is-loading');
+      updateNotificationToggleUI();
     }
   });
+
+  // Keep toggle accurate when returning to this page
+  updateNotificationToggleUI();
 
   // Force sync
   forceSyncBtn?.addEventListener('click', async () => {
