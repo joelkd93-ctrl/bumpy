@@ -9,6 +9,29 @@ let lastPushSyncTime = 0;
 // Prevent overlapping pull loops
 let pullInFlightPromise = null;
 
+const SYNC_QUEUE_KEY = 'bumpy:sync_queue_v1';
+
+function getSyncQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function setSyncQueue(queue) {
+  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue || []));
+}
+
+function enqueueSyncTask(task) {
+  const queue = getSyncQueue();
+  const dedupeKey = `${task.type}:${task.id || ''}:${task.prefix || ''}`;
+  const filtered = queue.filter((q) => `${q.type}:${q.id || ''}:${q.prefix || ''}` !== dedupeKey);
+  filtered.push({ ...task, enqueuedAt: Date.now() });
+  setSyncQueue(filtered.slice(-100));
+}
+
+
 // Use a function to get API_URL at runtime (not at import time)
 function getApiUrl() {
   return (window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev') + '/api';
@@ -107,7 +130,8 @@ export const storage = {
     return id;
   },
 
-  async upsertJournalEntry(id, data) {
+  async upsertJournalEntry(id, data, options = {}) {
+    const { fromQueue = false } = options;
     const key = `journal:${id}`;
 
     // Keep image blobs in IndexedDB, not localStorage
@@ -169,6 +193,9 @@ export const storage = {
       if (!response.ok) {
         const text = await response.text().catch(() => 'unknown');
         console.warn(`⚠️ Journal upsert failed (${response.status}): ${text}`);
+        if (!fromQueue && !(data.mediaType === 'video' && !data.mediaUrl)) {
+          enqueueSyncTask({ type: 'journal_upsert', id });
+        }
         return false;
       }
 
@@ -185,11 +212,15 @@ export const storage = {
       return true;
     } catch (err) {
       console.warn('☁️ Journal upsert failed (network):', err.message);
+      if (!fromQueue && !(data.mediaType === 'video' && !data.mediaUrl)) {
+        enqueueSyncTask({ type: 'journal_upsert', id });
+      }
       return false;
     }
   },
 
-  async upsertMoodEntry(id, data) {
+  async upsertMoodEntry(id, data, options = {}) {
+    const { fromQueue = false } = options;
     const moodData = {
       mood: data.mood,
       note: data.note || '',
@@ -227,18 +258,21 @@ export const storage = {
       if (!response.ok) {
         const text = await response.text().catch(() => 'unknown');
         console.warn(`⚠️ Mood upsert failed (${response.status}): ${text}`);
+        if (!fromQueue) enqueueSyncTask({ type: 'mood_upsert', id });
         return false;
       }
 
       return true;
     } catch (err) {
       console.warn('☁️ Mood upsert failed (network):', err.message);
+      if (!fromQueue) enqueueSyncTask({ type: 'mood_upsert', id });
       return false;
     }
   },
 
   // Remove from collection
-  async removeFromCollection(prefix, id) {
+  async removeFromCollection(prefix, id, options = {}) {
+    const { fromQueue = false } = options;
     // For journal, cleanup IndexedDB photo first
     if (prefix === 'journal') {
       const existing = this.get(`journal:${id}`);
@@ -286,10 +320,12 @@ export const storage = {
           console.warn(`⚠️ Cloud delete failed: ${response.status}`);
           this.updateSyncIndicator('error', 'Delete failed');
           setTimeout(() => this.updateSyncIndicator('hide'), 3000);
+          if (!fromQueue) enqueueSyncTask({ type: 'delete', prefix, id });
         }
       }
     } catch (err) {
       console.warn('☁️ Cloud delete failed:', err.message);
+      if (!fromQueue) enqueueSyncTask({ type: 'delete', prefix, id });
     }
 
     return true;
@@ -439,6 +475,60 @@ export const storage = {
     return false;
   },
 
+  async processSyncQueue(limit = 5) {
+    const queue = getSyncQueue();
+    if (!queue.length) return 0;
+
+    let processed = 0;
+    const remaining = [...queue];
+
+    for (let i = 0; i < Math.min(limit, queue.length); i++) {
+      const task = remaining.shift();
+      if (!task) break;
+
+      try {
+        if (task.type === 'journal_upsert') {
+          const local = this.get(`journal:${task.id}`);
+          if (!local) {
+            processed++;
+            continue;
+          }
+          const ok = await this.upsertJournalEntry(task.id, {
+            week: local.week,
+            date: local.date,
+            note: local.note,
+            photoRef: local.photoRef,
+            photoUrl: local.photoUrl,
+            mediaType: local.mediaType,
+            mediaUrl: local.mediaUrl,
+            mediaThumbUrl: local.mediaThumbUrl,
+            mediaDuration: local.mediaDuration,
+          }, { fromQueue: true });
+          if (ok) processed++; else remaining.unshift(task);
+        } else if (task.type === 'mood_upsert') {
+          const local = this.get(`mood_entries:${task.id}`);
+          if (!local) {
+            processed++;
+            continue;
+          }
+          const ok = await this.upsertMoodEntry(task.id, local, { fromQueue: true });
+          if (ok) processed++; else remaining.unshift(task);
+        } else if (task.type === 'delete') {
+          await this.removeFromCollection(task.prefix, task.id, { fromQueue: true });
+          processed++;
+        } else {
+          processed++;
+        }
+      } catch {
+        remaining.unshift(task);
+        break;
+      }
+    }
+
+    setSyncQueue(remaining);
+    return processed;
+  },
+
   updateSyncIndicator(state, text) {
     const indicator = document.getElementById('sync-indicator');
     if (!indicator) return;
@@ -491,6 +581,9 @@ export const storage = {
       }
 
       try {
+      // Opportunistically flush queued writes/deletes before pull
+      await this.processSyncQueue(3).catch(() => {});
+
       const apiUrl = getApiUrl();
       console.log(`🔽 Pulling from: ${apiUrl}/sync`);
 

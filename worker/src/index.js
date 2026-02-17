@@ -937,6 +937,58 @@ async function handleMediaUpload(env, request) {
   }
 }
 
+async function handleMediaMigration(env, request) {
+  if (!env.MEDIA) {
+    return json({ success: false, error: 'MEDIA bucket not configured' }, { status: 503 });
+  }
+
+  const client = getClient(env);
+  const url = new URL(request.url);
+  const limit = Math.max(1, Math.min(25, Number(url.searchParams.get('limit') || 10)));
+
+  try {
+    const rows = await client.execute({
+      sql: `SELECT id, photo_blob FROM journal_entries
+            WHERE photo_blob IS NOT NULL AND LENGTH(photo_blob) > 0
+              AND (photo_key IS NULL OR photo_key = '')
+            LIMIT ?`,
+      args: [limit],
+    });
+
+    let migrated = 0;
+    for (const row of (rows.rows || [])) {
+      try {
+        const uploaded = await uploadMediaToR2(env, request, {
+          id: row.id,
+          dataUrl: row.photo_blob,
+          folder: 'journal',
+        });
+
+        await client.execute({
+          sql: `UPDATE journal_entries
+                SET photo_blob = NULL,
+                    photo_key = ?,
+                    photo_url = ?,
+                    media_type = COALESCE(media_type, 'image'),
+                    media_key = COALESCE(media_key, ?),
+                    media_url = COALESCE(media_url, ?)
+                WHERE id = ?`,
+          args: [uploaded.key, uploaded.url, uploaded.key, uploaded.url, row.id],
+        });
+
+        migrated += 1;
+      } catch (err) {
+        console.warn('Migration row failed:', row.id, err?.message || err);
+      }
+    }
+
+    return json({ success: true, migrated, requested: limit });
+  } catch (err) {
+    console.error('Media migration failed:', err);
+    return json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 async function handleDeleteKick(env, id) {
   if (!id) {
     return json({ success: false, error: 'Missing ID' }, { status: 400 });
@@ -1793,6 +1845,9 @@ export default {
       // Media upload/proxy from R2 (Phase B)
       if (url.pathname === '/api/media/upload' && request.method === 'POST') {
         return withCors(await handleMediaUpload(env, request), env, request);
+      }
+      if (url.pathname === '/api/media/migrate' && request.method === 'POST') {
+        return withCors(await handleMediaMigration(env, request), env, request);
       }
 
       if (url.pathname.startsWith('/api/media/') && request.method === 'GET') {

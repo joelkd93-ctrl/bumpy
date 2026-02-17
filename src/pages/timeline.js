@@ -98,7 +98,10 @@ function renderEvent(event) {
           </div>
         </div>
         ${event.mediaType === 'video' && event.mediaUrl
-          ? `<video src="${event.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
+          ? `<div style="position:relative;">
+               <video src="${event.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>
+               ${event.mediaDuration ? `<span style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;">${Math.floor(event.mediaDuration / 60)}:${String(event.mediaDuration % 60).padStart(2, '0')}</span>` : ''}
+             </div>`
           : (event.photo
               ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
               : (event.photoRef

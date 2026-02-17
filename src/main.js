@@ -160,6 +160,13 @@ function initApp() {
     console.warn('Journal media migration skipped:', err?.message || err);
   });
 
+  // Best-effort server-side migration: move legacy DB photo blobs -> R2 in small batches
+  fetch(`${window.API_BASE || 'https://bumpyapi.joelkd93.workers.dev'}/api/media/migrate?limit=10`, {
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'omit',
+  }).catch(() => {});
+
   // Render app shell
   const app = document.getElementById('app');
   app.classList.add('app-shell');

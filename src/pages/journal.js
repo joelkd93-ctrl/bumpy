@@ -34,7 +34,10 @@ export function renderJournal() {
             </div>
           </div>
           ${entry.mediaType === 'video' && entry.mediaUrl
-        ? `<video src="${entry.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
+        ? `<div style="position:relative;">
+             <video src="${entry.mediaUrl}" ${entry.mediaThumbUrl ? `poster="${entry.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>
+             ${entry.mediaDuration ? `<span style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;">${Math.floor(entry.mediaDuration / 60)}:${String(entry.mediaDuration % 60).padStart(2, '0')}</span>` : ''}
+           </div>`
         : (entry.photo
             ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
             : (entry.photoRef
