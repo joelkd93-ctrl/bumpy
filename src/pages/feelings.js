@@ -115,7 +115,7 @@ export function renderFeelings() {
   const todayEntry = storage.get(`feeling:${todayKey}`);
   const allEntries = storage.getCollection('mood_entries');
 
-  const moodButtons = MOODS.map(mood => `
+  const moodButtons = MOODS.filter(mood => mood.label !== 'Øm').map(mood => `
     <button
       class="mood-btn mood-btn-text ${todayEntry?.mood === mood.emoji ? 'selected' : ''}"
       data-mood="${mood.emoji}"

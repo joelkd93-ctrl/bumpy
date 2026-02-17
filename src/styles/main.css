@@ -5762,3 +5762,22 @@ body,
 
 .page-settings .settings-footer p:first-child { color:#6f675c; }
 .page-settings .settings-footer .text-muted { color:#8e867a !important; }
+
+/* Feelings box width increase: 2 columns to avoid text cutoff */
+.page-feelings .mood-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+}
+
+.page-feelings .mood-btn.mood-btn-text {
+  min-height: 62px !important;
+  padding: 10px 12px !important;
+}
+
+.page-feelings .mood-label-text {
+  font-size: 18px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
