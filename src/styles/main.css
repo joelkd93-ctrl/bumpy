@@ -5278,3 +5278,30 @@ body,
   color: #2f2a25 !important;
   text-shadow: none !important;
 }
+
+/* Journal integrated tabs (Dagbok / Vår Reise) */
+.journal-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(237,234,227,0.6);
+  border: 1px solid rgba(224,219,207,0.8);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.journal-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #7a7267;
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.journal-tab.active {
+  background: #f5e6d3;
+  color: #3f3932;
+  box-shadow: 0 2px 8px rgba(120,110,95,0.12);
+}

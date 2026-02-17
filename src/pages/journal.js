@@ -55,6 +55,16 @@ export function renderJournal() {
         </div>
       `;
 
+  const journeyEvents = [
+    ...storage.getCollection('journal').map(e => ({ ...e, type: 'journal', sortDate: new Date(e.date) })),
+    ...storage.getCollection('mood_entries').map(e => ({ ...e, type: 'mood', sortDate: new Date(e.timestamp || e.date) })),
+    ...storage.getCollection('kicks').map(e => ({ ...e, type: 'kick', sortDate: new Date(e.startTime) })),
+  ].sort((a, b) => b.sortDate - a.sortDate);
+
+  const journeyHTML = journeyEvents.length
+    ? journeyEvents.map(renderJourneyEvent).join('')
+    : `<div class="empty-state"><div class="empty-state-icon">✨</div><p class="heading-section mb-2">Ingen reisehendelser enda</p></div>`;
+
   return `
     <div class="page-journal">
       <div class="page-header-hero page-header-journal">
@@ -62,6 +72,12 @@ export function renderJournal() {
         <p class="page-header-hero-sub">Fang øyeblikk for ${settings.name}</p>
       </div>
       
+      <div class="journal-tabs mb-4">
+        <button id="journal-tab-dagbok" class="journal-tab active" type="button">Dagbok</button>
+        <button id="journal-tab-reise" class="journal-tab" type="button">Vår Reise</button>
+      </div>
+
+      <div id="journal-pane-dagbok">
       <!-- Add New Entry Card -->
       <div class="card card-soft mb-6">
         <div class="journal-week-badge mb-4">
@@ -134,6 +150,13 @@ export function renderJournal() {
       <div id="journal-entries" class="journal-timeline">
         ${entriesHTML}
       </div>
+      </div>
+
+      <div id="journal-pane-reise" style="display:none;">
+        <div class="journal-timeline">
+          ${journeyHTML}
+        </div>
+      </div>
       
       <div class="emoji-picker-popup" id="emoji-popup" style="display: none;">
         <div class="emoji-picker-grid" id="emoji-grid"></div>
@@ -148,6 +171,61 @@ function formatDate(dateStr) {
     month: 'short',
     year: 'numeric'
   });
+}
+
+function renderJourneyEvent(event) {
+  const dateStr = new Date(event.sortDate).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' });
+
+  if (event.type === 'journal') {
+    return `
+      <div class="journal-entry" data-id="${event.id}">
+        <div class="journal-header">
+          <div>
+            <span class="journal-week">Uke ${event.week}</span>
+            <span class="journal-date">${dateStr}</span>
+          </div>
+          <div><button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="journal" aria-label="Slett">🗑️</button></div>
+        </div>
+        ${event.mediaType === 'video' && event.mediaUrl
+          ? `<video src="${event.mediaUrl}" ${event.mediaThumbUrl ? `poster="${event.mediaThumbUrl}"` : ''} class="journal-photo" controls playsinline preload="metadata"></video>`
+          : (event.photo
+              ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
+              : (event.photoRef
+                  ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
+                  : (event.photoUrl ? `<img src="${event.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')))
+        }
+        ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
+      </div>
+    `;
+  }
+
+  if (event.type === 'mood') {
+    return `
+      <div class="journal-entry" data-id="${event.id}">
+        <div class="journal-header">
+          <div>
+            <span class="journal-week">${event.mood} Stemning</span>
+            <span class="journal-date">${dateStr}</span>
+          </div>
+          <div><button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="mood" aria-label="Slett">🗑️</button></div>
+        </div>
+        ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="journal-entry" data-id="${event.id}">
+      <div class="journal-header">
+        <div>
+          <span class="journal-week">🦶 ${event.count} Spark</span>
+          <span class="journal-date">${dateStr}</span>
+        </div>
+        <div><button class="btn-icon-small delete-timeline-entry" data-id="${event.id}" data-type="kick" aria-label="Slett">🗑️</button></div>
+      </div>
+      <p class="journal-note">Økten varte i ${event.duration} minutter</p>
+    </div>
+  `;
 }
 
 function ensureMediaLightboxStyles() {
@@ -206,6 +284,22 @@ export function initJournal() {
   let currentMediaDuration = null;
   let currentMediaThumbUrl = null;
   let editingEntryId = null;
+
+  const tabDagbok = document.getElementById('journal-tab-dagbok');
+  const tabReise = document.getElementById('journal-tab-reise');
+  const paneDagbok = document.getElementById('journal-pane-dagbok');
+  const paneReise = document.getElementById('journal-pane-reise');
+
+  const setTab = (tab) => {
+    const isDagbok = tab !== 'reise';
+    if (paneDagbok) paneDagbok.style.display = isDagbok ? '' : 'none';
+    if (paneReise) paneReise.style.display = isDagbok ? 'none' : '';
+    tabDagbok?.classList.toggle('active', isDagbok);
+    tabReise?.classList.toggle('active', !isDagbok);
+  };
+
+  tabDagbok?.addEventListener('click', () => setTab('dagbok'));
+  tabReise?.addEventListener('click', () => setTab('reise'));
 
   // Hydrate deferred photos from IndexedDB
   const hydrateDeferredPhotos = async () => {
@@ -557,6 +651,33 @@ export function initJournal() {
 
   document.addEventListener('click', handleDelete);
   window._journalDeleteHandler = handleDelete;
+
+  // Delete from Reise tab (journal/mood/kicks mixed feed)
+  if (window._journalJourneyDeleteHandler) document.removeEventListener('click', window._journalJourneyDeleteHandler);
+  const handleJourneyDelete = async (e) => {
+    const deleteBtn = e.target.closest('.delete-timeline-entry');
+    if (!deleteBtn) return;
+
+    if (deleteBtn.disabled) return;
+    deleteBtn.disabled = true;
+
+    const id = deleteBtn.dataset.id;
+    const type = deleteBtn.dataset.type;
+    const confirmed = confirm('Er du sikker på at du vil slette dette?');
+    if (!confirmed) {
+      deleteBtn.disabled = false;
+      return;
+    }
+
+    const prefix = type === 'journal' ? 'journal' : type === 'mood' ? 'mood_entries' : type === 'kick' ? 'kicks' : null;
+    if (prefix) {
+      await storage.removeFromCollection(prefix, id);
+      if (type === 'kick') await storage.syncWithCloud({ only: ['kicks'] });
+      if (window.app?.refreshCurrentPage) setTimeout(() => window.app.refreshCurrentPage(), 250);
+    }
+  };
+  document.addEventListener('click', handleJourneyDelete);
+  window._journalJourneyDeleteHandler = handleJourneyDelete;
 
   // Tap image to zoom
   if (window._journalMediaZoomHandler) document.removeEventListener('click', window._journalMediaZoomHandler);
