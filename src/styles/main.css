@@ -5569,3 +5569,41 @@ body,
 #game-modal .progress-fill {
   background: linear-gradient(90deg, #749e91, #548275) !important;
 }
+
+/* Feelings desaturation: unify colorful mood tiles into pearl/sage language */
+.page-feelings .mood-icon {
+  background: linear-gradient(135deg, #9bbdb1 0%, #749e91 55%, #548275 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 14px rgba(84,130,117,.22) !important;
+}
+
+.page-feelings .mood-btn {
+  background: #ffffff !important;
+  border-color: #e3ebe5 !important;
+}
+
+.page-feelings .mood-btn::before {
+  background: linear-gradient(135deg, #f4f7f5 0%, #e3ebe5 100%) !important;
+}
+
+.page-feelings .mood-btn.selected .mood-icon {
+  background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
+}
+
+.page-feelings .mood-history-dot {
+  background: linear-gradient(135deg, #9bbdb1 0%, #749e91 55%, #548275 100%) !important;
+}
+
+/* Match Sparketeller exact green for save button */
+.page-feelings #save-mood,
+.page-feelings .btn-primary {
+  background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
+  border: 1px solid #41665d !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(84,130,117,.22) !important;
+}
+
+.page-feelings #save-mood:disabled {
+  background: linear-gradient(135deg, #749e91 0%, #548275 55%, #41665d 100%) !important;
+  opacity: .65 !important;
+}

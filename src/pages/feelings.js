@@ -249,7 +249,7 @@ export function initFeelings() {
 
     // Update display
     if (selectedMoodEl) {
-      selectedMoodEl.innerHTML = `<span class="mood-selected-label" style="color:${getMoodColor(selectedMood)}">${getMoodLabel(selectedMood)}</span>`;
+      selectedMoodEl.innerHTML = `<span class="mood-selected-label">${getMoodLabel(selectedMood)}</span>`;
     }
 
     // Enable save button
