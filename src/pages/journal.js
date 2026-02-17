@@ -59,7 +59,7 @@ export function renderJournal() {
                 ? `<img src="${entry.photo}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>`
                 : entry.photoRef
                   ? `<img data-photo-ref="${entry.photoRef}" alt="Uke ${entry.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-                  : (resolved.photoUrl ? `<img src="${resolved.photoUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')
+                  : ((resolved.photoUrl || resolved.mediaUrl) ? `<img src="${resolved.photoUrl || resolved.mediaUrl}" alt="Uke ${entry.week} magebilde" class="journal-photo"/>` : '')
           }
           ${entry.note ? `<p class="journal-note">${entry.note}</p>` : ''}
         </div>
@@ -217,7 +217,7 @@ function renderJourneyEvent(event) {
               ? `<img src="${event.photo}" alt="Uke ${event.week} magebilde" class="journal-photo"/>`
               : event.photoRef
                 ? `<img data-photo-ref="${event.photoRef}" alt="Uke ${event.week} magebilde" class="journal-photo journal-photo-deferred"/>`
-                : (resolved.photoUrl ? `<img src="${resolved.photoUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')
+                : ((resolved.photoUrl || resolved.mediaUrl) ? `<img src="${resolved.photoUrl || resolved.mediaUrl}" alt="Uke ${event.week} magebilde" class="journal-photo"/>` : '')
         }
         ${event.note ? `<p class="journal-note">${event.note}</p>` : ''}
       </div>
