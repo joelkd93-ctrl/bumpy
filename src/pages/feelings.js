@@ -117,13 +117,12 @@ export function renderFeelings() {
 
   const moodButtons = MOODS.map(mood => `
     <button
-      class="mood-btn ${todayEntry?.mood === mood.emoji ? 'selected' : ''}"
+      class="mood-btn mood-btn-text ${todayEntry?.mood === mood.emoji ? 'selected' : ''}"
       data-mood="${mood.emoji}"
       aria-label="${mood.label}"
       style="--mood-color:${mood.color};--mood-gradient:${mood.gradient}"
     >
-      <span class="mood-icon">${mood.icon}</span>
-      <span class="mood-label">${mood.label}</span>
+      <span class="mood-label mood-label-text">${mood.label}</span>
     </button>
   `).join('');
 
